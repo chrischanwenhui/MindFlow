@@ -11,6 +11,8 @@ import {
 } from './utils/formatReport';
 
 const NON_DIAGNOSTIC_NOTICE = 'This experience is designed for self-discovery and reflection only. It is not a clinical, medical, diagnostic, or official IQ assessment.';
+const LOCAL_SAVE_NOTICE = 'Progress is saved locally on this device/browser.';
+const COGNITIVE_UNKNOWN_NOTICE = "Using 'I don’t know' is treated as an unanswered reasoning signal, not a penalty.";
 
 type Screen = 'assessment' | 'about' | 'provide';
 type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report';
@@ -74,18 +76,36 @@ export function App() {
     setAssessmentView('landing');
   };
 
+  const saveAndContinueLater = () => {
+    setScreen('assessment');
+    setAssessmentView('landing');
+  };
+
+  const isQuestionFlow = screen === 'assessment' && assessmentView === 'question';
+
   return (
     <main className="app">
-      <nav className="top-nav no-print">
-        <button className="option" onClick={() => setScreen('assessment')}>
-          Assessment
-        </button>
-        <button className="option" onClick={() => setScreen('about')}>
-          About MindFlow
-        </button>
-        <button className="option" onClick={() => setScreen('provide')}>
-          What We Provide
-        </button>
+      <nav className={`top-nav no-print ${isQuestionFlow ? 'top-nav--compact' : ''}`}>
+        {isQuestionFlow ? (
+          <>
+            <strong className="brand">MindFlow</strong>
+            <button className="link-btn" onClick={() => setScreen('about')}>About</button>
+            <button className="link-btn" onClick={() => setScreen('provide')}>What We Provide</button>
+            <button className="link-btn" onClick={saveAndContinueLater}>Save & Exit</button>
+          </>
+        ) : (
+          <>
+            <button className="option" onClick={() => setScreen('assessment')}>
+              Assessment
+            </button>
+            <button className="option" onClick={() => setScreen('about')}>
+              About MindFlow
+            </button>
+            <button className="option" onClick={() => setScreen('provide')}>
+              What We Provide
+            </button>
+          </>
+        )}
       </nav>
 
       {screen === 'assessment' && assessmentView === 'landing' && (
@@ -100,6 +120,7 @@ export function App() {
         <section className="card">
           <h2>Assessment Start</h2>
           <p>Estimated time: 12–18 minutes. This report is non-diagnostic and intended for reflection only.</p>
+          <p className="disclaimer">{LOCAL_SAVE_NOTICE}</p>
           <div className="stack">
             <button onClick={startFreshAssessment}>Start Questions</button>
             <button className="option" onClick={resumeAssessment} disabled={!hasSavedProgress}>
@@ -131,6 +152,14 @@ export function App() {
               </button>
             ))}
           </div>
+          {current.hint && (
+            <details className="hint">
+              <summary>Need help understanding the question?</summary>
+              <p>{current.hint}</p>
+            </details>
+          )}
+          <button className="option" onClick={saveAndContinueLater}>Save & continue later</button>
+          <p className="disclaimer">{LOCAL_SAVE_NOTICE}</p>
           {current.section === 'cognitive' && <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>}
         </section>
       )}
@@ -187,6 +216,7 @@ export function App() {
           </ReportSection>
           <ReportSection title="Cognitive-Style Summary">
             <p>{report.cognitiveStyleSummary}</p>
+            <p className="disclaimer">{COGNITIVE_UNKNOWN_NOTICE}</p>
             <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
           </ReportSection>
           <ReportSection title="Strengths">
