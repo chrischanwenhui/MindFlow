@@ -102,7 +102,9 @@ export function App() {
           <p>Estimated time: 12–18 minutes. This report is non-diagnostic and intended for reflection only.</p>
           <div className="stack">
             <button onClick={startFreshAssessment}>Start Questions</button>
-            <button className="option" onClick={resumeAssessment} disabled={!hasSavedProgress}>Resume saved progress</button>
+            <button className="option" onClick={resumeAssessment} disabled={!hasSavedProgress}>
+              Resume saved progress
+            </button>
           </div>
           {!hasSavedProgress && <p className="disclaimer">No saved responses found yet. Start a new assessment to begin.</p>}
         </section>
@@ -148,8 +150,14 @@ export function App() {
           <h2>Self-Discovery Report Preview</h2>
           <p className="disclaimer">{buildReportReflection(report)}</p>
           <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
-          <div className="no-print"><button onClick={() => window.print()}>Print or Save as PDF</button></div>
-          <ReportSection title="Personality Type Estimate"><p>Your estimated personality type signal is <strong>{report.personalityTypeEstimate}</strong>.</p></ReportSection>
+          <div className="no-print">
+            <button onClick={() => window.print()}>Print or Save as PDF</button>
+          </div>
+          <ReportSection title="Personality Type Estimate">
+            <p>
+              Your estimated personality type signal is <strong>{report.personalityTypeEstimate}</strong>.
+            </p>
+          </ReportSection>
           <ReportSection title="Big Five / OCEAN">
             <div className="score-grid">
               {bigFiveScores.map((item) => (
@@ -174,11 +182,22 @@ export function App() {
               ))}
             </div>
           </ReportSection>
-          <ReportSection title="Motivation Pattern"><p>{report.motivationPattern} is your strongest estimated reflection signal right now.</p></ReportSection>
-          <ReportSection title="Cognitive-Style Summary"><p>{report.cognitiveStyleSummary}</p><p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p></ReportSection>
-          <ReportSection title="Strengths"><ul>{report.strengths.map((item) => <li key={item}>{item}</li>)}</ul></ReportSection>
-          <ReportSection title="Blind Spots"><ul>{report.blindSpots.map((item) => <li key={item}>{item}</li>)}</ul></ReportSection>
-          <ReportSection title="Growth Areas"><ul>{report.suggestedGrowthAreas.map((item) => <li key={item}>{item}</li>)}</ul></ReportSection>
+          <ReportSection title="Motivation Pattern">
+            <p>{report.motivationPattern} is your strongest estimated reflection signal right now.</p>
+          </ReportSection>
+          <ReportSection title="Cognitive-Style Summary">
+            <p>{report.cognitiveStyleSummary}</p>
+            <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
+          </ReportSection>
+          <ReportSection title="Strengths">
+            <ul>{report.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
+          </ReportSection>
+          <ReportSection title="Blind Spots">
+            <ul>{report.blindSpots.map((item) => <li key={item}>{item}</li>)}</ul>
+          </ReportSection>
+          <ReportSection title="Growth Areas">
+            <ul>{report.suggestedGrowthAreas.map((item) => <li key={item}>{item}</li>)}</ul>
+          </ReportSection>
           <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
           <button className="no-print" onClick={restartToLanding}>Restart</button>
         </section>
