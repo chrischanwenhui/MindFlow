@@ -4,12 +4,23 @@ body { margin: 0; }
 .app { min-height: 100vh; display: grid; place-items: center; padding: 1rem; gap: 1rem; }
 .top-nav { width: min(760px, 100%); display: flex; gap: 0.65rem; }
 .top-nav .option { text-align: center; }
+.top-nav--compact { justify-content: space-between; align-items: center; gap: .5rem; padding: .25rem .1rem; }
+.brand { font-size: .95rem; color: #163969; margin-right: auto; }
+.link-btn { border: 0; background: transparent; color: #1d4f91; padding: .25rem .35rem; font-size: .85rem; text-decoration: underline; width: auto; }
+.hint { margin: .65rem 0 .35rem; background: #f6fbff; border: 1px solid #d9e9f8; border-radius: 12px; padding: .5rem .65rem; }
+.hint summary { cursor: pointer; font-weight: 600; color: #163969; }
+.hint p { margin: .5rem 0 0; color: #445772; font-size: .92rem; }
 .card { width: min(760px, 100%); background: #fff; border-radius: 20px; padding: 1.25rem; box-shadow: 0 8px 28px rgba(0, 27, 68, 0.08); border: 1px solid #e7f0fa; }
 h1 span { color: #2189bb; font-size: 0.7em; display: block; }
 button { border: 0; padding: 0.7rem 1rem; border-radius: 12px; background: linear-gradient(120deg, #163969, #2bb6c8); color: white; font-weight: 600; cursor: pointer; }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 .stack { display: grid; gap: .65rem; margin-top: 1rem; }
 .option { text-align: left; background: #f4f8fd; color: #0b2445; border: 1px solid #d6e4f5; }
+.secondary-action {
+  background: #eef5fb;
+  color: #163969;
+  border: 1px solid #cfe0f2;
+}
 .progress { height: 8px; background: #e4eff9; border-radius: 999px; overflow: hidden; margin-bottom: .5rem; }
 .progress div { height: 100%; background: linear-gradient(90deg, #1d4f91, #57d0c6); }
 .disclaimer { color: #5f6d84; font-size: .9rem; }
@@ -30,6 +41,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   .card { padding: 1rem; border-radius: 16px; }
   button { width: 100%; }
   .top-nav { flex-direction: column; }
+  .top-nav--compact { flex-direction: row; flex-wrap: wrap; }
+  .top-nav--compact .link-btn { width: auto; }
 }
 
 @media print {
