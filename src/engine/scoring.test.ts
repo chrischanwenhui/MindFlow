@@ -10,4 +10,18 @@ describe('scoreAssessment', () => {
     expect(profile.strengths.length).toBeGreaterThan(0);
     expect(profile.cognitiveStyleSummary).toContain('non-diagnostic');
   });
+
+  it('uses per-question cognitive domains for strongest domain', () => {
+    const answers = questions
+      .filter((q) => q.section === 'cognitive')
+      .map((q) => ({ questionId: q.id, value: q.options[0].value, score: 0 }));
+
+    const spatialQuestion = questions.find((q) => q.id === 'cog-spatial-1');
+    if (!spatialQuestion) throw new Error('Expected cog-spatial-1 question to exist');
+
+    answers.push({ questionId: spatialQuestion.id, value: 'spatial', score: 2 });
+
+    const profile = scoreAssessment(questions, answers);
+    expect(profile.cognitiveStyleSummary).toContain('spatial');
+  });
 });

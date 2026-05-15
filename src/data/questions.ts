@@ -1,10 +1,12 @@
 export type Section = 'mbti' | 'ocean' | 'riasec' | 'motivation' | 'cognitive';
+export type CognitiveDomain = 'pattern' | 'verbal' | 'numerical' | 'spatial';
 
 export type Question = {
   id: string;
   section: Section;
   prompt: string;
   options: { label: string; value: string; score: number }[];
+  cognitiveDomain?: CognitiveDomain;
 };
 
 export const questions: Question[] = [
@@ -15,7 +17,7 @@ export const questions: Question[] = [
   { id: 'riasec-1', section: 'riasec', prompt: 'What sounds most energizing?', options: [{ label: 'Building systems/tools', value: 'Realistic', score: 2 }, { label: 'Investigating a complex problem', value: 'Investigative', score: 2 }, { label: 'Creating a visual concept', value: 'Artistic', score: 2 }] },
   { id: 'riasec-2', section: 'riasec', prompt: 'Pick one preferred work style.', options: [{ label: 'Teaching or helping', value: 'Social', score: 2 }, { label: 'Leading teams and pitching ideas', value: 'Enterprising', score: 2 }, { label: 'Organizing details and operations', value: 'Conventional', score: 2 }] },
   { id: 'motivation-1', section: 'motivation', prompt: 'Which fear tends to push your behavior?', options: [{ label: 'Being without support', value: 'Security-Seeking', score: 2 }, { label: 'Being seen as inadequate', value: 'Achievement-Driven', score: 2 }, { label: 'Loss of control', value: 'Autonomy-Protective', score: 2 }] },
-  { id: 'cog-pattern-1', section: 'cognitive', prompt: 'Pattern: 2, 4, 8, 16, ?', options: [{ label: '18', value: 'numerical', score: 0 }, { label: '24', value: 'numerical', score: 0 }, { label: '32', value: 'numerical', score: 2 }] },
-  { id: 'cog-verbal-1', section: 'cognitive', prompt: 'Verbal analogy: Seed is to Tree as Idea is to…', options: [{ label: 'Blueprint', value: 'verbal', score: 0 }, { label: 'Innovation', value: 'verbal', score: 2 }, { label: 'Brain', value: 'verbal', score: 0 }] },
-  { id: 'cog-spatial-1', section: 'cognitive', prompt: 'Spatial intuition: Rotating a “b” by 180° resembles…', options: [{ label: 'q', value: 'spatial', score: 2 }, { label: 'd', value: 'spatial', score: 0 }, { label: 'p', value: 'spatial', score: 0 }] }
+  { id: 'cog-pattern-1', section: 'cognitive', cognitiveDomain: 'pattern', prompt: 'Pattern: 2, 4, 8, 16, ?', options: [{ label: '18', value: 'pattern', score: 0 }, { label: '24', value: 'pattern', score: 0 }, { label: '32', value: 'pattern', score: 2 }] },
+  { id: 'cog-verbal-1', section: 'cognitive', cognitiveDomain: 'verbal', prompt: 'Verbal analogy: Seed is to Tree as Idea is to…', options: [{ label: 'Blueprint', value: 'verbal', score: 0 }, { label: 'Innovation', value: 'verbal', score: 2 }, { label: 'Brain', value: 'verbal', score: 0 }] },
+  { id: 'cog-spatial-1', section: 'cognitive', cognitiveDomain: 'spatial', prompt: 'Spatial intuition: Rotating a “b” by 180° resembles…', options: [{ label: 'q', value: 'spatial', score: 2 }, { label: 'd', value: 'spatial', score: 0 }, { label: 'p', value: 'spatial', score: 0 }] }
 ];

@@ -1,4 +1,4 @@
-import type { Question } from '../data/questions';
+import type { CognitiveDomain, Question } from '../data/questions';
 
 export type Answer = { questionId: string; value: string; score: number };
 
@@ -18,7 +18,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
   const riasec: Record<string, number> = { Realistic: 0, Investigative: 0, Artistic: 0, Social: 0, Enterprising: 0, Conventional: 0 };
   const motivations: Record<string, number> = {};
-  const cognitive: Record<string, number> = { pattern: 0, verbal: 0, numerical: 0, spatial: 0 };
+  const cognitive: Record<CognitiveDomain, number> = { pattern: 0, verbal: 0, numerical: 0, spatial: 0 };
 
   const qMap = new Map(questions.map((q) => [q.id, q]));
 
@@ -30,11 +30,8 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     if (question.section === 'ocean' && bigFive[answer.value] !== undefined) bigFive[answer.value] += answer.score;
     if (question.section === 'riasec' && riasec[answer.value] !== undefined) riasec[answer.value] += answer.score;
     if (question.section === 'motivation') motivations[answer.value] = (motivations[answer.value] ?? 0) + answer.score;
-    if (question.section === 'cognitive') {
-      if (answer.value === 'numerical') cognitive.numerical += answer.score;
-      if (answer.value === 'verbal') cognitive.verbal += answer.score;
-      if (answer.value === 'spatial') cognitive.spatial += answer.score;
-      cognitive.pattern += answer.score;
+    if (question.section === 'cognitive' && question.cognitiveDomain) {
+      cognitive[question.cognitiveDomain] += answer.score;
     }
   }
 
