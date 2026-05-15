@@ -29,14 +29,14 @@ Mindflow is a mobile-first self-discovery assessment web app focused on calm UX 
 
 GitHub Actions runs on every `push` and `pull_request` via `.github/workflows/ci.yml`.
 
-The CI pipeline uses Node 20 and runs:
+The CI pipeline uses Node 20 and currently runs:
 
-1. `npm ci`
+1. `npm install`
 2. `npm run lint`
 3. `npm run test`
 4. `npm run build`
 
-This ensures dependency reproducibility and release readiness before merge.
+> Temporary note: CI uses `npm install` right now because `package-lock.json` has not been generated in this environment due to npm registry access restrictions (`403 Forbidden`). Once `package-lock.json` is committed, switch CI back to `npm ci` for strict reproducible installs.
 
 ## Deploying to Vercel
 
