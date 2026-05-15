@@ -23,13 +23,13 @@ const likert = (value: string): QuestionOption[] => [
 ];
 
 const STRESS_HINT = 'Choose the option that feels closest most of the time, not what sounds ideal.';
-const COGNITIVE_HINTS: Record<CognitiveDomain, string> = {
+const COGNITIVE_HINTS = {
   pattern: 'Look for how the numbers change from one step to the next.',
   verbal: 'Find the relationship between the first pair, then apply the same relationship to the second pair.',
   numerical: 'Think about the original amount and how each percentage change is applied in sequence.',
   spatial: 'Focus on how shape orientation changes after rotation or folding.',
   memory: 'Keep the sequence order in mind, then locate the requested position carefully.'
-};
+} as const;
 
 const cognitiveUnknownOption = (domain: CognitiveDomain): QuestionOption => ({
   label: "I don't know",
