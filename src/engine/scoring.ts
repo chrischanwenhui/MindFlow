@@ -16,6 +16,19 @@ export type ProfileReport = {
   suggestedGrowthAreas: string[];
 };
 
+
+const FALLBACK_PATTERNS = {
+  motivation: 'Balanced Explorer',
+  cognitive: 'pattern',
+  stress: 'Balanced',
+  leadership: 'Balanced',
+  workstyle: 'Balanced'
+} as const;
+
+function getTopSignal(record: Record<string, number>, fallback: string): string {
+  return Object.entries(record).sort((a, b) => b[1] - a[1])[0]?.[0] ?? fallback;
+}
+
 export function scoreAssessment(questions: Question[], answers: Answer[]): ProfileReport {
   const mbti: Record<string, number> = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
@@ -45,11 +58,11 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   }
 
   const personalityTypeEstimate = `${mbti.E >= mbti.I ? 'E' : 'I'}${mbti.S >= mbti.N ? 'S' : 'N'}${mbti.T >= mbti.F ? 'T' : 'F'}${mbti.J >= mbti.P ? 'J' : 'P'}`;
-  const motivationPattern = Object.entries(motivations).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Balanced Explorer';
-  const topCognitive = Object.entries(cognitive).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'pattern';
-  const stressPattern = Object.entries(stress).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Balanced';
-  const leadershipPattern = Object.entries(leadership).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Balanced';
-  const workstylePattern = Object.entries(workstyle).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Balanced';
+  const motivationPattern = getTopSignal(motivations, FALLBACK_PATTERNS.motivation);
+  const topCognitive = getTopSignal(cognitive, FALLBACK_PATTERNS.cognitive);
+  const stressPattern = getTopSignal(stress, FALLBACK_PATTERNS.stress);
+  const leadershipPattern = getTopSignal(leadership, FALLBACK_PATTERNS.leadership);
+  const workstylePattern = getTopSignal(workstyle, FALLBACK_PATTERNS.workstyle);
 
   return {
     personalityTypeEstimate,
