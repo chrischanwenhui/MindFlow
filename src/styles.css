@@ -12,6 +12,24 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .progress div { height: 100%; background: linear-gradient(90deg, #1d4f91, #57d0c6); }
 .disclaimer { color: #5f6d84; font-size: .9rem; }
 
+.report-card { display: grid; gap: 0.75rem; }
+.report-section { padding-top: 0.2rem; border-top: 1px solid #ecf1f8; }
+.report-section h3 { margin: 0.6rem 0 0.3rem; font-size: 1rem; }
+.report-section p,
+.report-section ul { margin: 0.4rem 0; }
+.report-section ul { padding-left: 1.2rem; }
+
+.score-grid { display: grid; gap: 0.65rem; }
+.scorebar { background: #f9fbff; border: 1px solid #dfebf8; border-radius: 12px; padding: 0.55rem 0.65rem; }
+.scorebar__head { display: flex; justify-content: space-between; font-size: 0.92rem; margin-bottom: 0.35rem; }
+.scorebar__track { height: 8px; border-radius: 999px; background: #e8eff8; overflow: hidden; }
+.scorebar__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1d4f91, #57d0c6); }
+.scorebar__hint { color: #5f6d84; font-size: .82rem; }
+
+@media (min-width: 900px) {
+  .score-grid { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 640px) {
   .card { padding: 1rem; border-radius: 16px; }
   button { width: 100%; }

@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
+import { ReportSection } from './components/ReportSection';
+import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { scoreAssessment, type Answer } from './engine/scoring';
+import { buildReportReflection, toSortedScores } from './utils/formatReport';
 
 type Screen = 'landing' | 'start' | 'question' | 'results' | 'report';
 const STORAGE_KEY = 'mindflow_answers_v1';
@@ -31,6 +34,8 @@ export function App() {
   const progress = Math.round((index / questions.length) * 100);
 
   const report = useMemo(() => scoreAssessment(questions, answers), [answers]);
+  const bigFiveScores = useMemo(() => toSortedScores(report.bigFiveScores), [report]);
+  const riasecScores = useMemo(() => toSortedScores(report.riasecScores), [report]);
 
   const choose = (value: string, score: number) => {
     if (!current) return;
@@ -133,16 +138,53 @@ export function App() {
       )}
 
       {screen === 'report' && (
-        <section className="card">
+        <section className="card report-card">
           <h2>Self-Discovery Report Preview</h2>
-          <ul>
-            <li>Big Five: {JSON.stringify(report.bigFiveScores)}</li>
-            <li>RIASEC: {JSON.stringify(report.riasecScores)}</li>
-            <li>Strengths: {report.strengths.join(', ')}</li>
-            <li>Blind spots: {report.blindSpots.join(', ')}</li>
-            <li>Growth areas: {report.suggestedGrowthAreas.join(', ')}</li>
-          </ul>
-          <p className="disclaimer">This is not a clinical, diagnostic, or official IQ assessment.</p>
+          <p className="disclaimer">{buildReportReflection(report)}</p>
+
+          <ReportSection title="Personality Type Estimate">
+            <p>
+              Your estimated personality type signal is <strong>{report.personalityTypeEstimate}</strong>.
+            </p>
+          </ReportSection>
+
+          <ReportSection title="Big Five / OCEAN">
+            <div className="score-grid">
+              {bigFiveScores.map((item) => (
+                <ScoreBar key={item.label} label={item.label} score={item.score} />
+              ))}
+            </div>
+          </ReportSection>
+
+          <ReportSection title="RIASEC Career Interests">
+            <div className="score-grid">
+              {riasecScores.map((item) => (
+                <ScoreBar key={item.label} label={item.label} score={item.score} />
+              ))}
+            </div>
+          </ReportSection>
+
+          <ReportSection title="Motivation Pattern">
+            <p>{report.motivationPattern} is your strongest estimated reflection signal right now.</p>
+          </ReportSection>
+
+          <ReportSection title="Cognitive-Style Summary">
+            <p>{report.cognitiveStyleSummary}</p>
+          </ReportSection>
+
+          <ReportSection title="Strengths">
+            <ul>{report.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
+          </ReportSection>
+
+          <ReportSection title="Blind Spots">
+            <ul>{report.blindSpots.map((item) => <li key={item}>{item}</li>)}</ul>
+          </ReportSection>
+
+          <ReportSection title="Growth Areas">
+            <ul>{report.suggestedGrowthAreas.map((item) => <li key={item}>{item}</li>)}</ul>
+          </ReportSection>
+
+          <p className="disclaimer">This report is non-diagnostic and should be used only as a self-discovery reflection.</p>
           <button onClick={restartToLanding}>Restart</button>
         </section>
       )}
