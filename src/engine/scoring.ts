@@ -56,17 +56,16 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const leadership: Record<string, number> = {};
   const workstyle: Record<string, number> = {};
   const cognitive: Record<CognitiveDomain, number> = { pattern: 0, verbal: 0, numerical: 0, spatial: 0, memory: 0 };
-  const bigFiveContributions: Record<string, { score: number; min: number; max: number; count: number }> = {
-    open: { score: 0, min: 0, max: 0, count: 0 },
-    conscientiousness: { score: 0, min: 0, max: 0, count: 0 },
-    extraversion: { score: 0, min: 0, max: 0, count: 0 },
-    agreeableness: { score: 0, min: 0, max: 0, count: 0 },
-    neuroticism: { score: 0, min: 0, max: 0, count: 0 }
+  const bigFiveContributions: Record<string, { score: number; max: number; count: number }> = {
+    open: { score: 0, max: 0, count: 0 },
+    conscientiousness: { score: 0, max: 0, count: 0 },
+    extraversion: { score: 0, max: 0, count: 0 },
+    agreeableness: { score: 0, max: 0, count: 0 },
+    neuroticism: { score: 0, max: 0, count: 0 }
   };
   for (const question of questions) {
     if (question.section !== 'ocean' || !question.scoringDomain || !bigFiveContributions[question.scoringDomain]) continue;
     const scores = question.options.map((option) => option.score);
-    bigFiveContributions[question.scoringDomain].min += Math.min(...scores);
     bigFiveContributions[question.scoringDomain].max += Math.max(...scores);
   }
 
@@ -101,8 +100,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const workstylePattern = getTopSignal(workstyle, FALLBACK_PATTERNS.workstyle);
   const bigFiveNormalizedScores = Object.fromEntries(
     Object.entries(bigFiveContributions).map(([trait, values]) => {
-      const range = values.max - values.min;
-      const normalized = range > 0 ? ((values.score - values.min) / range) * 100 : 0;
+      const normalized = values.max > 0 ? (values.score / values.max) * 100 : 0;
       return [trait, clampPercent(normalized)];
     })
   );

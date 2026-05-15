@@ -35,8 +35,20 @@ describe('scoreAssessment', () => {
 
     expect(profileWithReverseHigh.bigFiveScores.conscientiousness).toBe(1);
     expect(profileWithPositiveHigh.bigFiveScores.conscientiousness).toBe(5);
-    expect(profileWithPositiveHigh.bigFiveNormalizedScores.conscientiousness).toBeLessThan(100);
+    expect(profileWithPositiveHigh.bigFiveNormalizedScores.conscientiousness).toBeLessThan(40);
     expect(profileWithPositiveHigh.bigFiveNormalizedScores.conscientiousness).toBeGreaterThan(0);
+  });
+
+  it('gives high normalized score when all answers in a trait are high after reverse adjustment', () => {
+    const traitQuestions = questions.filter((q) => q.section === 'ocean' && q.scoringDomain === 'conscientiousness');
+    const answers = traitQuestions.map((q) => ({
+      questionId: q.id,
+      value: 'conscientiousness',
+      score: q.scoringDirection === 'reverse' ? 1 : 5
+    }));
+    const profile = scoreAssessment(questions, answers);
+    expect(profile.bigFiveNormalizedScores.conscientiousness).toBeGreaterThanOrEqual(90);
+    expect(profile.bigFiveNormalizedScores.conscientiousness).toBeLessThanOrEqual(100);
   });
 
   it('keeps normalized Big Five scores in bounds', () => {
