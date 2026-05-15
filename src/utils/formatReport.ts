@@ -1,3 +1,4 @@
+import type { Question } from '../data/questions';
 import type { ProfileReport } from '../engine/scoring';
 
 function titleize(value: string): string {
@@ -7,12 +8,40 @@ function titleize(value: string): string {
     .trim();
 }
 
-export function toSortedScores(record: Record<string, number>) {
+export type SortedScoreItem = {
+  key: string;
+  label: string;
+  score: number;
+};
+
+export const BIG_FIVE_MAX_SCORES: Record<string, number> = {
+  open: 10,
+  conscientiousness: 10,
+  extraversion: 10,
+  agreeableness: 5,
+  neuroticism: 5
+};
+
+export function deriveRiasecMaxScores(allQuestions: Question[]): Record<string, number> {
+  const maxes: Record<string, number> = {};
+
+  for (const question of allQuestions) {
+    if (question.section !== 'riasec') continue;
+
+    for (const option of question.options) {
+      maxes[option.value] = (maxes[option.value] ?? 0) + option.score;
+    }
+  }
+
+  return maxes;
+}
+
+export function toSortedScores(record: Record<string, number>): SortedScoreItem[] {
   return Object.entries(record)
-    .map(([label, score]) => ({ label: titleize(label), score }))
+    .map(([key, score]) => ({ key, label: titleize(key), score }))
     .sort((a, b) => b.score - a.score);
 }
 
 export function buildReportReflection(_report: ProfileReport): string {
-  return `This estimated profile is a reflection signal of current preferences and cognitive-style tendencies. It is non-diagnostic and designed for self-discovery only.`;
+  return 'This reflection profile summarizes estimated traits and reasoning signals from your current responses. It is non-diagnostic and for self-discovery use.';
 }

@@ -18,7 +18,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
   const riasec: Record<string, number> = { Realistic: 0, Investigative: 0, Artistic: 0, Social: 0, Enterprising: 0, Conventional: 0 };
   const motivations: Record<string, number> = {};
-  const cognitive: Record<CognitiveDomain, number> = { pattern: 0, verbal: 0, numerical: 0, spatial: 0 };
+  const cognitive: Record<CognitiveDomain, number> = { pattern: 0, verbal: 0, numerical: 0, spatial: 0, memory: 0 };
 
   const qMap = new Map(questions.map((q) => [q.id, q]));
 
@@ -29,7 +29,9 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     if (question.section === 'mbti' && mbti[answer.value] !== undefined) mbti[answer.value] += answer.score;
     if (question.section === 'ocean' && bigFive[answer.value] !== undefined) bigFive[answer.value] += answer.score;
     if (question.section === 'riasec' && riasec[answer.value] !== undefined) riasec[answer.value] += answer.score;
-    if (question.section === 'motivation') motivations[answer.value] = (motivations[answer.value] ?? 0) + answer.score;
+    if (question.section === 'motivation' || question.section === 'stress' || question.section === 'leadership' || question.section === 'workstyle') {
+      motivations[answer.value] = (motivations[answer.value] ?? 0) + answer.score;
+    }
     if (question.section === 'cognitive' && question.cognitiveDomain) {
       cognitive[question.cognitiveDomain] += answer.score;
     }
@@ -44,7 +46,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     bigFiveScores: bigFive,
     riasecScores: riasec,
     motivationPattern,
-    cognitiveStyleSummary: `You showed your strongest performance in ${topCognitive} reasoning in this non-diagnostic self-discovery exercise.`,
+    cognitiveStyleSummary: `Your strongest cognitive-style reasoning signal appeared in ${topCognitive}. This is an estimated, non-diagnostic reflection for self-discovery.`,
     strengths: ['Pattern recognition under structure', 'Reflective self-observation', 'Adaptable learning mindset'],
     blindSpots: ['May over-index on one problem style', 'Can rush ambiguous questions'],
     suggestedGrowthAreas: ['Practice slower reasoning in unfamiliar formats', 'Balance social and solo feedback loops', 'Review errors for strategy, not just accuracy']
