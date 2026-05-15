@@ -32,7 +32,8 @@ function getTopSignal(record: Record<string, number>, fallback: string): string 
 }
 
 function isLikertQuestion(question: Question): boolean {
-  return question.options.length === 5 && question.options.every((option, index) => option.score === index + 1);
+  const scores = question.options.map((option) => option.score);
+  return scores.length === 5 && [1, 2, 3, 4, 5].every((score) => scores.includes(score));
 }
 
 function getEffectiveScore(question: Question, answer: Answer): number {
@@ -62,6 +63,12 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     agreeableness: { score: 0, min: 0, max: 0, count: 0 },
     neuroticism: { score: 0, min: 0, max: 0, count: 0 }
   };
+  for (const question of questions) {
+    if (question.section !== 'ocean' || !question.scoringDomain || !bigFiveContributions[question.scoringDomain]) continue;
+    const scores = question.options.map((option) => option.score);
+    bigFiveContributions[question.scoringDomain].min += Math.min(...scores);
+    bigFiveContributions[question.scoringDomain].max += Math.max(...scores);
+  }
 
   const qMap = new Map(questions.map((q) => [q.id, q]));
 
@@ -73,11 +80,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     if (question.section === 'mbti' && mbti[answer.value] !== undefined) mbti[answer.value] += effectiveScore;
     if (question.section === 'ocean' && bigFive[answer.value] !== undefined) {
       bigFive[answer.value] += effectiveScore;
-      const minScore = Math.min(...question.options.map((option) => option.score));
-      const maxScore = Math.max(...question.options.map((option) => option.score));
       bigFiveContributions[answer.value].score += effectiveScore;
-      bigFiveContributions[answer.value].min += minScore;
-      bigFiveContributions[answer.value].max += maxScore;
       bigFiveContributions[answer.value].count += 1;
     }
     if (question.section === 'riasec' && riasec[answer.value] !== undefined) riasec[answer.value] += effectiveScore;

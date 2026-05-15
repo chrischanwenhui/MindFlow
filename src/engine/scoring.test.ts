@@ -36,6 +36,7 @@ describe('scoreAssessment', () => {
     expect(profileWithReverseHigh.bigFiveScores.conscientiousness).toBe(1);
     expect(profileWithPositiveHigh.bigFiveScores.conscientiousness).toBe(5);
     expect(profileWithPositiveHigh.bigFiveNormalizedScores.conscientiousness).toBeLessThan(100);
+    expect(profileWithPositiveHigh.bigFiveNormalizedScores.conscientiousness).toBeGreaterThan(0);
   });
 
   it('keeps normalized Big Five scores in bounds', () => {
@@ -57,5 +58,19 @@ describe('scoreAssessment', () => {
 
     const profile = scoreAssessment(questions, [{ questionId: cognitiveQuestion.id, value: idk.value, score: idk.score }]);
     expect(profile.cognitiveStyleSummary).toContain('pattern');
+  });
+
+  it('keeps memory scoring unchanged and isolated from ocean reverse logic', () => {
+    const memoryQuestion = questions.find((q) => q.id === 'cog-memory-1');
+    const oceanReverse = questions.find((q) => q.id === 'ocean-open-3');
+    if (!memoryQuestion || !oceanReverse) throw new Error('Expected memory and ocean reverse questions');
+    const correctMemoryOption = memoryQuestion.options.find((o) => o.score === 2);
+    if (!correctMemoryOption) throw new Error('Expected correct memory option');
+    const profile = scoreAssessment(questions, [
+      { questionId: memoryQuestion.id, value: correctMemoryOption.value, score: correctMemoryOption.score },
+      { questionId: oceanReverse.id, value: 'open', score: 5 }
+    ]);
+    expect(profile.cognitiveStyleSummary).toContain('memory');
+    expect(profile.bigFiveScores.open).toBe(1);
   });
 });

@@ -15,6 +15,9 @@ export type Question = {
   groupLabel?: string;
   scoringDomain?: string;
   scoringDirection?: 'positive' | 'reverse';
+  memoryPrompt?: string;
+  memoryQuestion?: string;
+  revealSeconds?: number;
 };
 
 const likert = (value: string): QuestionOption[] => [
@@ -31,7 +34,7 @@ const COGNITIVE_HINTS = {
   verbal: 'Focus on meaning and logic, not only keyword similarity.',
   numerical: 'Translate the wording into numbers before comparing choices.',
   spatial: 'Mentally rotate, reflect, or fold while preserving relative positions.',
-  memory: 'Keep order stable first, then retrieve by position.'
+  memory: 'Keep the sequence order in mind, then locate the requested position carefully.'
 } as const;
 const cognitiveUnknownOption = (domain: CognitiveDomain): QuestionOption => ({ label: "I don't know", value: `${domain}-unknown`, score: 0 });
 const c = (q: Question): Question => ({ ...q, groupLabel: q.groupLabel ?? q.section.toUpperCase(), scoringDomain: q.scoringDomain ?? q.section });
@@ -116,8 +119,8 @@ export const questions: Question[] = [
     ['spatial',1,'easy','Spatial reasoning: Rotate letter “L” by 90° clockwise. It points…', [['Up-left',0],['Up-right',2],['Down-left',0],['Down-right',0]]],
     ['spatial',2,'medium','Spatial reasoning: A cube has opposite faces paired. If top is blue and bottom is green, they are…', [['Adjacent',0],['Opposite',2],['Same face',0],['Unknown by definition',0]]],
     ['spatial',3,'hard','Spatial reasoning: A paper arrow pointing right is reflected in a vertical mirror. It points…', [['Right',0],['Left',2],['Up',0],['Down',0]]],
-    ['memory',1,'easy','Working memory: Remember 7 - 1 - 4 - 9 - 2. What is the 2nd number?', [['1',2],['4',0],['7',0],['9',0]]],
-    ['memory',2,'medium','Working memory: Remember P - 3 - T - 8 - M - 6. Which came immediately after T?', [['8',2],['M',0],['3',0],['6',0]]],
-    ['memory',3,'hard','Working memory: Remember D - 5 - K - 1 - R - 9 - B. Which is 6th?', [['R',0],['9',2],['1',0],['B',0]]]
-  ].map(([d,n,diff,p,opts]) => c({id:`cog-${d}-${n}`, section:'cognitive', groupLabel:'Cognitive Style', scoringDomain:d as string, cognitiveDomain:d as CognitiveDomain, difficulty:diff as CognitiveDifficulty, hint:COGNITIVE_HINTS[d as CognitiveDomain], prompt:p as string, options:[...(opts as (string|number)[][]).map(([label,score])=>({label:label as string,value:d as string,score:score as number})), cognitiveUnknownOption(d as CognitiveDomain)]}))
+    ['memory',1,'easy','Working memory challenge','7 - 1 - 4 - 9 - 2','What was the 2nd number?', [['1',2],['4',0],['7',0],['9',0]]],
+    ['memory',2,'medium','Working memory challenge','P - 3 - T - 8 - M - 6','Which came immediately after T?', [['8',2],['M',0],['3',0],['6',0]]],
+    ['memory',3,'hard','Working memory challenge','D - 5 - K - 1 - R - 9 - B','Which is the 6th item?', [['R',0],['9',2],['1',0],['B',0]]]
+  ].map(([d,n,diff,p,memoryPrompt,memoryQuestion,opts]) => c({id:`cog-${d}-${n}`, section:'cognitive', groupLabel:'Cognitive Style', scoringDomain:d as string, cognitiveDomain:d as CognitiveDomain, difficulty:diff as CognitiveDifficulty, hint:COGNITIVE_HINTS[d as CognitiveDomain], prompt:p as string, memoryPrompt: d === 'memory' ? memoryPrompt as string : undefined, memoryQuestion: d === 'memory' ? memoryQuestion as string : undefined, revealSeconds: d === 'memory' ? 5 : undefined, options:[...(opts as (string|number)[][]).map(([label,score])=>({label:label as string,value:d as string,score:score as number})), cognitiveUnknownOption(d as CognitiveDomain)]}))
 ];

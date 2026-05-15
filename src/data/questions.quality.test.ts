@@ -15,6 +15,11 @@ describe('question quality checks', () => {
       expect(q.hint).toBeTruthy();
       expect(q.scoringDirection).not.toBe('reverse');
       expect(q.options.some((o) => o.label === "I don't know")).toBe(true);
+      if (q.cognitiveDomain === 'memory') {
+        expect(q.memoryPrompt?.trim().length).toBeGreaterThan(0);
+        expect(q.memoryQuestion?.trim().length).toBeGreaterThan(0);
+        expect((q.revealSeconds ?? 5)).toBeGreaterThan(0);
+      }
     }
   });
 
