@@ -4,7 +4,6 @@ import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { scoreAssessment, type Answer } from './engine/scoring';
 import {
-  BIG_FIVE_MAX_SCORES,
   buildReportReflection,
   deriveRiasecMaxScores,
   toSortedScores
@@ -188,13 +187,15 @@ export function App() {
             </p>
           </ReportSection>
           <ReportSection title="Big Five / OCEAN">
+            <p className="disclaimer">These scores are normalized reflection signals based on your responses, not clinical measurements.</p>
             <div className="score-grid">
               {bigFiveScores.map((item) => (
                 <ScoreBar
                   key={item.key}
-                  label={item.label}
-                  score={item.score}
-                  max={BIG_FIVE_MAX_SCORES[item.key]}
+                  label={`${item.label} — ${report.bigFiveSignalStrength[item.key] ?? 'Low signal'}`}
+                  score={report.bigFiveNormalizedScores[item.key] ?? 0}
+                  max={100}
+                  hint="Interpret this as a reflection signal, not a fixed identity."
                 />
               ))}
             </div>

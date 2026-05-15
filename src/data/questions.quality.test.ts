@@ -11,6 +11,9 @@ describe('question quality checks', () => {
     const cognitive = questions.filter((q) => q.section === 'cognitive');
     for (const q of cognitive) {
       expect(q.cognitiveDomain).toBeTruthy();
+      expect(q.difficulty).toBeTruthy();
+      expect(q.hint).toBeTruthy();
+      expect(q.scoringDirection).not.toBe('reverse');
       expect(q.options.some((o) => o.label === "I don't know")).toBe(true);
     }
   });
@@ -25,6 +28,7 @@ describe('question quality checks', () => {
         expect(o.value.length).toBeGreaterThan(0);
         expect(typeof o.score).toBe('number');
       }
+      expect(q.prompt.trim().length).toBeGreaterThan(0);
     }
   });
 });

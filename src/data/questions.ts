@@ -14,6 +14,7 @@ export type Question = {
   difficulty?: CognitiveDifficulty;
   groupLabel?: string;
   scoringDomain?: string;
+  scoringDirection?: 'positive' | 'reverse';
 };
 
 const likert = (value: string): QuestionOption[] => [
@@ -52,12 +53,27 @@ export const questions: Question[] = [
   ].map(([id,p,a,av,b,bv]) => c({id: id as string, section:'mbti', groupLabel:'MBTI Preference', scoringDomain:(id as string).split('-')[1], prompt:p as string, options:[{label:a as string,value:av as string,score:2},{label:b as string,value:bv as string,score:2}]})),
 
   ...[
-    ['ocean-open-1','I intentionally explore ideas that challenge my assumptions.','open'],['ocean-open-2','I enjoy trying unfamiliar methods when improving a workflow.','open'],['ocean-open-3','I look for broader connections across different fields.','open'],['ocean-open-4','I prefer variety over repeating the same approach every week.','open'],
-    ['ocean-cons-1','I deliver commitments even when supervision is low.','conscientiousness'],['ocean-cons-2','I break large goals into trackable actions.','conscientiousness'],['ocean-cons-3','I protect focus by limiting avoidable context switching.','conscientiousness'],['ocean-cons-4','I usually close loose ends before moving on.','conscientiousness'],
-    ['ocean-extra-1','I gain energy from active collaboration.','extraversion'],['ocean-extra-2','I am comfortable initiating conversations in new groups.','extraversion'],['ocean-extra-3','I naturally become more expressive in team settings.','extraversion'],['ocean-extra-4','I often prefer discussing ideas live rather than asynchronously.','extraversion'],
-    ['ocean-agree-1','I look for solutions where all parties can keep dignity.','agreeableness'],['ocean-agree-2','I make room for others before pushing my own view.','agreeableness'],['ocean-agree-3','I can challenge ideas without escalating tension.','agreeableness'],['ocean-agree-4','I am patient with different working paces.','agreeableness'],
-    ['ocean-neuro-1','Uncertainty can affect my focus more than I want.','neuroticism'],['ocean-neuro-2','I replay unresolved issues after work hours.','neuroticism']
-  ].map(([id,p,v]) => c({id:id as string, section:'ocean', groupLabel:'Big Five / OCEAN', scoringDomain:v as string, prompt:p as string, options:likert(v as string)})),
+    ['ocean-open-1', 'I enjoy exploring ideas that challenge my current views.', 'open', 'positive'],
+    ['ocean-open-2', 'I often seek new methods when a routine approach works only moderately well.', 'open', 'positive'],
+    ['ocean-open-3', 'I prefer familiar routines and rarely seek new ways of thinking.', 'open', 'reverse'],
+    ['ocean-open-4', 'When faced with an unfamiliar perspective, I usually dismiss it quickly.', 'open', 'reverse'],
+    ['ocean-cons-1', 'I keep track of tasks even when nobody is checking.', 'conscientiousness', 'positive'],
+    ['ocean-cons-2', 'I usually break goals into specific, trackable steps.', 'conscientiousness', 'positive'],
+    ['ocean-cons-3', 'I often leave important tasks until the last possible moment.', 'conscientiousness', 'reverse'],
+    ['ocean-cons-4', 'I frequently move on before I have closed key details.', 'conscientiousness', 'reverse'],
+    ['ocean-extra-1', 'I gain energy through active interaction with others.', 'extraversion', 'positive'],
+    ['ocean-extra-2', 'In new groups, I am usually comfortable initiating conversation.', 'extraversion', 'positive'],
+    ['ocean-extra-3', 'After social interaction, I usually need a long period alone before I feel steady again.', 'extraversion', 'reverse'],
+    ['ocean-extra-4', 'I generally prefer working quietly alone over discussing ideas in real time.', 'extraversion', 'reverse'],
+    ['ocean-agree-1', 'I look for cooperative outcomes in disagreement.', 'agreeableness', 'positive'],
+    ['ocean-agree-2', 'I try to keep respect intact even when views are very different.', 'agreeableness', 'positive'],
+    ['ocean-agree-3', 'When there is conflict, I usually focus on winning the point rather than preserving harmony.', 'agreeableness', 'reverse'],
+    ['ocean-agree-4', 'If someone slows progress, I tend to press my agenda instead of adapting.', 'agreeableness', 'reverse'],
+    ['ocean-neuro-1', 'Under uncertainty, I feel tension that affects focus.', 'neuroticism', 'positive'],
+    ['ocean-neuro-2', 'I replay unresolved issues long after the moment has passed.', 'neuroticism', 'positive'],
+    ['ocean-neuro-3', 'Even under pressure, I usually remain emotionally steady.', 'neuroticism', 'reverse'],
+    ['ocean-neuro-4', 'Unexpected setbacks rarely disturb my emotional balance for long.', 'neuroticism', 'reverse']
+  ].map(([id,p,v,direction]) => c({id:id as string, section:'ocean', groupLabel:'Big Five / OCEAN', scoringDomain:v as string, scoringDirection: direction as 'positive' | 'reverse', prompt:p as string, options:likert(v as string)})),
 
   ...[
     ['riasec-1','Which task feels most energizing?',[['Build or repair a practical system','Realistic'],['Investigate root causes in a complex issue','Investigative'],['Design an original concept or experience','Artistic']]],
