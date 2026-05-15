@@ -1,49 +1,63 @@
 # Mindflow by Eirene Stack
 
-Mindflow is a **mobile-first self-discovery assessment web app**.
+Mindflow is a mobile-first self-discovery assessment web app focused on calm UX and deterministic local scoring.
 
-It combines:
-- personality preference signals (MBTI-style dimensions)
-- Big Five/OCEAN-style traits
-- RIASEC-style career interests
-- enneagram-inspired motivation patterns
-- cognitive-style reasoning prompts (pattern, verbal, numerical, spatial)
-
-> This app is for personal insight only and is **non-diagnostic**.
+> This app is for personal insight only and is **non-diagnostic**.  
 > It is **not a clinical, diagnostic, or official IQ assessment**.
 
-## MVP included in this repo
+## Local setup
 
-- Landing page
-- Assessment start page
-- Question flow with progress indicator
-- Results summary page
-- Report preview page
-- Deterministic local scoring engine
-- Local persistence with `localStorage`
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the local dev server:
+   ```bash
+   npm run dev
+   ```
+3. Open the URL shown by Vite (usually `http://localhost:5173`).
 
-## Tech stack
+## NPM commands
 
-- React + TypeScript
-- Vite
-- Vitest
+- `npm run dev` – start Vite in development mode.
+- `npm run lint` – TypeScript type-check (`tsc --noEmit`).
+- `npm run test` – run Vitest test suite.
+- `npm run build` – generate production build in `dist/`.
+- `npm run preview` – preview production build locally.
 
-## Scripts
+## CI
 
-- `npm install`
-- `npm run dev` – start local server
-- `npm run build` – production build
-- `npm run lint` – type-check
-- `npm run test` – run tests
+GitHub Actions runs on every `push` and `pull_request` via `.github/workflows/ci.yml`.
+
+The CI pipeline uses Node 20 and runs:
+
+1. `npm ci`
+2. `npm run lint`
+3. `npm run test`
+4. `npm run build`
+
+This ensures dependency reproducibility and release readiness before merge.
+
+## Deploying to Vercel
+
+Use these settings when creating the Vercel project:
+
+- **Framework Preset:** `Vite`
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+
+After connecting the repository, Vercel will build and deploy automatically on pushes to your selected branch.
 
 ## Project structure
 
-- `src/App.tsx` – screen flow and UI
+- `src/App.tsx` – screen flow and UI logic
 - `src/data/questions.ts` – data-driven question bank
 - `src/engine/scoring.ts` – deterministic scoring/profile generation
-- `src/engine/scoring.test.ts` – basic scoring tests
+- `src/engine/scoring.test.ts` – scoring tests
 - `src/styles.css` – mobile-first styling
 
-## Notes
+## Current scope and limitations
 
-This MVP intentionally uses local state/localStorage and keeps architecture simple so Supabase-backed accounts and report storage can be added in a future PR.
+- Uses local state and localStorage only (no accounts/cloud sync yet).
+- No backend, auth, or external profile storage in this PR.
+- Assessment remains intentionally lightweight and MVP-oriented.
