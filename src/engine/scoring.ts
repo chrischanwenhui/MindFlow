@@ -8,6 +8,9 @@ export type ProfileReport = {
   riasecScores: Record<string, number>;
   motivationPattern: string;
   cognitiveStyleSummary: string;
+  stressPattern: string;
+  leadershipPattern: string;
+  workstylePattern: string;
   strengths: string[];
   blindSpots: string[];
   suggestedGrowthAreas: string[];
@@ -18,6 +21,9 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
   const riasec: Record<string, number> = { Realistic: 0, Investigative: 0, Artistic: 0, Social: 0, Enterprising: 0, Conventional: 0 };
   const motivations: Record<string, number> = {};
+  const stress: Record<string, number> = {};
+  const leadership: Record<string, number> = {};
+  const workstyle: Record<string, number> = {};
   const cognitive: Record<CognitiveDomain, number> = { pattern: 0, verbal: 0, numerical: 0, spatial: 0, memory: 0 };
 
   const qMap = new Map(questions.map((q) => [q.id, q]));
@@ -29,9 +35,10 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     if (question.section === 'mbti' && mbti[answer.value] !== undefined) mbti[answer.value] += answer.score;
     if (question.section === 'ocean' && bigFive[answer.value] !== undefined) bigFive[answer.value] += answer.score;
     if (question.section === 'riasec' && riasec[answer.value] !== undefined) riasec[answer.value] += answer.score;
-    if (question.section === 'motivation' || question.section === 'stress' || question.section === 'leadership' || question.section === 'workstyle') {
-      motivations[answer.value] = (motivations[answer.value] ?? 0) + answer.score;
-    }
+    if (question.section === 'motivation') motivations[answer.value] = (motivations[answer.value] ?? 0) + answer.score;
+    if (question.section === 'stress') stress[answer.value] = (stress[answer.value] ?? 0) + answer.score;
+    if (question.section === 'leadership') leadership[answer.value] = (leadership[answer.value] ?? 0) + answer.score;
+    if (question.section === 'workstyle') workstyle[answer.value] = (workstyle[answer.value] ?? 0) + answer.score;
     if (question.section === 'cognitive' && question.cognitiveDomain) {
       cognitive[question.cognitiveDomain] += answer.score;
     }
@@ -40,6 +47,9 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const personalityTypeEstimate = `${mbti.E >= mbti.I ? 'E' : 'I'}${mbti.S >= mbti.N ? 'S' : 'N'}${mbti.T >= mbti.F ? 'T' : 'F'}${mbti.J >= mbti.P ? 'J' : 'P'}`;
   const motivationPattern = Object.entries(motivations).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Balanced Explorer';
   const topCognitive = Object.entries(cognitive).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'pattern';
+  const stressPattern = Object.entries(stress).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Balanced';
+  const leadershipPattern = Object.entries(leadership).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Balanced';
+  const workstylePattern = Object.entries(workstyle).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Balanced';
 
   return {
     personalityTypeEstimate,
@@ -47,6 +57,9 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     riasecScores: riasec,
     motivationPattern,
     cognitiveStyleSummary: `Your strongest cognitive-style reasoning signal appeared in ${topCognitive}. This is an estimated, non-diagnostic reflection for self-discovery.`,
+    stressPattern,
+    leadershipPattern,
+    workstylePattern,
     strengths: ['Pattern recognition under structure', 'Reflective self-observation', 'Adaptable learning mindset'],
     blindSpots: ['May over-index on one problem style', 'Can rush ambiguous questions'],
     suggestedGrowthAreas: ['Practice slower reasoning in unfamiliar formats', 'Balance social and solo feedback loops', 'Review errors for strategy, not just accuracy']
