@@ -23,7 +23,9 @@ min-height: 100dvh;
 .top-nav--compact {
   position: sticky;
   top: 0;
-  z-index: 5;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky, 5);
   justify-content: space-between;
   gap: 0.35rem;
   padding: 0.35rem 0;
