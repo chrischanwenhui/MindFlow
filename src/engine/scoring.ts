@@ -100,6 +100,8 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const workstylePattern = getTopSignal(workstyle, FALLBACK_PATTERNS.workstyle);
   const bigFiveNormalizedScores = Object.fromEntries(
     Object.entries(bigFiveContributions).map(([trait, values]) => {
+      // Unanswered OCEAN items contribute no evidence. We normalize against full possible max
+      // to prevent one-answer inflation without treating missing answers as minimum trait scores.
       const normalized = values.max > 0 ? (values.score / values.max) * 100 : 0;
       return [trait, clampPercent(normalized)];
     })
