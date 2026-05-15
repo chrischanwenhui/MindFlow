@@ -5,6 +5,8 @@ import { questions } from './data/questions';
 import { scoreAssessment, type Answer } from './engine/scoring';
 import { buildReportReflection, toSortedScores } from './utils/formatReport';
 
+const NON_DIAGNOSTIC_NOTICE = 'This experience is designed for self-discovery and reflection only. It is not a clinical, medical, diagnostic, or official IQ assessment.';
+
 type Screen = 'assessment' | 'about' | 'provide';
 type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report';
 const STORAGE_KEY = 'mindflow_answers_v1';
@@ -100,6 +102,7 @@ export function App() {
           <small>{index + 1} / {questions.length}</small>
           <h3>{current.prompt}</h3>
           <div className="stack">{current.options.map((o) => <button key={o.label} className="option" onClick={() => choose(o.value, o.score)}>{o.label}</button>)}</div>
+          {current.section === 'cognitive' && <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>}
         </section>
       )}
 
@@ -117,16 +120,17 @@ export function App() {
         <section className="card report-card print-report">
           <h2>Self-Discovery Report Preview</h2>
           <p className="disclaimer">{buildReportReflection(report)}</p>
+          <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
           <div className="no-print"><button onClick={() => window.print()}>Print or Save as PDF</button></div>
           <ReportSection title="Personality Type Estimate"><p>Your estimated personality type signal is <strong>{report.personalityTypeEstimate}</strong>.</p></ReportSection>
           <ReportSection title="Big Five / OCEAN"><div className="score-grid">{bigFiveScores.map((item) => <ScoreBar key={item.label} label={item.label} score={item.score} />)}</div></ReportSection>
           <ReportSection title="RIASEC Career Interests"><div className="score-grid">{riasecScores.map((item) => <ScoreBar key={item.label} label={item.label} score={item.score} />)}</div></ReportSection>
           <ReportSection title="Motivation Pattern"><p>{report.motivationPattern} is your strongest estimated reflection signal right now.</p></ReportSection>
-          <ReportSection title="Cognitive-Style Summary"><p>{report.cognitiveStyleSummary}</p></ReportSection>
+          <ReportSection title="Cognitive-Style Summary"><p>{report.cognitiveStyleSummary}</p><p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p></ReportSection>
           <ReportSection title="Strengths"><ul>{report.strengths.map((item) => <li key={item}>{item}</li>)}</ul></ReportSection>
           <ReportSection title="Blind Spots"><ul>{report.blindSpots.map((item) => <li key={item}>{item}</li>)}</ul></ReportSection>
           <ReportSection title="Growth Areas"><ul>{report.suggestedGrowthAreas.map((item) => <li key={item}>{item}</li>)}</ul></ReportSection>
-          <p className="disclaimer">This report is non-diagnostic. It does not provide clinical judgment, IQ scoring, or psychological diagnosis.</p>
+          <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
           <button className="no-print" onClick={restartToLanding}>Restart</button>
         </section>
       )}
