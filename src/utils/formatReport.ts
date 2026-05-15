@@ -14,5 +14,5 @@ export function toSortedScores(record: Record<string, number>) {
 }
 
 export function buildReportReflection(_report: ProfileReport): string {
-  return `This estimated profile is a reflection signal of current preferences and cognitive-style tendencies. It is non-diagnostic and designed for self-discovery only.`;
+  return 'This reflection profile summarizes estimated traits and reasoning signals from your current responses. It is non-diagnostic and for self-discovery use.';
 }
