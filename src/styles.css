@@ -28,7 +28,7 @@ min-height: 100dvh;
   gap: 0.35rem;
   padding: 0.35rem 0;
   margin-bottom: 0.15rem;
-  background: #f7fbff;
+:root { --bg-color: #f7fbff; font-family: Inter, system-ui, sans-serif; color: #12233d; background: var(--bg-color); }
 }
 .brand { font-size: .88rem; color: #163969; margin-right: auto; font-weight: 700; }
 .link-btn { border: 0; background: transparent; color: #1d4f91; padding: .2rem .3rem; font-size: .78rem; text-decoration: underline; width: auto; border-radius: 8px; }
