@@ -84,7 +84,7 @@ export function App() {
   const isQuestionFlow = screen === 'assessment' && assessmentView === 'question';
 
   return (
-    <main className="app">
+    <main className={`app ${isQuestionFlow ? 'assessment-shell' : ''}`.trim()}>
       <nav className={`top-nav no-print ${isQuestionFlow ? 'top-nav--compact' : ''}`}>
         {isQuestionFlow ? (
           <>
@@ -132,7 +132,7 @@ export function App() {
       )}
 
       {screen === 'assessment' && assessmentView === 'question' && current && (
-        <section className="card" aria-live="polite">
+        <section className="card question-card" aria-live="polite">
           <div
             className="progress"
             role="progressbar"
@@ -158,8 +158,8 @@ export function App() {
               <p>{current.hint}</p>
             </details>
           )}
-          <button className="secondary-action" onClick={saveAndContinueLater}>Save & Exit</button>
           <p className="disclaimer">{LOCAL_SAVE_NOTICE}</p>
+          <button className="secondary-action" onClick={saveAndContinueLater}>Save & Exit</button>
           {current.section === 'cognitive' && <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>}
         </section>
       )}
