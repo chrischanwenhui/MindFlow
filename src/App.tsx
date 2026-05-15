@@ -3,7 +3,12 @@ import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { scoreAssessment, type Answer } from './engine/scoring';
-import { buildReportReflection, toSortedScores } from './utils/formatReport';
+import {
+  BIG_FIVE_MAX_SCORES,
+  buildReportReflection,
+  deriveRiasecMaxScores,
+  toSortedScores
+} from './utils/formatReport';
 
 const NON_DIAGNOSTIC_NOTICE = 'This experience is designed for self-discovery and reflection only. It is not a clinical, medical, diagnostic, or official IQ assessment.';
 
@@ -38,6 +43,7 @@ export function App() {
   const report = useMemo(() => scoreAssessment(questions, answers), [answers]);
   const bigFiveScores = useMemo(() => toSortedScores(report.bigFiveScores), [report]);
   const riasecScores = useMemo(() => toSortedScores(report.riasecScores), [report]);
+  const riasecMaxScores = useMemo(() => deriveRiasecMaxScores(questions), []);
 
   const choose = (value: string, score: number) => {
     if (!current) return;
@@ -71,9 +77,15 @@ export function App() {
   return (
     <main className="app">
       <nav className="top-nav no-print">
-        <button className="option" onClick={() => setScreen('assessment')}>Assessment</button>
-        <button className="option" onClick={() => setScreen('about')}>About MindFlow</button>
-        <button className="option" onClick={() => setScreen('provide')}>What We Provide</button>
+        <button className="option" onClick={() => setScreen('assessment')}>
+          Assessment
+        </button>
+        <button className="option" onClick={() => setScreen('about')}>
+          About MindFlow
+        </button>
+        <button className="option" onClick={() => setScreen('provide')}>
+          What We Provide
+        </button>
       </nav>
 
       {screen === 'assessment' && assessmentView === 'landing' && (
@@ -98,10 +110,25 @@ export function App() {
 
       {screen === 'assessment' && assessmentView === 'question' && current && (
         <section className="card" aria-live="polite">
-          <div className="progress" role="progressbar" aria-label="Assessment progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div style={{ width: `${progress}%` }} /></div>
+          <div
+            className="progress"
+            role="progressbar"
+            aria-label="Assessment progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+          >
+            <div style={{ width: `${progress}%` }} />
+          </div>
           <small>{index + 1} / {questions.length}</small>
           <h3>{current.prompt}</h3>
-          <div className="stack">{current.options.map((o) => <button key={o.label} className="option" onClick={() => choose(o.value, o.score)}>{o.label}</button>)}</div>
+          <div className="stack">
+            {current.options.map((o) => (
+              <button key={o.label} className="option" onClick={() => choose(o.value, o.score)}>
+                {o.label}
+              </button>
+            ))}
+          </div>
           {current.section === 'cognitive' && <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>}
         </section>
       )}
@@ -123,8 +150,30 @@ export function App() {
           <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
           <div className="no-print"><button onClick={() => window.print()}>Print or Save as PDF</button></div>
           <ReportSection title="Personality Type Estimate"><p>Your estimated personality type signal is <strong>{report.personalityTypeEstimate}</strong>.</p></ReportSection>
-          <ReportSection title="Big Five / OCEAN"><div className="score-grid">{bigFiveScores.map((item) => <ScoreBar key={item.label} label={item.label} score={item.score} />)}</div></ReportSection>
-          <ReportSection title="RIASEC Career Interests"><div className="score-grid">{riasecScores.map((item) => <ScoreBar key={item.label} label={item.label} score={item.score} />)}</div></ReportSection>
+          <ReportSection title="Big Five / OCEAN">
+            <div className="score-grid">
+              {bigFiveScores.map((item) => (
+                <ScoreBar
+                  key={item.key}
+                  label={item.label}
+                  score={item.score}
+                  max={BIG_FIVE_MAX_SCORES[item.key]}
+                />
+              ))}
+            </div>
+          </ReportSection>
+          <ReportSection title="RIASEC Career Interests">
+            <div className="score-grid">
+              {riasecScores.map((item) => (
+                <ScoreBar
+                  key={item.key}
+                  label={item.label}
+                  score={item.score}
+                  max={riasecMaxScores[item.key]}
+                />
+              ))}
+            </div>
+          </ReportSection>
           <ReportSection title="Motivation Pattern"><p>{report.motivationPattern} is your strongest estimated reflection signal right now.</p></ReportSection>
           <ReportSection title="Cognitive-Style Summary"><p>{report.cognitiveStyleSummary}</p><p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p></ReportSection>
           <ReportSection title="Strengths"><ul>{report.strengths.map((item) => <li key={item}>{item}</li>)}</ul></ReportSection>
