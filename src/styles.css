@@ -16,6 +16,11 @@ button { border: 0; padding: 0.7rem 1rem; border-radius: 12px; background: linea
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 .stack { display: grid; gap: .65rem; margin-top: 1rem; }
 .option { text-align: left; background: #f4f8fd; color: #0b2445; border: 1px solid #d6e4f5; }
+.secondary-action {
+  background: #eef5fb;
+  color: #163969;
+  border: 1px solid #cfe0f2;
+}
 .progress { height: 8px; background: #e4eff9; border-radius: 999px; overflow: hidden; margin-bottom: .5rem; }
 .progress div { height: 100%; background: linear-gradient(90deg, #1d4f91, #57d0c6); }
 .disclaimer { color: #5f6d84; font-size: .9rem; }

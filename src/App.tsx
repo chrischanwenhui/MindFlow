@@ -158,7 +158,7 @@ export function App() {
               <p>{current.hint}</p>
             </details>
           )}
-          <button onClick={saveAndContinueLater}>Save & Exit</button>
+          <button className="secondary-action" onClick={saveAndContinueLater}>Save & Exit</button>
           <p className="disclaimer">{LOCAL_SAVE_NOTICE}</p>
           {current.section === 'cognitive' && <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>}
         </section>

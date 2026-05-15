@@ -31,9 +31,9 @@ const COGNITIVE_HINTS: Record<CognitiveDomain, string> = {
   memory: 'Keep the sequence order in mind, then locate the requested position carefully.'
 };
 
-const cognitiveUnknownOption = (domain?: CognitiveDomain): QuestionOption => ({
+const cognitiveUnknownOption = (domain: CognitiveDomain): QuestionOption => ({
   label: "I don't know",
-  value: domain ? `${domain}-unknown` : 'unknown',
+  value: `${domain}-unknown`,
   score: 0
 });
 
