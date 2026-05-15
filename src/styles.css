@@ -1,25 +1,59 @@
 :root { font-family: Inter, system-ui, sans-serif; color: #12233d; background: #f7fbff; }
 * { box-sizing: border-box; }
 body { margin: 0; }
-.app { min-height: 100vh; display: grid; place-items: center; padding: 1rem; gap: 1rem; }
-.top-nav { width: min(760px, 100%); display: flex; gap: 0.65rem; }
+.app {
+min-height: 100vh;
+min-height: 100dvh;
+  display: grid;
+  align-items: stretch;
+  justify-items: center;
+  padding: clamp(0.85rem, 2.8vw, 1.25rem);
+  padding-top: clamp(1rem, 4vh, 2rem);
+  gap: 0.75rem;
+}
+.assessment-shell { align-content: start; }
+.top-nav {
+  width: min(720px, 100%);
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
 .top-nav .option { text-align: center; }
-.top-nav--compact { justify-content: space-between; align-items: center; gap: .5rem; padding: .25rem .1rem; }
-.brand { font-size: .95rem; color: #163969; margin-right: auto; }
-.link-btn { border: 0; background: transparent; color: #1d4f91; padding: .25rem .35rem; font-size: .85rem; text-decoration: underline; width: auto; }
-.hint { margin: .65rem 0 .35rem; background: #f6fbff; border: 1px solid #d9e9f8; border-radius: 12px; padding: .5rem .65rem; }
+.top-nav--compact {
+  position: sticky;
+  top: 0;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky, 5);
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.35rem 0;
+  margin-bottom: 0.15rem;
+:root { --bg-color: #f7fbff; font-family: Inter, system-ui, sans-serif; color: #12233d; background: var(--bg-color); }
+}
+.brand { font-size: .88rem; color: #163969; margin-right: auto; font-weight: 700; }
+.link-btn { border: 0; background: transparent; color: #1d4f91; padding: .2rem .3rem; font-size: .78rem; text-decoration: underline; width: auto; border-radius: 8px; }
+.hint { margin: .5rem 0 .35rem; background: #f6fbff; border: 1px solid #d9e9f8; border-radius: 12px; padding: .5rem .65rem; }
 .hint summary { cursor: pointer; font-weight: 600; color: #163969; }
 .hint p { margin: .5rem 0 0; color: #445772; font-size: .92rem; }
-.card { width: min(760px, 100%); background: #fff; border-radius: 20px; padding: 1.25rem; box-shadow: 0 8px 28px rgba(0, 27, 68, 0.08); border: 1px solid #e7f0fa; }
+.card { width: min(720px, 100%); background: #fff; border-radius: 18px; padding: 1rem; box-shadow: 0 8px 28px rgba(0, 27, 68, 0.08); border: 1px solid #e7f0fa; margin: 0; }
+.question-card { margin-top: 0; }
 h1 span { color: #2189bb; font-size: 0.7em; display: block; }
 button { border: 0; padding: 0.7rem 1rem; border-radius: 12px; background: linear-gradient(120deg, #163969, #2bb6c8); color: white; font-weight: 600; cursor: pointer; }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 .stack { display: grid; gap: .65rem; margin-top: 1rem; }
 .option { text-align: left; background: #f4f8fd; color: #0b2445; border: 1px solid #d6e4f5; }
 .secondary-action {
-  background: #eef5fb;
-  color: #163969;
-  border: 1px solid #cfe0f2;
+  margin-top: 0.1rem;
+  padding: 0.25rem 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-radius: 0;
+  background: transparent;
+  color: #305886;
+  border: 0;
+  text-decoration: underline;
 }
 .progress { height: 8px; background: #e4eff9; border-radius: 999px; overflow: hidden; margin-bottom: .5rem; }
 .progress div { height: 100%; background: linear-gradient(90deg, #1d4f91, #57d0c6); }
@@ -38,11 +72,15 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (min-width: 900px) { .score-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 640px) {
-  .card { padding: 1rem; border-radius: 16px; }
+  .app { gap: 0.55rem; padding-inline: 0.7rem; }
+  .card { padding: 0.9rem; border-radius: 14px; }
   button { width: 100%; }
-  .top-nav { flex-direction: column; }
-  .top-nav--compact { flex-direction: row; flex-wrap: wrap; }
+  .top-nav { gap: 0.45rem; margin-bottom: 0; }
+  .top-nav .option { width: auto; padding: 0.5rem 0.7rem; border-radius: 999px; }
+text-align: center;
+justify-content: center;
   .top-nav--compact .link-btn { width: auto; }
+  .question-card h3 { margin: 0.45rem 0 0.6rem; font-size: 1.12rem; line-height: 1.35; }
 }
 
 @media print {
