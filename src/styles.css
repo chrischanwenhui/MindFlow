@@ -1,0 +1,12 @@
+:root { font-family: Inter, system-ui, sans-serif; color: #12233d; background: #f7fbff; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.app { min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
+.card { width: min(760px, 100%); background: #fff; border-radius: 20px; padding: 1.25rem; box-shadow: 0 8px 28px rgba(0, 27, 68, 0.08); border: 1px solid #e7f0fa; }
+h1 span { color: #2189bb; font-size: 0.7em; display: block; }
+button { border: 0; padding: 0.7rem 1rem; border-radius: 12px; background: linear-gradient(120deg, #163969, #2bb6c8); color: white; font-weight: 600; cursor: pointer; }
+.stack { display: grid; gap: .65rem; margin-top: 1rem; }
+.option { text-align: left; background: #f4f8fd; color: #0b2445; border: 1px solid #d6e4f5; }
+.progress { height: 8px; background: #e4eff9; border-radius: 999px; overflow: hidden; margin-bottom: .5rem; }
+.progress div { height: 100%; background: linear-gradient(90deg, #1d4f91, #57d0c6); }
+.disclaimer { color: #5f6d84; font-size: .9rem; }
