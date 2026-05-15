@@ -50,7 +50,12 @@ export function App() {
   };
 
   const resumeAssessment = () => {
-    setIndex(Math.min(answers.length, questions.length - 1));
+    if (answers.length >= questions.length) {
+      setScreen('results');
+      return;
+    }
+
+    setIndex(answers.length);
     setScreen('question');
   };
 
@@ -89,7 +94,14 @@ export function App() {
 
       {screen === 'question' && current && (
         <section className="card" aria-live="polite">
-          <div className="progress" aria-label="Assessment progress">
+          <div
+            className="progress"
+            role="progressbar"
+            aria-label="Assessment progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+          >
             <div style={{ width: `${progress}%` }} />
           </div>
           <small>
