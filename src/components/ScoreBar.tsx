@@ -9,7 +9,7 @@ type ScoreBarProps = {
 
 export function ScoreBar({ label, score, max = 15, hint }: ScoreBarProps) {
   const clampedScore = Math.max(0, Math.min(score, max));
-  const percent = Math.round((clampedScore / max) * 100);
+  const percent = max > 0 ? Math.round((clampedScore / max) * 100) : 0;
 
   return (
     <div className="scorebar" role="group" aria-label={`${label} score`}>

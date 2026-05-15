@@ -34,8 +34,8 @@ export function App() {
   const progress = Math.round((index / questions.length) * 100);
 
   const report = useMemo(() => scoreAssessment(questions, answers), [answers]);
-  const bigFiveScores = toSortedScores(report.bigFiveScores);
-  const riasecScores = toSortedScores(report.riasecScores);
+  const bigFiveScores = useMemo(() => toSortedScores(report.bigFiveScores), [report]);
+  const riasecScores = useMemo(() => toSortedScores(report.riasecScores), [report]);
 
   const choose = (value: string, score: number) => {
     if (!current) return;
