@@ -8,16 +8,35 @@ export type ProfileReport = {
   riasecScores: Record<string, number>;
   motivationPattern: string;
   cognitiveStyleSummary: string;
+  stressPattern: string;
+  leadershipPattern: string;
+  workstylePattern: string;
   strengths: string[];
   blindSpots: string[];
   suggestedGrowthAreas: string[];
 };
+
+
+const FALLBACK_PATTERNS = {
+  motivation: 'Balanced Explorer',
+  cognitive: 'pattern',
+  stress: 'Balanced',
+  leadership: 'Balanced',
+  workstyle: 'Balanced'
+} as const;
+
+function getTopSignal(record: Record<string, number>, fallback: string): string {
+  return Object.entries(record).sort((a, b) => b[1] - a[1])[0]?.[0] ?? fallback;
+}
 
 export function scoreAssessment(questions: Question[], answers: Answer[]): ProfileReport {
   const mbti: Record<string, number> = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
   const riasec: Record<string, number> = { Realistic: 0, Investigative: 0, Artistic: 0, Social: 0, Enterprising: 0, Conventional: 0 };
   const motivations: Record<string, number> = {};
+  const stress: Record<string, number> = {};
+  const leadership: Record<string, number> = {};
+  const workstyle: Record<string, number> = {};
   const cognitive: Record<CognitiveDomain, number> = { pattern: 0, verbal: 0, numerical: 0, spatial: 0, memory: 0 };
 
   const qMap = new Map(questions.map((q) => [q.id, q]));
@@ -29,17 +48,21 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     if (question.section === 'mbti' && mbti[answer.value] !== undefined) mbti[answer.value] += answer.score;
     if (question.section === 'ocean' && bigFive[answer.value] !== undefined) bigFive[answer.value] += answer.score;
     if (question.section === 'riasec' && riasec[answer.value] !== undefined) riasec[answer.value] += answer.score;
-    if (question.section === 'motivation' || question.section === 'stress' || question.section === 'leadership' || question.section === 'workstyle') {
-      motivations[answer.value] = (motivations[answer.value] ?? 0) + answer.score;
-    }
+    if (question.section === 'motivation') motivations[answer.value] = (motivations[answer.value] ?? 0) + answer.score;
+    if (question.section === 'stress') stress[answer.value] = (stress[answer.value] ?? 0) + answer.score;
+    if (question.section === 'leadership') leadership[answer.value] = (leadership[answer.value] ?? 0) + answer.score;
+    if (question.section === 'workstyle') workstyle[answer.value] = (workstyle[answer.value] ?? 0) + answer.score;
     if (question.section === 'cognitive' && question.cognitiveDomain) {
       cognitive[question.cognitiveDomain] += answer.score;
     }
   }
 
   const personalityTypeEstimate = `${mbti.E >= mbti.I ? 'E' : 'I'}${mbti.S >= mbti.N ? 'S' : 'N'}${mbti.T >= mbti.F ? 'T' : 'F'}${mbti.J >= mbti.P ? 'J' : 'P'}`;
-  const motivationPattern = Object.entries(motivations).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Balanced Explorer';
-  const topCognitive = Object.entries(cognitive).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'pattern';
+  const motivationPattern = getTopSignal(motivations, FALLBACK_PATTERNS.motivation);
+  const topCognitive = getTopSignal(cognitive, FALLBACK_PATTERNS.cognitive);
+  const stressPattern = getTopSignal(stress, FALLBACK_PATTERNS.stress);
+  const leadershipPattern = getTopSignal(leadership, FALLBACK_PATTERNS.leadership);
+  const workstylePattern = getTopSignal(workstyle, FALLBACK_PATTERNS.workstyle);
 
   return {
     personalityTypeEstimate,
@@ -47,6 +70,9 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     riasecScores: riasec,
     motivationPattern,
     cognitiveStyleSummary: `Your strongest cognitive-style reasoning signal appeared in ${topCognitive}. This is an estimated, non-diagnostic reflection for self-discovery.`,
+    stressPattern,
+    leadershipPattern,
+    workstylePattern,
     strengths: ['Pattern recognition under structure', 'Reflective self-observation', 'Adaptable learning mindset'],
     blindSpots: ['May over-index on one problem style', 'Can rush ambiguous questions'],
     suggestedGrowthAreas: ['Practice slower reasoning in unfamiliar formats', 'Balance social and solo feedback loops', 'Review errors for strategy, not just accuracy']

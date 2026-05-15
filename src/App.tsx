@@ -214,6 +214,15 @@ export function App() {
           <ReportSection title="Motivation Pattern">
             <p>{report.motivationPattern} is your strongest estimated reflection signal right now.</p>
           </ReportSection>
+          <ReportSection title="Stress Tendency">
+            <p>Most selected stress tendency: <strong>{report.stressPattern}</strong>.</p>
+          </ReportSection>
+          <ReportSection title="Leadership Tendency">
+            <p>Most selected leadership tendency: <strong>{report.leadershipPattern}</strong>.</p>
+          </ReportSection>
+          <ReportSection title="Workstyle Tendency">
+            <p>Most selected workstyle tendency: <strong>{report.workstylePattern}</strong>.</p>
+          </ReportSection>
           <ReportSection title="Cognitive-Style Summary">
             <p>{report.cognitiveStyleSummary}</p>
             <p className="disclaimer">{COGNITIVE_UNKNOWN_NOTICE}</p>

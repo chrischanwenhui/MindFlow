@@ -12,6 +12,8 @@ export type Question = {
   hint?: string;
   cognitiveDomain?: CognitiveDomain;
   difficulty?: CognitiveDifficulty;
+  groupLabel?: string;
+  scoringDomain?: string;
 };
 
 const likert = (value: string): QuestionOption[] => [
@@ -22,69 +24,84 @@ const likert = (value: string): QuestionOption[] => [
   { label: 'Strongly agree', value, score: 5 }
 ];
 
-const STRESS_HINT = 'Choose the option that feels closest most of the time, not what sounds ideal.';
+const STRESS_HINT = 'Choose what is most typical under real pressure, not what sounds ideal.';
 const COGNITIVE_HINTS = {
-  pattern: 'Look for how the numbers change from one step to the next.',
-  verbal: 'Find the relationship between the first pair, then apply the same relationship to the second pair.',
-  numerical: 'Think about the original amount and how each percentage change is applied in sequence.',
-  spatial: 'Focus on how shape orientation changes after rotation or folding.',
-  memory: 'Keep the sequence order in mind, then locate the requested position carefully.'
+  pattern: 'Track the step-by-step rule and test it against all terms.',
+  verbal: 'Focus on meaning and logic, not only keyword similarity.',
+  numerical: 'Translate the wording into numbers before comparing choices.',
+  spatial: 'Mentally rotate, reflect, or fold while preserving relative positions.',
+  memory: 'Keep order stable first, then retrieve by position.'
 } as const;
-
-const cognitiveUnknownOption = (domain: CognitiveDomain): QuestionOption => ({
-  label: "I don't know",
-  value: `${domain}-unknown`,
-  score: 0
-});
+const cognitiveUnknownOption = (domain: CognitiveDomain): QuestionOption => ({ label: "I don't know", value: `${domain}-unknown`, score: 0 });
+const c = (q: Question): Question => ({ ...q, groupLabel: q.groupLabel ?? q.section.toUpperCase(), scoringDomain: q.scoringDomain ?? q.section });
 
 export const questions: Question[] = [
-  { id: 'mbti-ei-1', section: 'mbti', prompt: 'After a demanding week, you usually recharge by…', options: [{ label: 'Quiet reset and reflection', value: 'I', score: 2 }, { label: 'Social activity and conversation', value: 'E', score: 2 }] },
-  { id: 'mbti-ei-2', section: 'mbti', prompt: 'In group discussions, you usually…', options: [{ label: 'Observe first, then contribute', value: 'I', score: 2 }, { label: 'Contribute early and often', value: 'E', score: 2 }] },
-  { id: 'mbti-sn-1', section: 'mbti', prompt: 'When solving a new problem, you start with…', options: [{ label: 'Practical examples and evidence', value: 'S', score: 2 }, { label: 'Patterns and future possibilities', value: 'N', score: 2 }] },
-  { id: 'mbti-sn-2', section: 'mbti', prompt: 'When learning a new system, you prefer…', options: [{ label: 'Step-by-step usage first', value: 'S', score: 2 }, { label: 'Overall framework first', value: 'N', score: 2 }] },
-  { id: 'mbti-tf-1', section: 'mbti', prompt: 'In a hard decision, your first anchor is…', options: [{ label: 'Logic and consistency', value: 'T', score: 2 }, { label: 'Human impact and context', value: 'F', score: 2 }] },
-  { id: 'mbti-tf-2', section: 'mbti', prompt: 'When giving feedback, you emphasize…', options: [{ label: 'Directness and precision', value: 'T', score: 2 }, { label: 'Tone and encouragement', value: 'F', score: 2 }] },
-  { id: 'mbti-jp-1', section: 'mbti', prompt: 'Your preferred workflow is usually…', options: [{ label: 'Structured with checkpoints', value: 'J', score: 2 }, { label: 'Flexible and adaptive', value: 'P', score: 2 }] },
-  { id: 'mbti-jp-2', section: 'mbti', prompt: 'Before important tasks, you tend to…', options: [{ label: 'Plan details ahead of time', value: 'J', score: 2 }, { label: 'Keep options open until later', value: 'P', score: 2 }] },
+  ...[
+    ['mbti-ei-1','After a demanding week, you usually recharge by…','Quiet reset and reflection','I','Social plans and conversation','E'],
+    ['mbti-ei-2','In meetings with unfamiliar people, you usually…','Listen first and map the room','I','Think aloud and shape momentum','E'],
+    ['mbti-ei-3','When solving problems with peers, you prefer to…','Prepare independently first','I','Work through options together','E'],
+    ['mbti-sn-1','When starting a complex project, you first seek…','Concrete facts and proven methods','S','Emerging patterns and possibilities','N'],
+    ['mbti-sn-2','When learning a new system, you prefer…','Step-by-step workflow examples','S','A model of the whole system','N'],
+    ['mbti-sn-3','In ambiguous situations, your instinct is to trust…','Observed evidence','S','Inferred direction','N'],
+    ['mbti-tf-1','In difficult decisions, your first anchor is…','Logic and consistency','T','Human impact and context','F'],
+    ['mbti-tf-2','When giving feedback, you prioritize…','Precision and candor','T','Timing and encouragement','F'],
+    ['mbti-tf-3','In conflict, you tend to resolve by…','Defining criteria and trade-offs','T','Restoring understanding first','F'],
+    ['mbti-jp-1','Your preferred workflow is usually…','Structured milestones','J','Adaptive checkpoints','P'],
+    ['mbti-jp-2','Before important deadlines, you tend to…','Lock the plan early','J','Keep options open longer','P'],
+    ['mbti-jp-3','Calendar changes usually make you feel…','More focused with firm commitments','J','More creative with flexible space','P']
+  ].map(([id,p,a,av,b,bv]) => c({id: id as string, section:'mbti', groupLabel:'MBTI Preference', scoringDomain:(id as string).split('-')[1], prompt:p as string, options:[{label:a as string,value:av as string,score:2},{label:b as string,value:bv as string,score:2}]})),
 
-  { id: 'ocean-open-1', section: 'ocean', prompt: 'I enjoy exploring ideas that challenge my current views.', options: likert('open') },
-  { id: 'ocean-open-2', section: 'ocean', prompt: 'I seek variety in how I learn and create.', options: likert('open') },
-  { id: 'ocean-cons-1', section: 'ocean', prompt: 'I keep track of tasks even when nobody is checking.', options: likert('conscientiousness') },
-  { id: 'ocean-cons-2', section: 'ocean', prompt: 'I complete priorities before switching attention.', options: likert('conscientiousness') },
-  { id: 'ocean-extra-1', section: 'ocean', prompt: 'I gain momentum through active interaction with others.', options: likert('extraversion') },
-  { id: 'ocean-extra-2', section: 'ocean', prompt: 'I am comfortable initiating conversations in unfamiliar groups.', options: likert('extraversion') },
-  { id: 'ocean-agree-1', section: 'ocean', prompt: 'I look for cooperative outcomes in disagreement.', options: likert('agreeableness') },
-  { id: 'ocean-neuro-1', section: 'ocean', prompt: 'Under uncertainty, I feel tension that affects focus.', options: likert('neuroticism') },
+  ...[
+    ['ocean-open-1','I intentionally explore ideas that challenge my assumptions.','open'],['ocean-open-2','I enjoy trying unfamiliar methods when improving a workflow.','open'],['ocean-open-3','I look for broader connections across different fields.','open'],['ocean-open-4','I prefer variety over repeating the same approach every week.','open'],
+    ['ocean-cons-1','I deliver commitments even when supervision is low.','conscientiousness'],['ocean-cons-2','I break large goals into trackable actions.','conscientiousness'],['ocean-cons-3','I protect focus by limiting avoidable context switching.','conscientiousness'],['ocean-cons-4','I usually close loose ends before moving on.','conscientiousness'],
+    ['ocean-extra-1','I gain energy from active collaboration.','extraversion'],['ocean-extra-2','I am comfortable initiating conversations in new groups.','extraversion'],['ocean-extra-3','I naturally become more expressive in team settings.','extraversion'],['ocean-extra-4','I often prefer discussing ideas live rather than asynchronously.','extraversion'],
+    ['ocean-agree-1','I look for solutions where all parties can keep dignity.','agreeableness'],['ocean-agree-2','I make room for others before pushing my own view.','agreeableness'],['ocean-agree-3','I can challenge ideas without escalating tension.','agreeableness'],['ocean-agree-4','I am patient with different working paces.','agreeableness'],
+    ['ocean-neuro-1','Uncertainty can affect my focus more than I want.','neuroticism'],['ocean-neuro-2','I replay unresolved issues after work hours.','neuroticism']
+  ].map(([id,p,v]) => c({id:id as string, section:'ocean', groupLabel:'Big Five / OCEAN', scoringDomain:v as string, prompt:p as string, options:likert(v as string)})),
 
-  { id: 'riasec-1', section: 'riasec', prompt: 'Which task feels most energizing?', options: [{ label: 'Build or repair a practical system', value: 'Realistic', score: 2 }, { label: 'Investigate a complex problem', value: 'Investigative', score: 2 }, { label: 'Design an original concept', value: 'Artistic', score: 2 }] },
-  { id: 'riasec-2', section: 'riasec', prompt: 'Which role feels most natural?', options: [{ label: 'Coach and support people', value: 'Social', score: 2 }, { label: 'Lead strategy and influence outcomes', value: 'Enterprising', score: 2 }, { label: 'Organize systems and details', value: 'Conventional', score: 2 }] },
-  { id: 'riasec-3', section: 'riasec', prompt: 'Which outcome is most satisfying?', options: [{ label: 'A reliable process that works daily', value: 'Conventional', score: 2 }, { label: 'A persuasive launch with buy-in', value: 'Enterprising', score: 2 }, { label: 'A meaningful person-to-person impact', value: 'Social', score: 2 }] },
+  ...[
+    ['riasec-1','Which task feels most energizing?',[['Build or repair a practical system','Realistic'],['Investigate root causes in a complex issue','Investigative'],['Design an original concept or experience','Artistic']]],
+    ['riasec-2','Which role feels most natural?',[['Coach and support people','Social'],['Lead strategy and influence outcomes','Enterprising'],['Organize systems and details','Conventional']]],
+    ['riasec-3','Which outcome feels most satisfying?',[['A reliable process that works daily','Conventional'],['A persuasive launch with buy-in','Enterprising'],['A meaningful one-to-one impact','Social']]],
+    ['riasec-4','In a new assignment, where do you add value fastest?',[['Hands-on execution','Realistic'],['Hypothesis-driven analysis','Investigative'],['Concept storytelling','Artistic']]],
+    ['riasec-5','Which environment fits you best?',[['Field/operations heavy','Realistic'],['Research and data heavy','Investigative'],['Creative studio or design heavy','Artistic']]],
+    ['riasec-6','When teams stall, you naturally…',[['Clarify process and ownership','Conventional'],['Mobilize people and decisions','Enterprising'],['Support morale and alignment','Social']]],
+    ['riasec-7','What type of accomplishment is most meaningful?',[['A durable tool people use','Realistic'],['A new insight people trust','Investigative'],['A resonant message people remember','Artistic']]],
+    ['riasec-8','You are most likely to volunteer for…',[['Process cleanup and documentation','Conventional'],['Pitching and stakeholder influence','Enterprising'],['Mentoring and team support','Social']]],
+    ['riasec-9','Which challenge sounds most attractive?',[['Improve equipment reliability','Realistic'],['Model uncertain outcomes','Investigative'],['Create brand voice from scratch','Artistic']]],
+    ['riasec-10','Which weekly rhythm sounds best?',[['Build-fix-test cycles','Realistic'],['Question-analyze-validate cycles','Investigative'],['Draft-review-iterate creative cycles','Artistic']]]
+  ].map(([id,p,opts]) => c({id:id as string, section:'riasec', groupLabel:'RIASEC Interests', scoringDomain:'riasec', prompt:p as string, options:(opts as string[][]).map(([label,value]) => ({label,value,score:2}))})),
 
-  { id: 'motivation-1', section: 'motivation', prompt: 'What most sustains your effort over time?', options: [{ label: 'Stability and predictability', value: 'Security-Seeking', score: 2 }, { label: 'Challenge and measurable progress', value: 'Achievement-Driven', score: 2 }, { label: 'Autonomy in decisions', value: 'Autonomy-Protective', score: 2 }] },
-  { id: 'motivation-2', section: 'motivation', prompt: 'When a plan slips, your first impulse is to…', options: [{ label: 'Reduce risk and stabilize', value: 'Security-Seeking', score: 2 }, { label: 'Push for a stronger target', value: 'Achievement-Driven', score: 2 }, { label: 'Redesign the path independently', value: 'Autonomy-Protective', score: 2 }] },
+  ...[
+    ['motivation-1','What most sustains your effort over time?',[['Stability and predictability','Security-Seeking'],['Challenge and measurable progress','Achievement-Driven'],['Autonomy in decisions','Autonomy-Protective']]],
+    ['motivation-2','When a plan slips, your first impulse is to…',[['Reduce risk and stabilize','Security-Seeking'],['Push for a stronger target','Achievement-Driven'],['Redesign independently','Autonomy-Protective']]],
+    ['motivation-3','Recognition matters most when it reflects…',[['Reliability and trust','Security-Seeking'],['Results and growth','Achievement-Driven'],['Original thinking','Autonomy-Protective']]],
+    ['stress-1','When overwhelmed, I most commonly…',[['Withdraw to reset','Reset-Oriented'],['Over-plan details','Control-Oriented'],['Seek reassurance and alignment','Support-Oriented'],['Become reactive and impatient','Urgency-Oriented']]],
+    ['stress-2','Under pressure, I worry most about…',[['Losing control of outcomes','Control-Oriented'],['Missing expectations','Achievement-Driven'],['Losing support','Support-Oriented'],['Being misunderstood','Reset-Oriented']]],
+    ['stress-3','My recovery improves fastest when I…',[['Create distance and quiet','Reset-Oriented'],['Rebuild structure quickly','Control-Oriented'],['Talk through priorities with someone','Support-Oriented'],['Take immediate action on one lever','Urgency-Oriented']]],
+    ['leadership-1','In group discussions, I usually…',[['Set direction quickly','Directive'],['Observe then frame insights','Analytical'],['Protect alignment and trust','Facilitative'],['Challenge weak assumptions','Challenger']]],
+    ['leadership-2','Which role feels most natural?',[['Strategist','Directive'],['Operator','Analytical'],['Connector','Facilitative'],['Specialist critic','Challenger']]],
+    ['leadership-3','When decisions are delayed, I tend to…',[['Narrow options and call a choice','Directive'],['Ask for clearer evidence','Analytical'],['Surface concerns and align stakeholders','Facilitative'],['Stress-test the proposal','Challenger']]],
+    ['workstyle-1','When learning a new platform, I prefer to…',[['Experiment immediately','Explorer'],['Read documentation first','Planner'],['Watch a walkthrough','Observer'],['Map architecture first','Architect']]],
+    ['workstyle-2','Which feels more satisfying?',[['Improve an existing system','Optimizer'],['Create a new concept','Builder']]],
+    ['workstyle-3','In a fast-moving week, I stay effective by…',[['Trying quick prototypes','Explorer'],['Time-blocking priorities','Planner'],['Reviewing examples before execution','Observer'],['Designing dependencies up front','Architect']]]
+  ].map(([id,p,opts]) => c({id:id as string, section:(id as string).split('-')[0] as Section, groupLabel:'Motivation/Stress/Leadership/Workstyle', scoringDomain:(id as string).split('-')[0], hint:(id as string).startsWith('stress-')?STRESS_HINT:undefined, prompt:p as string, options:(opts as string[][]).map(([label,value]) => ({label,value,score:2}))})),
 
-  { id: 'stress-1', section: 'stress', hint: STRESS_HINT, prompt: 'When overwhelmed, I most commonly…', options: [{ label: 'Withdraw to reset', value: 'Reset-Oriented', score: 2 }, { label: 'Over-plan details', value: 'Control-Oriented', score: 2 }, { label: 'Seek reassurance and alignment', value: 'Support-Oriented', score: 2 }, { label: 'Become reactive and impatient', value: 'Urgency-Oriented', score: 2 }] },
-  { id: 'stress-2', section: 'stress', hint: STRESS_HINT, prompt: 'Under pressure, I worry most about…', options: [{ label: 'Losing control of outcomes', value: 'Control-Oriented', score: 2 }, { label: 'Failing expectations', value: 'Achievement-Driven', score: 2 }, { label: 'Being unsupported', value: 'Support-Oriented', score: 2 }, { label: 'Being misunderstood', value: 'Reset-Oriented', score: 2 }] },
-
-  { id: 'leadership-1', section: 'leadership', prompt: 'In group discussions, I usually…', options: [{ label: 'Lead direction quickly', value: 'Directive', score: 2 }, { label: 'Observe first, then frame insights', value: 'Analytical', score: 2 }, { label: 'Protect harmony and alignment', value: 'Facilitative', score: 2 }, { label: 'Challenge weak assumptions', value: 'Challenger', score: 2 }] },
-  { id: 'leadership-2', section: 'leadership', prompt: 'Which role feels most natural?', options: [{ label: 'Strategist', value: 'Directive', score: 2 }, { label: 'Operator', value: 'Analytical', score: 2 }, { label: 'Communicator', value: 'Facilitative', score: 2 }, { label: 'Specialist', value: 'Challenger', score: 2 }] },
-
-  { id: 'workstyle-1', section: 'workstyle', prompt: 'When learning a new platform, I prefer to…', options: [{ label: 'Experiment immediately', value: 'Explorer', score: 2 }, { label: 'Read docs first', value: 'Planner', score: 2 }, { label: 'Watch a walkthrough', value: 'Observer', score: 2 }, { label: 'Map the whole system first', value: 'Architect', score: 2 }] },
-  { id: 'workstyle-2', section: 'workstyle', prompt: 'Which feels more satisfying?', options: [{ label: 'Improve an existing system', value: 'Optimizer', score: 2 }, { label: 'Create a new concept', value: 'Builder', score: 2 }] },
-
-  { id: 'cog-pattern-1', section: 'cognitive', cognitiveDomain: 'pattern', difficulty: 'easy', hint: COGNITIVE_HINTS.pattern, prompt: 'Pattern reasoning: 3, 6, 9, 12, ?', options: [{ label: '14', value: 'pattern', score: 0 }, { label: '15', value: 'pattern', score: 2 }, { label: '16', value: 'pattern', score: 0 }, { label: '18', value: 'pattern', score: 0 }, cognitiveUnknownOption('pattern')] },
-  { id: 'cog-pattern-2', section: 'cognitive', cognitiveDomain: 'pattern', difficulty: 'medium', hint: COGNITIVE_HINTS.pattern, prompt: 'Pattern reasoning: 1, 4, 9, 16, 25, ?', options: [{ label: '30', value: 'pattern', score: 0 }, { label: '35', value: 'pattern', score: 0 }, { label: '36', value: 'pattern', score: 2 }, { label: '49', value: 'pattern', score: 0 }, cognitiveUnknownOption('pattern')] },
-  { id: 'cog-pattern-3', section: 'cognitive', cognitiveDomain: 'pattern', difficulty: 'hard', hint: COGNITIVE_HINTS.pattern, prompt: 'Pattern reasoning: 2, 5, 11, 23, 47, ?', options: [{ label: '71', value: 'pattern', score: 0 }, { label: '81', value: 'pattern', score: 0 }, { label: '95', value: 'pattern', score: 2 }, { label: '99', value: 'pattern', score: 0 }, cognitiveUnknownOption('pattern')] },
-
-  { id: 'cog-verbal-1', section: 'cognitive', cognitiveDomain: 'verbal', difficulty: 'easy', hint: COGNITIVE_HINTS.verbal, prompt: 'Verbal reasoning: Compass is to direction as thermometer is to…', options: [{ label: 'Heat', value: 'verbal', score: 0 }, { label: 'Temperature', value: 'verbal', score: 2 }, { label: 'Medicine', value: 'verbal', score: 0 }, { label: 'Weather', value: 'verbal', score: 0 }, cognitiveUnknownOption('verbal')] },
-  { id: 'cog-verbal-2', section: 'cognitive', cognitiveDomain: 'verbal', difficulty: 'medium', hint: COGNITIVE_HINTS.verbal, prompt: 'Verbal reasoning: All blue birds can fly. Some flying animals swim. Most reasonable statement?', options: [{ label: 'All blue birds swim', value: 'verbal', score: 0 }, { label: 'Some blue birds may swim', value: 'verbal', score: 2 }, { label: 'No swimming animals fly', value: 'verbal', score: 0 }, { label: 'All birds swim', value: 'verbal', score: 0 }, cognitiveUnknownOption('verbal')] },
-
-  { id: 'cog-numerical-1', section: 'cognitive', cognitiveDomain: 'numerical', difficulty: 'medium', hint: COGNITIVE_HINTS.numerical, prompt: 'Numerical reasoning: Price up 10%, then down 10%. Final price vs original?', options: [{ label: 'Higher', value: 'numerical', score: 0 }, { label: 'Lower', value: 'numerical', score: 2 }, { label: 'The same', value: 'numerical', score: 0 }, { label: 'Cannot determine', value: 'numerical', score: 0 }, cognitiveUnknownOption('numerical')] },
-  { id: 'cog-numerical-2', section: 'cognitive', cognitiveDomain: 'numerical', difficulty: 'easy', hint: COGNITIVE_HINTS.numerical, prompt: 'Numerical reasoning: 4 workers finish in 12h. 8 workers need…', options: [{ label: '3h', value: 'numerical', score: 0 }, { label: '4h', value: 'numerical', score: 0 }, { label: '6h', value: 'numerical', score: 2 }, { label: '8h', value: 'numerical', score: 0 }, cognitiveUnknownOption('numerical')] },
-
-  { id: 'cog-spatial-1', section: 'cognitive', cognitiveDomain: 'spatial', difficulty: 'easy', hint: COGNITIVE_HINTS.spatial, prompt: 'Spatial reasoning: Rotating “b” by 180° most closely looks like…', options: [{ label: 'q', value: 'spatial', score: 2 }, { label: 'd', value: 'spatial', score: 0 }, { label: 'p', value: 'spatial', score: 0 }, { label: 'g', value: 'spatial', score: 0 }, cognitiveUnknownOption('spatial')] },
-  { id: 'cog-spatial-2', section: 'cognitive', cognitiveDomain: 'spatial', difficulty: 'medium', hint: COGNITIVE_HINTS.spatial, prompt: 'Spatial reasoning: A rectangle is folded vertically. Which must match on both sides?', options: [{ label: 'Distance from fold line', value: 'spatial', score: 2 }, { label: 'Word orientation', value: 'spatial', score: 0 }, { label: 'Color labels', value: 'spatial', score: 0 }, { label: 'Reading order', value: 'spatial', score: 0 }, cognitiveUnknownOption('spatial')] },
-
-  { id: 'cog-memory-1', section: 'cognitive', cognitiveDomain: 'memory', difficulty: 'easy', hint: COGNITIVE_HINTS.memory, prompt: 'Working memory: Remember 8 - 3 - 1 - 9 - 4. What was the 4th number?', options: [{ label: '1', value: 'memory', score: 0 }, { label: '9', value: 'memory', score: 2 }, { label: '4', value: 'memory', score: 0 }, { label: '8', value: 'memory', score: 0 }, cognitiveUnknownOption('memory')] },
-  { id: 'cog-memory-2', section: 'cognitive', cognitiveDomain: 'memory', difficulty: 'hard', hint: COGNITIVE_HINTS.memory, prompt: 'Working memory: Remember K - 2 - M - 7 - P - 4. Which symbol came immediately before P?', options: [{ label: '7', value: 'memory', score: 2 }, { label: 'M', value: 'memory', score: 0 }, { label: '4', value: 'memory', score: 0 }, { label: '2', value: 'memory', score: 0 }, cognitiveUnknownOption('memory')] }
+  ...[
+    ['pattern',1,'easy','Pattern reasoning: 5, 8, 11, 14, ?', [['16',0],['17',2],['18',0],['20',0]]],
+    ['pattern',2,'medium','Pattern reasoning: 2, 6, 12, 20, 30, ?', [['36',0],['40',0],['42',2],['48',0]]],
+    ['pattern',3,'hard','Pattern reasoning: 4, 7, 13, 25, 49, ?', [['73',0],['81',0],['97',2],['99',0]]],
+    ['verbal',1,'easy','Verbal reasoning: Blueprint is to building as recipe is to…', [['Kitchen',0],['Meal',2],['Plate',0],['Chef',0]]],
+    ['verbal',2,'medium','Verbal reasoning: All analysts write reports. Some managers are analysts. Which follows?', [['All managers write reports',0],['Some managers write reports',2],['No analysts are managers',0],['Reports are managers',0]]],
+    ['verbal',3,'hard','Verbal reasoning: If no remote teams meet daily, and Team Z meets daily, Team Z is…', [['A remote team',0],['Not a remote team',2],['Partly remote',0],['Impossible to tell',0]]],
+    ['numerical',1,'easy','Numerical reasoning: 15% of 200 equals…', [['20',0],['25',0],['30',2],['35',0]]],
+    ['numerical',2,'medium','Numerical reasoning: A task takes 10h for 3 people at equal rate. 6 people need…', [['3h',0],['4h',0],['5h',2],['6h',0]]],
+    ['numerical',3,'hard','Numerical reasoning: Revenue grows from 80 to 100, then to 115. Total % growth from 80 is…', [['35%',0],['40%',0],['43.75%',2],['47.5%',0]]],
+    ['spatial',1,'easy','Spatial reasoning: Rotate letter “L” by 90° clockwise. It points…', [['Up-left',0],['Up-right',2],['Down-left',0],['Down-right',0]]],
+    ['spatial',2,'medium','Spatial reasoning: A cube has opposite faces paired. If top is blue and bottom is green, they are…', [['Adjacent',0],['Opposite',2],['Same face',0],['Unknown by definition',0]]],
+    ['spatial',3,'hard','Spatial reasoning: A paper arrow pointing right is reflected in a vertical mirror. It points…', [['Right',0],['Left',2],['Up',0],['Down',0]]],
+    ['memory',1,'easy','Working memory: Remember 7 - 1 - 4 - 9 - 2. What is the 2nd number?', [['1',2],['4',0],['7',0],['9',0]]],
+    ['memory',2,'medium','Working memory: Remember P - 3 - T - 8 - M - 6. Which came immediately after T?', [['8',2],['M',0],['3',0],['6',0]]],
+    ['memory',3,'hard','Working memory: Remember D - 5 - K - 1 - R - 9 - B. Which is 6th?', [['R',0],['9',2],['1',0],['B',0]]]
+  ].map(([d,n,diff,p,opts]) => c({id:`cog-${d}-${n}`, section:'cognitive', groupLabel:'Cognitive Style', scoringDomain:d as string, cognitiveDomain:d as CognitiveDomain, difficulty:diff as CognitiveDifficulty, hint:COGNITIVE_HINTS[d as CognitiveDomain], prompt:p as string, options:[...(opts as (string|number)[][]).map(([label,score])=>({label:label as string,value:d as string,score:score as number})), cognitiveUnknownOption(d as CognitiveDomain)]}))
 ];
