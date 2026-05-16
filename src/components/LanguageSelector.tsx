@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
 import { type Language } from '../i18n';
 
 type LanguageSelectorProps = {
@@ -37,14 +37,17 @@ export function LanguageSelector({
 }: LanguageSelectorProps) {
   const selectId = useId();
 
-  const optionLabels = {
-    englishLabel,
-    chineseLabel,
-    malayLabel,
-    japaneseLabel,
-    koreanLabel,
-    thaiLabel
-  } as const;
+  const optionLabels = useMemo(
+    () => ({
+      englishLabel,
+      chineseLabel,
+      malayLabel,
+      japaneseLabel,
+      koreanLabel,
+      thaiLabel
+    }),
+    [englishLabel, chineseLabel, malayLabel, japaneseLabel, koreanLabel, thaiLabel]
+  );
 
   return (
     <label

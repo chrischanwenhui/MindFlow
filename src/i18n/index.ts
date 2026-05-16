@@ -13,7 +13,7 @@ export const DEFAULT_LANGUAGE: Language = 'en';
 export const LANGUAGE_STORAGE_KEY = 'mindflow_language_v1';
 
 export function isLanguage(value: string | null): value is Language {
-  return typeof value === 'string' && value in dictionaries;
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(dictionaries, value);
 }
 
 export function getInitialLanguage(): Language {

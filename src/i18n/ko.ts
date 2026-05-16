@@ -9,7 +9,7 @@ export const ko = {
   navBrand: 'MindFlow', navAbout: '소개', navProvide: '제공 내용', navSaveExit: '저장 후 종료', navAssessment: '평가', navAboutMindflow: 'MindFlow 소개',
   landingTitle: 'Mindflow', landingByline: 'by Eirene Stack',
   landingDesc: '자기 발견을 위한 평가로, 성찰 신호·추정 특성·진로 방향·인지 스타일 인식을 제공합니다.',
-  begin: '시작', startTitle: '평가 시작', startEstimate: '예상 시간: 12~18분. 이 보고서는 진단 목적이 아니며 성찰용입니다。',
+  begin: '시작', startTitle: '평가 시작', startEstimate: '예상 시간: 12~18분. 이 보고서는 진단 목적이 아니며 성찰용입니다.',
   sessionCountNotice: '이 세션에서는 75개 문항에 답합니다.',
   sessionOrderNotice: '성격·업무스타일 문항이 먼저 나오고, 인지스타일 문항은 후반에 나옵니다.',
   sessionSaveNotice: '진행 상황은 이 기기에 로컬로 저장됩니다.',
