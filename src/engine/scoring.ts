@@ -124,6 +124,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const personalityTypeEstimate = `${mbti.E >= mbti.I ? 'E' : 'I'}${mbti.S >= mbti.N ? 'S' : 'N'}${mbti.T >= mbti.F ? 'T' : 'F'}${mbti.J >= mbti.P ? 'J' : 'P'}`;
   const motivationPattern = getTopSignal(motivations, FALLBACK_PATTERNS.motivation);
   const topCognitive = getTopSignal(cognitive, FALLBACK_PATTERNS.cognitive);
+  const cognitiveAnsweredCount = answers.filter((answer) => qMap.get(answer.questionId)?.section === 'cognitive').length;
   const stressPattern = getTopSignal(stress, FALLBACK_PATTERNS.stress);
   const leadershipPattern = getTopSignal(leadership, FALLBACK_PATTERNS.leadership);
   const workstylePattern = getTopSignal(workstyle, FALLBACK_PATTERNS.workstyle);
@@ -147,7 +148,9 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     bigFiveSignalStrength,
     riasecScores: riasec,
     motivationPattern,
-    cognitiveStyleSummary: `Your strongest cognitive-style reasoning signal appeared in ${topCognitive}. This is an estimated, non-diagnostic reflection for self-discovery.`,
+    cognitiveStyleSummary: cognitiveAnsweredCount < 10
+      ? `Your strongest cognitive-style signal in this session appeared in ${topCognitive} reasoning. Your cognitive-style result is still a light signal because this is a short, non-diagnostic reasoning sample.`
+      : `Your strongest cognitive-style signal in this session appeared in ${topCognitive} reasoning. This is an estimated, non-diagnostic reflection signal for self-discovery, not an official IQ result.`,
     stressPattern,
     leadershipPattern,
     workstylePattern,
