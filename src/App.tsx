@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { LanguageSelector } from './components/LanguageSelector';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
@@ -124,16 +125,6 @@ export function App() {
   }, [language]);
 
   const isQuestionFlow = screen === 'assessment' && assessmentView === 'question';
-  const renderLanguageSelector = (compact = false) => (
-    <label className={`language-select ${compact ? 'language-select--compact' : ''}`.trim()} htmlFor="lang-select">
-      <span>{tx('langLabel')}</span>
-      <select id="lang-select" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
-        <option value="en">{tx('langEnglish')}</option>
-        <option value="zh">{tx('langChinese')}</option>
-        <option value="ms">{tx('langMalay')}</option>
-      </select>
-    </label>
-  );
 
   return (
     <main className={`app ${isQuestionFlow ? 'assessment-shell' : ''}`.trim()}>
@@ -141,7 +132,15 @@ export function App() {
         {isQuestionFlow ? (
           <>
             <strong className="brand">{tx('navBrand')}</strong>
-            {renderLanguageSelector(true)}
+            <LanguageSelector
+              compact
+              language={language}
+              onLanguageChange={setLanguage}
+              label={tx('langLabel')}
+              englishLabel={tx('langEnglish')}
+              chineseLabel={tx('langChinese')}
+              malayLabel={tx('langMalay')}
+            />
             <button className="link-btn" onClick={() => setScreen('about')}>{tx('navAbout')}</button>
             <button className="link-btn" onClick={() => setScreen('provide')}>{tx('navProvide')}</button>
             <button className="link-btn" onClick={saveAndContinueLater}>{tx('navSaveExit')}</button>
@@ -157,7 +156,14 @@ export function App() {
             <button className="option" onClick={() => setScreen('provide')}>
               {tx('navProvide')}
             </button>
-            {renderLanguageSelector()}
+            <LanguageSelector
+              language={language}
+              onLanguageChange={setLanguage}
+              label={tx('langLabel')}
+              englishLabel={tx('langEnglish')}
+              chineseLabel={tx('langChinese')}
+              malayLabel={tx('langMalay')}
+            />
           </>
         )}
       </nav>
