@@ -154,15 +154,19 @@ const spatial = Array.from({length:8}).map((_,i)=>mkCog(`cog-spatial-${i+1}`,'sp
 // TODO(next-cognitive-pr): Add visual matrix reasoning component with richer rendering.
 // TODO(next-cognitive-pr): Add data interpretation questions with charts/tables.
 // TODO(next-cognitive-pr): Add memory grid component for non-verbal working memory.
-const memory = Array.from({length:10}).map((_,i)=>mkCog(`cog-memory-${i+1}`,'memory',i<3?'easy':i<7?'medium':'hard','Working memory challenge',[['7',0],['T',0],['M',2],['9',0],['3',2],['4',0],['5',0],['6',0],['K',0],['L',2],['M',0],['N',0],['8',0],['1',0],['5',2],['7',0],['Q',2],['R',0],['S',0],['T',0],['Letter B',0],['Letter D',0],['F',2],['H',0],['2',0],['3',2],['4',0],['5',0],['P',0],['M',2],['N',0],['O',0],['9',2],['7',0],['5',0],['3',0],['Letter C',0],['Letter A',2],['Letter B',0],['Letter D',0]].slice(i*4,i*4+4) as [string,number][], {memoryPrompt:['7 - 1 - M - 9 - T','3 - 8 - 4 - A - 5','K - 2 - L - 9 - M','8 - 3 - 1 - 5 - R','Q - 4 - R - 6 - S','B - C - D - F - H','2 - 9 - 3 - P - 4','P - L - M - N - O','9 - 7 - 5 - 3 - 1','C - B - A - D - E'][i], memoryQuestion:['What was the 3rd item?','What was the 1st number?','Which came immediately after 2?','What was the 4th item?','What was the 1st item?','Which letter is in 4th position?','What came right after 9?','Which came immediately after L?','What was the first number?','What was the 3rd item?'][i], revealSeconds:5}));
+const memory = Array.from({length:10}).map((_,i)=>mkCog(`cog-memory-${i+1}`,'memory',i<3?'easy':i<7?'medium':'hard','Working memory challenge',[['7',0],['T',0],['M',2],['9',0],['3',2],['4',0],['5',0],['6',0],['K',0],['L',2],['M',0],['N',0],['8',0],['1',0],['5',2],['7',0],['Q',2],['R',0],['S',0],['T',0],['Letter B',0],['Letter D',0],['F',2],['H',0],['2',0],['3',2],['4',0],['5',0],['P',0],['M',2],['N',0],['O',0],['9',2],['7',0],['5',0],['3',0],['Letter C',0],['Letter A',2],['Letter B',0],['Letter D',0]].slice(i*4,i*4+4) as [string,number][], {memoryPrompt:['7 - 1 - M - 9 - T','3 - 8 - 4 - A - 5','K - 2 - L - 9 - M','8 - 3 - 1 - 5 - R','Q - 4 - R - 6 - S','B - C - D - F - H','2 - 9 - 3 - P - 4','P - L - M - N - O','9 - 7 - 5 - 3 - 1','C - B - A - D - E'][i], memoryQuestion:['What was the 3rd item?','What was the 1st number?','Which came immediately after 2?','What was the 4th item?','What was the 1st item?','Which letter is in 4th position?','What came right after 9?','Which came immediately after L?','What was the first number?','What was the 3rd item?'][i], revealSeconds:5, recommendedSeconds:25}));
+
+const COGNITIVE_METADATA: Record<CognitiveDomain, Partial<Question>> = {
+  pattern: { cognitiveFormat: 'sequence', timed: true, recommendedSeconds: 35 },
+  verbal: { cognitiveFormat: 'analogy', timed: true, recommendedSeconds: 40 },
+  numerical: { cognitiveFormat: 'data-interpretation', timed: true, recommendedSeconds: 45 },
+  spatial: { cognitiveFormat: 'spatial-rotation', timed: true, recommendedSeconds: 50 },
+  memory: { cognitiveFormat: 'memory-grid', timed: true, recommendedSeconds: 20 }
+};
 
 const withCognitiveMetadata = (q: Question): Question => {
   if (q.section !== 'cognitive' || !q.cognitiveDomain) return q;
-  if (q.cognitiveDomain === 'pattern') return { ...q, cognitiveFormat: 'sequence', timed: true, recommendedSeconds: 35 };
-  if (q.cognitiveDomain === 'verbal') return { ...q, cognitiveFormat: 'analogy', timed: true, recommendedSeconds: 40 };
-  if (q.cognitiveDomain === 'numerical') return { ...q, cognitiveFormat: 'data-interpretation', timed: true, recommendedSeconds: 45 };
-  if (q.cognitiveDomain === 'spatial') return { ...q, cognitiveFormat: 'spatial-rotation', timed: true, recommendedSeconds: 50 };
-  return { ...q, cognitiveFormat: 'memory-grid', timed: true, recommendedSeconds: 20 };
+  return { ...COGNITIVE_METADATA[q.cognitiveDomain], ...q };
 };
 
 export const questions: Question[] = [...mbti, ...ocean, ...riasec, ...mslw, ...pattern, ...verbal, ...numerical, ...spatial, ...memory].map(withCognitiveMetadata);

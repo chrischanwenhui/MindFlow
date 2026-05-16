@@ -56,6 +56,13 @@ describe('question quality checks', () => {
     }
   });
 
+  it('preserves question-specific cognitive metadata overrides', () => {
+    const customTimedMemory = questions.find((q) => q.id === 'cog-memory-1');
+    expect(customTimedMemory).toBeTruthy();
+    expect(customTimedMemory?.timed).toBe(true);
+    expect(customTimedMemory?.recommendedSeconds).toBe(25);
+  });
+
   it('keeps OCEAN at 8 per trait with first 4 positive and last 4 reverse', () => {
     const ocean = questions.filter((q) => q.section === 'ocean');
     for (const trait of ['open', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism']) {
