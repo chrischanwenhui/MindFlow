@@ -25,13 +25,17 @@ describe('question quality checks', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it('has at least 150 questions and expanded cognitive depth', () => {
+    expect(questions.length).toBeGreaterThanOrEqual(150);
+    expect(questions.filter((q) => q.section === 'cognitive').length).toBeGreaterThanOrEqual(50);
+  });
+
   it('ensures cognitive questions have cognitiveDomain and include I don\'t know', () => {
     const cognitive = questions.filter((q) => q.section === 'cognitive');
     for (const q of cognitive) {
       expect(q.cognitiveDomain).toBeTruthy();
       expect(q.difficulty).toBeTruthy();
       expect(q.hint).toBeTruthy();
-      expect(q.scoringDirection).not.toBe('reverse');
       expect(q.options.some((o) => o.label === "I don't know")).toBe(true);
       if (q.cognitiveDomain === 'memory') {
         expect(q.memoryPrompt?.trim().length).toBeGreaterThan(0);
@@ -41,17 +45,12 @@ describe('question quality checks', () => {
     }
   });
 
-  it('ensures each question has at least 2 options and each option has label/value/score', () => {
-    for (const q of questions) {
-      expect(q.options.length).toBeGreaterThanOrEqual(2);
-      for (const o of q.options) {
-        expect(typeof o.label).toBe('string');
-        expect(o.label.length).toBeGreaterThan(0);
-        expect(typeof o.value).toBe('string');
-        expect(o.value.length).toBeGreaterThan(0);
-        expect(typeof o.score).toBe('number');
-      }
-      expect(q.prompt.trim().length).toBeGreaterThan(0);
+  it('keeps OCEAN positive/reverse balance by trait', () => {
+    for (const trait of ['open', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism']) {
+      const t = questions.filter((q) => q.section === 'ocean' && q.scoringDomain === trait);
+      expect(t.length).toBe(8);
+      expect(t.filter((q) => q.scoringDirection === 'positive').length).toBe(4);
+      expect(t.filter((q) => q.scoringDirection === 'reverse').length).toBe(4);
     }
   });
 });

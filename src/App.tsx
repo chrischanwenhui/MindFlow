@@ -3,6 +3,7 @@ import { LanguageSelector } from './components/LanguageSelector';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
+import { buildAssessmentSession, readStoredSessionIds, saveSessionIds, SESSION_IDS_STORAGE_KEY } from './engine/session';
 import { scoreAssessment, type Answer } from './engine/scoring';
 import { getInitialLanguage, t, type Language, type TranslationKey, LANGUAGE_STORAGE_KEY } from './i18n';
 import { localizeQuestion } from './i18n/questions';
@@ -41,11 +42,12 @@ export function App() {
   const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
   const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('idle');
   const [memoryCountdown, setMemoryCountdown] = useState(5);
-  const hasSavedProgress = answers.length > 0;
+  const [sessionQuestions, setSessionQuestions] = useState(() => buildAssessmentSession(questions, { sessionIds: readStoredSessionIds() }));
+  const hasSavedProgress = answers.length > 0 && sessionQuestions.length > 0;
   const tx = (key: TranslationKey) => t(language, key);
-  const current = useMemo(() => localizeQuestion(questions[index], language), [index, language]);
+  const current = useMemo(() => localizeQuestion(sessionQuestions[index], language), [index, language, sessionQuestions]);
   const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
-  const progress = Math.round((index / questions.length) * 100);
+  const progress = Math.round((index / Math.max(1, sessionQuestions.length)) * 100);
   const canAnswerCurrent = !isMemoryQuestion || memoryPhase === 'answering';
 
   useEffect(() => {
@@ -73,29 +75,33 @@ export function App() {
     return () => window.clearInterval(interval);
   }, [current, isMemoryQuestion, memoryPhase]);
 
-  const report = useMemo(() => scoreAssessment(questions, answers), [answers]);
+  const report = useMemo(() => scoreAssessment(sessionQuestions, answers), [answers, sessionQuestions]);
   const bigFiveScores = useMemo(() => toSortedScores(report.bigFiveScores), [report]);
   const riasecScores = useMemo(() => toSortedScores(report.riasecScores), [report]);
-  const riasecMaxScores = useMemo(() => deriveRiasecMaxScores(questions), []);
+  const riasecMaxScores = useMemo(() => deriveRiasecMaxScores(sessionQuestions), [sessionQuestions]);
 
   const choose = (value: string, score: number) => {
     if (!current) return;
     const next = [...answers.filter((a) => a.questionId !== current.id), { questionId: current.id, value, score }];
     setAnswers(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    if (index === questions.length - 1) setAssessmentView('results');
+    if (index === sessionQuestions.length - 1) setAssessmentView('results');
     else setIndex((v) => v + 1);
   };
 
   const startFreshAssessment = () => {
     localStorage.removeItem(STORAGE_KEY);
     setAnswers([]);
+    localStorage.removeItem(SESSION_IDS_STORAGE_KEY);
+    const fresh = buildAssessmentSession(questions);
+    setSessionQuestions(fresh);
+    saveSessionIds(fresh);
     setIndex(0);
     setAssessmentView('question');
   };
 
   const resumeAssessment = () => {
-    if (answers.length >= questions.length) return setAssessmentView('results');
+    if (answers.length >= sessionQuestions.length) return setAssessmentView('results');
     setIndex(answers.length);
     setAssessmentView('question');
   };
@@ -121,6 +127,10 @@ export function App() {
     setMemoryPhase('revealing');
   };
 
+
+  useEffect(() => {
+    if (sessionQuestions.length > 0) saveSessionIds(sessionQuestions);
+  }, [sessionQuestions]);
   useEffect(() => {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   }, [language]);
@@ -180,7 +190,9 @@ export function App() {
       {screen === 'assessment' && assessmentView === 'start' && (
         <section className="card">
           <h2>{tx('startTitle')}</h2>
-          <p>{tx('startEstimate')}</p>
+          <p>You will answer 75 questions in this session.</p>
+          <p>Personality and workstyle questions come first. Cognitive-style questions come near the end.</p>
+          <p>Your progress is saved locally on this device.</p>
           <p className="disclaimer">{tx('localSaveNotice')}</p>
           <div className="stack">
             <button onClick={startFreshAssessment}>{tx('startQuestions')}</button>
@@ -204,7 +216,7 @@ export function App() {
           >
             <div style={{ width: `${progress}%` }} />
           </div>
-          <small>{index + 1} / {questions.length}</small>
+          <small>{index + 1} / {sessionQuestions.length}</small>
           {isMemoryQuestion && memoryPhase === 'ready' ? (
             <>
               <h3>{tx('memoryTitle')}</h3>
