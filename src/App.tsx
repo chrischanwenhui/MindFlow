@@ -16,7 +16,7 @@ import {
 
 type Screen = 'assessment' | 'about' | 'provide';
 type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report';
-type MemoryPhase = 'idle' | 'ready' | 'revealing' | 'answering';
+type MemoryPhase = 'ready' | 'reveal' | 'answer';
 const STORAGE_KEY = 'mindflow_answers_v1';
 
 function parseStoredAnswers(raw: string | null): Answer[] {
@@ -40,33 +40,38 @@ export function App() {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>(() => parseStoredAnswers(localStorage.getItem(STORAGE_KEY)));
   const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
-  const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('idle');
-  const [memoryCountdown, setMemoryCountdown] = useState(5);
+  const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('ready');
+  const [revealRemaining, setRevealRemaining] = useState(5);
+  const [questionTimerRemaining, setQuestionTimerRemaining] = useState<number | null>(null);
   const [sessionQuestions, setSessionQuestions] = useState(() => buildAssessmentSession(questions, { sessionIds: readStoredSessionIds() }));
   const hasSavedProgress = answers.length > 0 && sessionQuestions.length > 0;
   const tx = (key: TranslationKey) => t(language, key);
   const current = useMemo(() => localizeQuestion(sessionQuestions[index], language), [index, language, sessionQuestions]);
   const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
   const progress = Math.round((index / Math.max(1, sessionQuestions.length)) * 100);
-  const canAnswerCurrent = !isMemoryQuestion || memoryPhase === 'answering';
+  const canAnswerCurrent = !isMemoryQuestion || memoryPhase === 'answer';
+  const hasTimedCountdown = Boolean(current?.timed && (current.recommendedSeconds ?? 0) > 0);
+  const isLate = hasTimedCountdown && questionTimerRemaining === 0;
 
   useEffect(() => {
     if (!current) return;
     if (current.section === 'cognitive' && current.cognitiveDomain === 'memory') {
       setMemoryPhase('ready');
-      setMemoryCountdown(current.revealSeconds ?? 5);
-      return;
+      setRevealRemaining(current.revealSeconds ?? 5);
+    } else {
+      setMemoryPhase('answer');
     }
-    setMemoryPhase('idle');
+    if (current.timed && (current.recommendedSeconds ?? 0) > 0) setQuestionTimerRemaining(current.recommendedSeconds ?? 0);
+    else setQuestionTimerRemaining(null);
   }, [current?.id]);
 
   useEffect(() => {
-    if (!current || !isMemoryQuestion || memoryPhase !== 'revealing') return;
+    if (!current || !isMemoryQuestion || memoryPhase !== 'reveal') return;
     const interval = window.setInterval(() => {
-      setMemoryCountdown((prev) => {
+      setRevealRemaining((prev) => {
         if (prev <= 1) {
           window.clearInterval(interval);
-          setMemoryPhase('answering');
+          setMemoryPhase('answer');
           return 0;
         }
         return prev - 1;
@@ -74,6 +79,19 @@ export function App() {
     }, 1000);
     return () => window.clearInterval(interval);
   }, [current, isMemoryQuestion, memoryPhase]);
+  useEffect(() => {
+    if (!hasTimedCountdown || questionTimerRemaining === null || questionTimerRemaining <= 0) return;
+    const interval = window.setInterval(() => {
+      setQuestionTimerRemaining((prev) => {
+        if (prev === null || prev <= 1) {
+          window.clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [hasTimedCountdown, questionTimerRemaining, current?.id]);
 
   const report = useMemo(() => scoreAssessment(sessionQuestions, answers), [answers, sessionQuestions]);
   const bigFiveScores = useMemo(() => toSortedScores(report.bigFiveScores), [report]);
@@ -123,8 +141,8 @@ export function App() {
   };
   const startMemoryReveal = () => {
     if (!current || !isMemoryQuestion) return;
-    setMemoryCountdown(current.revealSeconds ?? 5);
-    setMemoryPhase('revealing');
+    setRevealRemaining(current.revealSeconds ?? 5);
+    setMemoryPhase('reveal');
   };
 
 
@@ -237,20 +255,24 @@ export function App() {
             <div style={{ width: `${progress}%` }} />
           </div>
           <small>{index + 1} / {sessionQuestions.length}</small>
+          {hasTimedCountdown && questionTimerRemaining !== null && (
+            <p className="disclaimer">{tx('timeRemaining')}: <strong>{questionTimerRemaining}s</strong></p>
+          )}
           {isMemoryQuestion && memoryPhase === 'ready' ? (
             <>
-              <h3>{tx('memoryTitle')}</h3>
-              <p>{tx('memoryIntro')}</p>
-              <button onClick={startMemoryReveal}>{tx('memoryReady')}</button>
+              <h3>{tx('memoryReadyTitle')}</h3>
+              <p>{tx('memoryReadyBody')}</p>
+              <button onClick={startMemoryReveal}>{tx('readyReveal')}</button>
             </>
-          ) : isMemoryQuestion && memoryPhase === 'revealing' ? (
+          ) : isMemoryQuestion && memoryPhase === 'reveal' ? (
             <>
               <h3>{current.memoryPrompt}</h3>
-              <p><strong>{tx('memorizeThis')}: {memoryCountdown}</strong></p>
+              <p><strong>{tx('memorizeThis')}: {revealRemaining}</strong></p>
             </>
           ) : (
             <>
               <h3>{isMemoryQuestion ? current.memoryQuestion : current.prompt}</h3>
+              {isMemoryQuestion && <p className="disclaimer">{tx('memoryHiddenNotice')}</p>}
               <div className="stack">
                 {canAnswerCurrent && current.options.map((o) => (
                   <button key={o.label} className="option" onClick={() => choose(o.value, o.score)}>
@@ -260,13 +282,14 @@ export function App() {
               </div>
             </>
           )}
-          {current.hint && memoryPhase !== 'revealing' && (
+          {isLate && <p className="disclaimer">{tx('timeUpNotice')}</p>}
+          {current.hint && memoryPhase !== 'reveal' && (
             <details className="hint">
               <summary>{tx('needHelp')}</summary>
               <p>{current.hint}</p>
             </details>
           )}
-          {index > 0 && <button className="secondary-action" onClick={goToPreviousQuestion}>{tx('backPrev')}</button>}
+          {index > 0 && <button className="secondary-action" onClick={goToPreviousQuestion} disabled={isMemoryQuestion && memoryPhase === 'reveal'}>{tx('backPrev')}</button>}
           <button className="secondary-action" onClick={saveAndContinueLater}>{tx('navSaveExit')}</button>
           <p className="disclaimer">{tx('localSaveNotice')}</p>
           {current.section === 'cognitive' && <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>}

@@ -14,7 +14,7 @@ export const ko = {
   sessionOrderNotice: '성격·업무스타일 문항이 먼저 나오고, 인지스타일 문항은 후반에 나옵니다.',
   sessionSaveNotice: '진행 상황은 이 기기에 로컬로 저장됩니다.',
   startQuestions: '문항 시작', resumeSaved: '저장된 진행 이어하기', noSaved: '저장된 응답이 아직 없습니다. 새 평가를 시작하세요.',
-  progressAria: '평가 진행률', memoryTitle: '기억 챌린지', memoryIntro: '몇 초 동안 시퀀스가 보입니다. 사라진 뒤에는 다시 보지 말고 답하세요.', memoryReady: '준비됨 — 시퀀스 보기', memorizeThis: '기억하세요', needHelp: '문항 이해에 도움이 필요하신가요?', backPrev: '이전 문항으로',
+  progressAria: '평가 진행률', memoryTitle: '기억 챌린지', memoryIntro: '몇 초 동안 시퀀스가 보입니다. 사라진 뒤에는 다시 보지 말고 답하세요.', memoryReadyTitle: 'Memory challenge', memoryReadyBody: 'You will see a sequence briefly. Click Ready when you want to reveal it.', readyReveal: 'Ready', memoryHiddenNotice: 'The memory sequence is now hidden. Answer from memory.', timeRemaining: 'Time remaining', timeUpNotice: 'Time is up — answer if you still want, but treat it as late.', memoryReady: '준비됨 — 시퀀스 보기', memorizeThis: '기억하세요', needHelp: '문항 이해에 도움이 필요하신가요?', backPrev: '이전 문항으로',
   resultsTitle: '결과 요약', personalityEstimate: '성격 유형 추정:', motivationPattern: '동기 패턴:', viewReport: '보고서 미리보기', reportPreview: '자기 발견 보고서 미리보기', printPdf: '인쇄 또는 PDF 저장',
   aboutTitle: 'MindFlow 소개', provideTitle: '제공 내용', restart: '다시 시작',
   translationNotice: '번역 품질 안내: 이 다국어 UI는 계속 개선 중인 초안입니다. 일부 표현은 현지 가독성에 맞게 조정될 수 있습니다.',

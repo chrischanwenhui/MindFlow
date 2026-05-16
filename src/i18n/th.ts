@@ -14,7 +14,7 @@ export const th = {
   sessionOrderNotice: 'คำถามบุคลิกภาพและสไตล์การทำงานมาก่อน คำถามด้านการคิดจะอยู่ช่วงท้าย',
   sessionSaveNotice: 'ความคืบหน้าของคุณจะถูกบันทึกไว้ในอุปกรณ์นี้',
   startQuestions: 'เริ่มคำถาม', resumeSaved: 'ทำต่อจากที่บันทึกไว้', noSaved: 'ยังไม่พบคำตอบที่บันทึกไว้ เริ่มแบบประเมินใหม่ได้เลย',
-  progressAria: 'ความคืบหน้าแบบประเมิน', memoryTitle: 'ความท้าทายด้านความจำ', memoryIntro: 'คุณจะเห็นลำดับข้อมูลไม่กี่วินาที พอหายไปแล้วให้ตอบโดยไม่ย้อนดู', memoryReady: 'พร้อม — แสดงลำดับ', memorizeThis: 'จดจำสิ่งนี้', needHelp: 'ต้องการความช่วยเหลือในการเข้าใจคำถามไหม?', backPrev: 'กลับไปคำถามก่อนหน้า',
+  progressAria: 'ความคืบหน้าแบบประเมิน', memoryTitle: 'ความท้าทายด้านความจำ', memoryIntro: 'คุณจะเห็นลำดับข้อมูลไม่กี่วินาที พอหายไปแล้วให้ตอบโดยไม่ย้อนดู', memoryReadyTitle: 'Memory challenge', memoryReadyBody: 'You will see a sequence briefly. Click Ready when you want to reveal it.', readyReveal: 'Ready', memoryHiddenNotice: 'The memory sequence is now hidden. Answer from memory.', timeRemaining: 'Time remaining', timeUpNotice: 'Time is up — answer if you still want, but treat it as late.', memoryReady: 'พร้อม — แสดงลำดับ', memorizeThis: 'จดจำสิ่งนี้', needHelp: 'ต้องการความช่วยเหลือในการเข้าใจคำถามไหม?', backPrev: 'กลับไปคำถามก่อนหน้า',
   resultsTitle: 'สรุปผลลัพธ์', personalityEstimate: 'การประมาณประเภทบุคลิกภาพ:', motivationPattern: 'รูปแบบแรงจูงใจ:', viewReport: 'ดูตัวอย่างรายงาน', reportPreview: 'ตัวอย่างรายงานการค้นพบตนเอง', printPdf: 'พิมพ์หรือบันทึกเป็น PDF',
   aboutTitle: 'เกี่ยวกับ MindFlow', provideTitle: 'สิ่งที่เราให้', restart: 'เริ่มใหม่',
   translationNotice: 'ประกาศคุณภาพการแปล: UI หลายภาษานี้ยังเป็นฉบับร่างที่พัฒนาอย่างต่อเนื่อง บางถ้อยคำอาจปรับปรุงเพิ่มเติมเพื่อความชัดเจนในท้องถิ่น',
