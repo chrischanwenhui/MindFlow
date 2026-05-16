@@ -358,7 +358,7 @@ export function App() {
         <section className="card">
           <h2>{tx('navAboutMindflow')}</h2>
           <p>MindFlow by Eirene Stack is built for self-discovery, reflection, career direction, and cognitive-style awareness.</p>
-          <p className="disclaimer">MindFlow is non-diagnostic and does not provide clinical accuracy, official IQ claims, or psychological diagnosis.</p>
+          <p className="disclaimer">MindFlow is non-diagnostic and does not provide clinical accuracy, credentialed cognitive claims, or psychological diagnosis.</p>
           <p className="disclaimer">Local-first privacy note: this MVP stores responses locally in your browser only.</p>
           <p className="disclaimer">{tx('translationNotice')}</p>
         </section>
