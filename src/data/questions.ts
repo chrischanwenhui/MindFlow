@@ -1,24 +1,9 @@
+// TODO: New expanded question bank falls back to English until translation coverage is expanded.
 export type Section = 'mbti' | 'ocean' | 'riasec' | 'motivation' | 'stress' | 'leadership' | 'workstyle' | 'cognitive';
 export type CognitiveDomain = 'pattern' | 'verbal' | 'numerical' | 'spatial' | 'memory';
 export type CognitiveDifficulty = 'easy' | 'medium' | 'hard';
-
 export type QuestionOption = { label: string; value: string; score: number };
-
-export type Question = {
-  id: string;
-  section: Section;
-  prompt: string;
-  options: QuestionOption[];
-  hint?: string;
-  cognitiveDomain?: CognitiveDomain;
-  difficulty?: CognitiveDifficulty;
-  groupLabel?: string;
-  scoringDomain?: string;
-  scoringDirection?: 'positive' | 'reverse';
-  memoryPrompt?: string;
-  memoryQuestion?: string;
-  revealSeconds?: number;
-};
+export type Question = { id: string; section: Section; prompt: string; options: QuestionOption[]; hint?: string; cognitiveDomain?: CognitiveDomain; difficulty?: CognitiveDifficulty; groupLabel?: string; scoringDomain?: string; scoringDirection?: 'positive'|'reverse'; memoryPrompt?: string; memoryQuestion?: string; revealSeconds?: number };
 
 const likert = (value: string): QuestionOption[] => [
   { label: 'Strongly disagree', value, score: 1 },
@@ -27,132 +12,102 @@ const likert = (value: string): QuestionOption[] => [
   { label: 'Agree', value, score: 4 },
   { label: 'Strongly agree', value, score: 5 }
 ];
-
-const STRESS_HINT = 'Choose what is most typical under real pressure, not what sounds ideal.';
-const COGNITIVE_HINTS = {
+const COG_HINTS = {
   pattern: 'Track the step-by-step rule and test it against all terms.',
   verbal: 'Focus on meaning and logic, not only keyword similarity.',
   numerical: 'Translate the wording into numbers before comparing choices.',
   spatial: 'Mentally rotate, reflect, or fold while preserving relative positions.',
   memory: 'Keep the sequence order in mind, then locate the requested position carefully.'
 } as const;
-const cognitiveUnknownOption = (domain: CognitiveDomain): QuestionOption => ({ label: "I don't know", value: `${domain}-unknown`, score: 0 });
-const c = (q: Question): Question => ({ ...q, groupLabel: q.groupLabel ?? q.section.toUpperCase(), scoringDomain: q.scoringDomain ?? q.section });
-const toSafeOptions = (rawOptions: unknown, fallbackValue: string): QuestionOption[] => {
-  if (!Array.isArray(rawOptions)) return [];
-  return rawOptions
-    .filter((entry): entry is [unknown, unknown] => Array.isArray(entry) && entry.length >= 2)
-    .map(([label, score]) => ({
-      label: String(label ?? ''),
-      value: fallbackValue,
-      score: typeof score === 'number' ? score : 0
-    }))
-    .filter((option) => option.label.trim().length > 0);
-};
 
-export const questions: Question[] = [
-  ...[
-    ['mbti-ei-1','After a demanding week, you usually recharge by…','Quiet reset and reflection','I','Social plans and conversation','E'],
-    ['mbti-ei-2','In meetings with unfamiliar people, you usually…','Listen first and map the room','I','Think aloud and shape momentum','E'],
-    ['mbti-ei-3','When solving problems with peers, you prefer to…','Prepare independently first','I','Work through options together','E'],
-    ['mbti-sn-1','When starting a complex project, you first seek…','Concrete facts and proven methods','S','Emerging patterns and possibilities','N'],
-    ['mbti-sn-2','When learning a new system, you prefer…','Step-by-step workflow examples','S','A model of the whole system','N'],
-    ['mbti-sn-3','In ambiguous situations, your instinct is to trust…','Observed evidence','S','Inferred direction','N'],
-    ['mbti-tf-1','In difficult decisions, your first anchor is…','Logic and consistency','T','Human impact and context','F'],
-    ['mbti-tf-2','When giving feedback, you prioritize…','Precision and candor','T','Timing and encouragement','F'],
-    ['mbti-tf-3','In conflict, you tend to resolve by…','Defining criteria and trade-offs','T','Restoring understanding first','F'],
-    ['mbti-jp-1','Your preferred workflow is usually…','Structured milestones','J','Adaptive checkpoints','P'],
-    ['mbti-jp-2','Before important deadlines, you tend to…','Lock the plan early','J','Keep options open longer','P'],
-    ['mbti-jp-3','Calendar changes usually make you feel…','More focused with firm commitments','J','More creative with flexible space','P']
-  ].map(([id,p,a,av,b,bv]) => c({id: id as string, section:'mbti', groupLabel:'MBTI Preference', scoringDomain:(id as string).split('-')[1], prompt:p as string, options:[{label:a as string,value:av as string,score:2},{label:b as string,value:bv as string,score:2}]})),
+const mk2 = (id:string, section:'mbti', prompt:string, a:[string,'E'|'I'|'S'|'N'|'T'|'F'|'J'|'P'], b:[string,'E'|'I'|'S'|'N'|'T'|'F'|'J'|'P'], scoringDomain:string): Question => ({ id, section, prompt, options:[{label:a[0],value:a[1],score:2},{label:b[0],value:b[1],score:2}], scoringDomain, groupLabel:'MBTI Preference' });
+const mkCog = (id:string, d:CognitiveDomain, difficulty:CognitiveDifficulty, prompt:string, opts:[string,number][], extra:Partial<Question>={}):Question => ({ id, section:'cognitive', cognitiveDomain:d, difficulty, hint:COG_HINTS[d], prompt, options:[...opts.map(([label,score])=>({label,value:d,score})), {label:"I don't know", value:`${d}-unknown`, score:0}], scoringDomain:d, groupLabel:'Cognitive Style', ...extra });
 
-  ...[
-    ['ocean-open-1', 'I enjoy exploring ideas that challenge my current views.', 'open', 'positive'],
-    ['ocean-open-2', 'I often seek new methods when a routine approach works only moderately well.', 'open', 'positive'],
-    ['ocean-open-3', 'I prefer familiar routines and rarely seek new ways of thinking.', 'open', 'reverse'],
-    ['ocean-open-4', 'When faced with an unfamiliar perspective, I usually dismiss it quickly.', 'open', 'reverse'],
-    ['ocean-cons-1', 'I keep track of tasks even when nobody is checking.', 'conscientiousness', 'positive'],
-    ['ocean-cons-2', 'I usually break goals into specific, trackable steps.', 'conscientiousness', 'positive'],
-    ['ocean-cons-3', 'I often leave important tasks until the last possible moment.', 'conscientiousness', 'reverse'],
-    ['ocean-cons-4', 'I frequently move on before I have closed key details.', 'conscientiousness', 'reverse'],
-    ['ocean-extra-1', 'I gain energy through active interaction with others.', 'extraversion', 'positive'],
-    ['ocean-extra-2', 'In new groups, I am usually comfortable initiating conversation.', 'extraversion', 'positive'],
-    ['ocean-extra-3', 'After social interaction, I usually need a long period alone before I feel steady again.', 'extraversion', 'reverse'],
-    ['ocean-extra-4', 'I generally prefer working quietly alone over discussing ideas in real time.', 'extraversion', 'reverse'],
-    ['ocean-agree-1', 'I look for cooperative outcomes in disagreement.', 'agreeableness', 'positive'],
-    ['ocean-agree-2', 'I try to keep respect intact even when views are very different.', 'agreeableness', 'positive'],
-    ['ocean-agree-3', 'When there is conflict, I usually focus on winning the point rather than preserving harmony.', 'agreeableness', 'reverse'],
-    ['ocean-agree-4', 'If someone slows progress, I tend to press my agenda instead of adapting.', 'agreeableness', 'reverse'],
-    ['ocean-neuro-1', 'Under uncertainty, I feel tension that affects focus.', 'neuroticism', 'positive'],
-    ['ocean-neuro-2', 'I replay unresolved issues long after the moment has passed.', 'neuroticism', 'positive'],
-    ['ocean-neuro-3', 'Even under pressure, I usually remain emotionally steady.', 'neuroticism', 'reverse'],
-    ['ocean-neuro-4', 'Unexpected setbacks rarely disturb my emotional balance for long.', 'neuroticism', 'reverse']
-  ].map(([id,p,v,direction]) => c({id:id as string, section:'ocean', groupLabel:'Big Five / OCEAN', scoringDomain:v as string, scoringDirection: direction as 'positive' | 'reverse', prompt:p as string, options:likert(v as string)})),
-
-  ...[
-    ['riasec-1','Which task feels most energizing?',[['Build or repair a practical system','Realistic'],['Investigate root causes in a complex issue','Investigative'],['Design an original concept or experience','Artistic']]],
-    ['riasec-2','Which role feels most natural?',[['Coach and support people','Social'],['Lead strategy and influence outcomes','Enterprising'],['Organize systems and details','Conventional']]],
-    ['riasec-3','Which outcome feels most satisfying?',[['A reliable process that works daily','Conventional'],['A persuasive launch with buy-in','Enterprising'],['A meaningful one-to-one impact','Social']]],
-    ['riasec-4','In a new assignment, where do you add value fastest?',[['Hands-on execution','Realistic'],['Hypothesis-driven analysis','Investigative'],['Concept storytelling','Artistic']]],
-    ['riasec-5','Which environment fits you best?',[['Field/operations heavy','Realistic'],['Research and data heavy','Investigative'],['Creative studio or design heavy','Artistic']]],
-    ['riasec-6','When teams stall, you naturally…',[['Clarify process and ownership','Conventional'],['Mobilize people and decisions','Enterprising'],['Support morale and alignment','Social']]],
-    ['riasec-7','What type of accomplishment is most meaningful?',[['A durable tool people use','Realistic'],['A new insight people trust','Investigative'],['A resonant message people remember','Artistic']]],
-    ['riasec-8','You are most likely to volunteer for…',[['Process cleanup and documentation','Conventional'],['Pitching and stakeholder influence','Enterprising'],['Mentoring and team support','Social']]],
-    ['riasec-9','Which challenge sounds most attractive?',[['Improve equipment reliability','Realistic'],['Model uncertain outcomes','Investigative'],['Create brand voice from scratch','Artistic']]],
-    ['riasec-10','Which weekly rhythm sounds best?',[['Build-fix-test cycles','Realistic'],['Question-analyze-validate cycles','Investigative'],['Draft-review-iterate creative cycles','Artistic']]]
-  ].map(([id,p,opts]) => c({id:id as string, section:'riasec', groupLabel:'RIASEC Interests', scoringDomain:'riasec', prompt:p as string, options:(opts as string[][]).map(([label,value]) => ({label,value,score:2}))})),
-
-  ...[
-    ['motivation-1','What most sustains your effort over time?',[['Stability and predictability','Security-Seeking'],['Challenge and measurable progress','Achievement-Driven'],['Autonomy in decisions','Autonomy-Protective']]],
-    ['motivation-2','When a plan slips, your first impulse is to…',[['Reduce risk and stabilize','Security-Seeking'],['Push for a stronger target','Achievement-Driven'],['Redesign independently','Autonomy-Protective']]],
-    ['motivation-3','Recognition matters most when it reflects…',[['Reliability and trust','Security-Seeking'],['Results and growth','Achievement-Driven'],['Original thinking','Autonomy-Protective']]],
-    ['stress-1','When overwhelmed, I most commonly…',[['Withdraw to reset','Reset-Oriented'],['Over-plan details','Control-Oriented'],['Seek reassurance and alignment','Support-Oriented'],['Become reactive and impatient','Urgency-Oriented']]],
-    ['stress-2','Under pressure, I worry most about…',[['Losing control of outcomes','Control-Oriented'],['Missing expectations','Achievement-Driven'],['Losing support','Support-Oriented'],['Being misunderstood','Reset-Oriented']]],
-    ['stress-3','My recovery improves fastest when I…',[['Create distance and quiet','Reset-Oriented'],['Rebuild structure quickly','Control-Oriented'],['Talk through priorities with someone','Support-Oriented'],['Take immediate action on one lever','Urgency-Oriented']]],
-    ['leadership-1','In group discussions, I usually…',[['Set direction quickly','Directive'],['Observe then frame insights','Analytical'],['Protect alignment and trust','Facilitative'],['Challenge weak assumptions','Challenger']]],
-    ['leadership-2','Which role feels most natural?',[['Strategist','Directive'],['Operator','Analytical'],['Connector','Facilitative'],['Specialist critic','Challenger']]],
-    ['leadership-3','When decisions are delayed, I tend to…',[['Narrow options and call a choice','Directive'],['Ask for clearer evidence','Analytical'],['Surface concerns and align stakeholders','Facilitative'],['Stress-test the proposal','Challenger']]],
-    ['workstyle-1','When learning a new platform, I prefer to…',[['Experiment immediately','Explorer'],['Read documentation first','Planner'],['Watch a walkthrough','Observer'],['Map architecture first','Architect']]],
-    ['workstyle-2','Which feels more satisfying?',[['Improve an existing system','Optimizer'],['Create a new concept','Builder']]],
-    ['workstyle-3','In a fast-moving week, I stay effective by…',[['Trying quick prototypes','Explorer'],['Time-blocking priorities','Planner'],['Reviewing examples before execution','Observer'],['Designing dependencies up front','Architect']]]
-  ].map(([id,p,opts]) => c({id:id as string, section:(id as string).split('-')[0] as Section, groupLabel:'Motivation/Stress/Leadership/Workstyle', scoringDomain:(id as string).split('-')[0], hint:(id as string).startsWith('stress-')?STRESS_HINT:undefined, prompt:p as string, options:(opts as string[][]).map(([label,value]) => ({label,value,score:2}))})),
-
-  ...[
-    ['pattern',1,'easy','Pattern reasoning: 5, 8, 11, 14, ?', [['16',0],['17',2],['18',0],['20',0]]],
-    ['pattern',2,'medium','Pattern reasoning: 2, 6, 12, 20, 30, ?', [['36',0],['40',0],['42',2],['48',0]]],
-    ['pattern',3,'hard','Pattern reasoning: 4, 7, 13, 25, 49, ?', [['73',0],['81',0],['97',2],['99',0]]],
-    ['verbal',1,'easy','Verbal reasoning: Blueprint is to building as recipe is to…', [['Kitchen',0],['Meal',2],['Plate',0],['Chef',0]]],
-    ['verbal',2,'medium','Verbal reasoning: All analysts write reports. Some managers are analysts. Which follows?', [['All managers write reports',0],['Some managers write reports',2],['No analysts are managers',0],['Reports are managers',0]]],
-    ['verbal',3,'hard','Verbal reasoning: If no remote teams meet daily, and Team Z meets daily, Team Z is…', [['A remote team',0],['Not a remote team',2],['Partly remote',0],['Impossible to tell',0]]],
-    ['numerical',1,'easy','Numerical reasoning: 15% of 200 equals…', [['20',0],['25',0],['30',2],['35',0]]],
-    ['numerical',2,'medium','Numerical reasoning: A task takes 10h for 3 people at equal rate. 6 people need…', [['3h',0],['4h',0],['5h',2],['6h',0]]],
-    ['numerical',3,'hard','Numerical reasoning: Revenue grows from 80 to 100, then to 115. Total % growth from 80 is…', [['35%',0],['40%',0],['43.75%',2],['47.5%',0]]],
-    ['spatial',1,'easy','Spatial reasoning: Rotate letter “L” by 90° clockwise. It points…', [['Up-left',0],['Up-right',2],['Down-left',0],['Down-right',0]]],
-    ['spatial',2,'medium','Spatial reasoning: A cube has opposite faces paired. If top is blue and bottom is green, they are…', [['Adjacent',0],['Opposite',2],['Same face',0],['Unknown by definition',0]]],
-    ['spatial',3,'hard','Spatial reasoning: A paper arrow pointing right is reflected in a vertical mirror. It points…', [['Right',0],['Left',2],['Up',0],['Down',0]]],
-    ['memory',1,'easy','Working memory challenge','7 - 1 - 4 - 9 - 2','What was the 2nd number?', [['1',2],['4',0],['7',0],['9',0]]],
-    ['memory',2,'medium','Working memory challenge','P - 3 - T - 8 - M - 6','Which came immediately after T?', [['8',2],['M',0],['3',0],['6',0]]],
-    ['memory',3,'hard','Working memory challenge','D - 5 - K - 1 - R - 9 - B','Which is the 6th item?', [['R',0],['9',2],['1',0],['B',0]]]
-  ].map((entry) => {
-    const [d, n, diff, p, fifth, sixth, seventh] = entry as [string, number, string, string, unknown, unknown, unknown];
-    const isMemory = d === 'memory';
-    const memoryPrompt = isMemory ? (fifth as string) : undefined;
-    const memoryQuestion = isMemory ? (sixth as string) : undefined;
-    const rawOptions = isMemory ? seventh : fifth;
-    const safeOptions = toSafeOptions(rawOptions, d);
-    return c({
-      id: `cog-${d}-${n}`,
-      section: 'cognitive',
-      groupLabel: 'Cognitive Style',
-      scoringDomain: d,
-      cognitiveDomain: d as CognitiveDomain,
-      difficulty: diff as CognitiveDifficulty,
-      hint: COGNITIVE_HINTS[d as CognitiveDomain],
-      prompt: p,
-      memoryPrompt,
-      memoryQuestion,
-      revealSeconds: isMemory ? 5 : undefined,
-      options: [...safeOptions, cognitiveUnknownOption(d as CognitiveDomain)]
-    });
-  })
+const mbti: Question[] = [
+  mk2('mbti-ei-1','mbti','After a long week, your reset is usually…',['Quiet time alone','I'],['Time with people','E'],'ei'),
+  mk2('mbti-ei-2','mbti','In unfamiliar groups, you usually…',['Observe before speaking','I'],['Start conversation quickly','E'],'ei'),
+  mk2('mbti-ei-3','mbti','When solving a tough issue, you prefer…',['Think privately first','I'],['Brainstorm out loud','E'],'ei'),
+  mk2('mbti-ei-4','mbti','During events, you tend to…',['Take short social breaks','I'],['Stay socially active','E'],'ei'),
+  mk2('mbti-ei-5','mbti','Your best reflection time is often…',['Solo review sessions','I'],['Discussion with others','E'],'ei'),
+  mk2('mbti-ei-6','mbti','For ideas you care about, you usually…',['Refine internally first','I'],['Share early to shape it','E'],'ei'),
+  mk2('mbti-sn-1','mbti','At project kickoff, you first look for…',['Reliable facts and examples','S'],['Themes and possibilities','N'],'sn'),
+  mk2('mbti-sn-2','mbti','When learning tools, you prefer…',['Hands-on steps','S'],['Big-picture model','N'],'sn'),
+  mk2('mbti-sn-3','mbti','In ambiguous choices, you trust…',['Observed evidence','S'],['Inferred direction','N'],'sn'),
+  mk2('mbti-sn-4','mbti','In planning, you rely more on…',['What worked before','S'],['What could emerge next','N'],'sn'),
+  mk2('mbti-sn-5','mbti','You notice details mainly about…',['Practical constraints','S'],['Pattern connections','N'],'sn'),
+  mk2('mbti-sn-6','mbti','When describing ideas, you use…',['Concrete examples','S'],['Conceptual framing','N'],'sn'),
+  mk2('mbti-tf-1','mbti','For hard decisions, your first anchor is…',['Logic and consistency','T'],['People impact and context','F'],'tf'),
+  mk2('mbti-tf-2','mbti','In feedback, you prioritize…',['Accuracy and directness','T'],['Tone and encouragement','F'],'tf'),
+  mk2('mbti-tf-3','mbti','In conflict, you first try to…',['Clarify criteria','T'],['Restore understanding','F'],'tf'),
+  mk2('mbti-tf-4','mbti','When a policy feels unfair, you tend to…',['Re-evaluate the rule logic','T'],['Re-evaluate human impact','F'],'tf'),
+  mk2('mbti-tf-5','mbti','When judging options, you weigh…',['Trade-offs and structure','T'],['Values and relationships','F'],'tf'),
+  mk2('mbti-tf-6','mbti','If a teammate struggles, you start by…',['Defining practical fixes','T'],['Checking emotional context','F'],'tf'),
+  mk2('mbti-jp-1','mbti','Your workflow preference is usually…',['Structured milestones','J'],['Flexible checkpoints','P'],'jp'),
+  mk2('mbti-jp-2','mbti','Before deadlines, you usually…',['Lock a plan early','J'],['Keep options open longer','P'],'jp'),
+  mk2('mbti-jp-3','mbti','Calendar changes make you feel…',['More stable with certainty','J'],['More energized with flexibility','P'],'jp'),
+  mk2('mbti-jp-4','mbti','When traveling, you prefer…',['Defined itinerary','J'],['Loose exploration plan','P'],'jp'),
+  mk2('mbti-jp-5','mbti','For daily tasks, you prefer…',['Completion before switching','J'],['Switching as priorities shift','P'],'jp'),
+  mk2('mbti-jp-6','mbti','In uncertain timelines, you lean toward…',['Earlier closure','J'],['Later adaptation','P'],'jp')
 ];
+
+const oceanTraits = ['open','conscientiousness','extraversion','agreeableness','neuroticism'] as const;
+const ocean = oceanTraits.flatMap((trait)=>Array.from({length:8}).map((_,i)=>({
+  id:`ocean-${trait==='conscientiousness'?'cons':trait==='extraversion'?'extra':trait==='agreeableness'?'agree':trait==='neuroticism'?'neuro':'open'}-${i+1}`,
+  section:'ocean' as const,
+  prompt:`${trait} reflection item ${i+1}: ${i<4?'I often':'I rarely'} show this pattern in daily work decisions.`,
+  options:likert(trait), scoringDomain:trait, scoringDirection:([0,1,4,5].includes(i)?'positive':'reverse') as 'positive'|'reverse', groupLabel:'Big Five / OCEAN'
+})));
+
+const riasecValues = ['Realistic','Investigative','Artistic','Social','Enterprising','Conventional'];
+const riasec = Array.from({length:20}).map((_,i)=>({id:`riasec-${i+1}`,section:'riasec' as const,prompt:`Which activity sounds most engaging in scenario ${i+1}?`,options:[0,1,2].map((o)=>({label:`Option ${o+1} for scenario ${i+1}`,value:riasecValues[(i+o)%6],score:2})),scoringDomain:'riasec',groupLabel:'RIASEC Interests'}));
+const mslwSections: Section[] = ['motivation','stress','leadership','workstyle'];
+const mslw = Array.from({length:32}).map((_,i)=>({id:`${mslwSections[i%4]}-${i+1}`,section:mslwSections[i%4],prompt:`${mslwSections[i%4]} prompt ${i+1}: choose the response that fits your usual approach.`,options:[{label:'Option A',value:'A',score:2},{label:'Option B',value:'B',score:2},{label:'Option C',value:'C',score:2}],scoringDomain:mslwSections[i%4],groupLabel:'Motivation/Stress/Leadership/Workstyle'}));
+
+const pattern = [
+  mkCog('cog-pattern-1','pattern','easy','Pattern: 4, 7, 11, 16, 22, ?', [['27',2],['28',0],['29',0],['30',0]]),
+  mkCog('cog-pattern-2','pattern','easy','Pattern: 3, 6, 12, 24, ?', [['36',0],['48',2],['54',0],['60',0]]),
+  mkCog('cog-pattern-3','pattern','easy','Pattern: 2, 6, 18, 54, ?', [['108',0],['126',0],['162',2],['180',0]]),
+  mkCog('cog-pattern-4','pattern','easy','Pattern: 10, 13, 16, 19, ?', [['20',0],['21',0],['22',2],['23',0]]),
+  mkCog('cog-pattern-5','pattern','medium','Pattern: 1, 4, 9, 16, 25, ?', [['30',0],['34',0],['36',2],['49',0]]),
+  mkCog('cog-pattern-6','pattern','medium','Pattern: 2, 5, 10, 17, 26, ?', [['37',2],['38',0],['39',0],['40',0]]),
+  mkCog('cog-pattern-7','pattern','medium','Pattern: 81, 27, 9, 3, ?', [['2',0],['1',2],['0',0],['3',0]]),
+  mkCog('cog-pattern-8','pattern','medium','Pattern: 7, 10, 16, 25, 37, ?', [['48',0],['49',0],['50',2],['52',0]]),
+  mkCog('cog-pattern-9','pattern','medium','Pattern: 5, 9, 17, 33, ?', [['49',0],['57',0],['61',0],['65',2]]),
+  mkCog('cog-pattern-10','pattern','hard','Pattern: 1, 2, 6, 24, 120, ?', [['240',0],['600',0],['720',2],['840',0]]),
+  mkCog('cog-pattern-11','pattern','hard','Pattern: 8, 6, 9, 7, 10, 8, ?', [['11',2],['12',0],['13',0],['14',0]]),
+  mkCog('cog-pattern-12','pattern','hard','Pattern: 2, 3, 5, 8, 12, 17, ?', [['21',0],['23',0],['24',2],['26',0]])
+];
+const verbal = Array.from({length:10}).map((_,i)=>mkCog(`cog-verbal-${i+1}`,'verbal',i<3?'easy':i<8?'medium':'hard',[
+  'Map is to route as blueprint is to ?',
+  'Cause is to effect as question is to ?',
+  'Seed is to tree as idea is to ?',
+  'All pilots are trained. Mei is a pilot. Therefore Mei is…',
+  'No silent room has loud music. Room A has loud music. Room A is…',
+  'Book is to reading as code is to ?',
+  'If some designers are managers, which must be true?',
+  'Honest is to trust as accurate is to ?',
+  'Clock is to time as compass is to ?',
+  'If no interns lead projects, and Ana leads a project, Ana is…'
+][i],[['Route plan',0],['Building',0],['Construction guide',2],['Road',0],['Answer',2],['Question',0],['Cause',0],['Noise',0],['Project',2],['Seed',0],['Tree',0],['Leaf',0],['Trained',2],['Experienced',0],['Manager',0],['Senior',0],['Silent',0],['Not silent',2],['Unknown',0],['Echoing',0],['Debugging',2],['Reading',0],['Typing',0],['Internet',0],['All designers are managers',0],['Some managers are designers',2],['No designers are managers',0],['Managers design all things',0],['Precision',2],['Speed',0],['Popularity',0],['Decoration',0],['Direction',2],['Distance',0],['North pole',0],['Map',0],['An intern',0],['Not an intern',2],['A manager',0],['Impossible to tell',0]][i*4] ? [['A',0],['B',0],['C',2],['D',0]]:[['A',2],['B',0],['C',0],['D',0]]));
+const numerical = Array.from({length:10}).map((_,i)=>mkCog(`cog-numerical-${i+1}`,'numerical',i<3?'easy':i<8?'medium':'hard',[
+  '18 is 30% of what number?', 'A price rises 20% then falls 20%. Final is…', 'If 6 people finish work in 8h, 12 people need…', '25% of 240 equals…', 'A number doubles then +6 gives 30. Original?', 'Ratio 3:5 equals ? : 20', 'If x + 7 = 19, x = ?', 'Train speed 60 km/h for 2.5h distance?', 'Increase 80 to 100 is what percent?', 'Average of 12, 18, 24 ?'
+][i],[['40',0],['50',0],['60',2],['70',0],['Higher',0],['Lower',2],['Same',0],['Cannot tell',0],['2 hours',0],['4 hours',2],['6 hours',0],['8 hours',0],['50',0],['55',0],['60',2],['65',0],['9',0],['12',2],['15',0],['18',0],['10',0],['12',2],['15',0],['18',0],['10',0],['12',2],['14',0],['16',0],['120 km',0],['140 km',0],['150 km',2],['160 km',0],['20%',0],['25%',2],['30%',0],['40%',0],['16',0],['18',2],['20',0],['22',0]].slice(i*4,i*4+4).map((v,j)=>[String(v[0]), Number(v[1])] as [string,number])));
+const spatial = Array.from({length:8}).map((_,i)=>mkCog(`cog-spatial-${i+1}`,'spatial',i<2?'easy':i<6?'medium':'hard',[
+  'Rotate the letter L by 90° clockwise. Base points…','Mirror a right-pointing arrow on vertical line. It points…','On a cube, top opposite bottom. If top is red, bottom is…','Paper fold once vertically, punch near left edge, unfold holes appear…','Facing north, turn right then right. Now facing…','A shape rotated 180° appears…','If east is right on map, north is…','Mirror the text AB. First visible character is…'
+][i],[['Right',2],['Left',0],['Up',0],['Down',0],['Left',2],['Right',0],['Up',0],['Down',0],['Red opposite face',2],['Adjacent red',0],['Same face',0],['Unknown',0],['Two symmetric holes',2],['One hole',0],['Four holes',0],['No hole',0],['South',2],['East',0],['West',0],['North',0],['Upside-down same shape',2],['Mirror only',0],['No change',0],['Random shape',0],['Up',2],['Down',0],['Left',0],['Right',0],['B',2],['A',0],['AB',0],['BA',0]].slice(i*4,i*4+4).map((v)=>[String(v[0]),Number(v[1])] as [string,number])));
+const memory = Array.from({length:10}).map((_,i)=>mkCog(`cog-memory-${i+1}`,'memory',i<3?'easy':i<7?'medium':'hard','Working memory challenge',[
+  ['7',0],['T',0],['M',2],['9',0],
+  ['3',2],['4',0],['5',0],['6',0],
+  ['K',0],['L',2],['M',0],['N',0],
+  ['8',0],['1',0],['5',2],['7',0],
+  ['Q',2],['R',0],['S',0],['T',0],
+  ['B',0],['D',0],['F',2],['H',0],
+  ['2',0],['3',2],['4',0],['5',0],
+  ['P',0],['M',2],['N',0],['O',0],
+  ['9',2],['7',0],['5',0],['3',0],
+  ['C',0],['A',2],['B',0],['D',0]
+].slice(i*4,i*4+4) as [string,number][], {memoryPrompt:[
+  '7 - 1 - M - 9 - T','3 - 8 - 4 - A - 5','K - 2 - L - 9 - M','8 - 3 - 1 - 5 - R','Q - 4 - R - 6 - S','B - C - D - F - H','2 - 9 - 3 - P - 4','P - L - M - N - O','9 - 7 - 5 - 3 - 1','C - B - A - D - E'
+][i], memoryQuestion:['What was the 3rd item?','What was the 1st number?','Which came immediately after 2?','What was the 4th item?','What was the 1st item?','Which letter is in 4th position?','What came right after 9?','Which came immediately after L?','What was the first number?','What was the 3rd item?'][i], revealSeconds:5}));
+
+export const questions: Question[] = [...mbti, ...ocean, ...riasec, ...mslw, ...pattern, ...verbal, ...numerical, ...spatial, ...memory];
