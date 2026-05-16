@@ -1,4 +1,4 @@
-import type { CognitiveDomain, Question } from '../data/questions';
+import type { CognitiveDomain, Question, Section } from '../data/questions';
 
 export type Answer = { questionId: string; value: string; score: number };
 
@@ -102,6 +102,19 @@ function getConfidenceLevel(answered: number, total: number, consistencySignals:
   return 'Stronger signal';
 }
 
+function getTopSectionValue(questions: Question[], answersById: Map<string, Answer>, section: Section): string {
+  const counts: Record<string, number> = {};
+
+  for (const question of questions) {
+    if (question.section !== section) continue;
+    const answer = answersById.get(question.id);
+    if (!answer) continue;
+    counts[answer.value] = (counts[answer.value] ?? 0) + answer.score;
+  }
+
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'balanced';
+}
+
 export function scoreAssessment(questions: Question[], answers: Answer[]): ProfileReport {
   const mbti: Record<string, number> = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
@@ -126,6 +139,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   }
 
   const qMap = new Map(questions.map((q) => [q.id, q]));
+  const answersById = new Map(answers.map((answer) => [answer.questionId, answer]));
 
   for (const answer of answers) {
     const question = qMap.get(answer.questionId);
@@ -179,11 +193,11 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     cognitiveAnsweredCount >= 10
   ].filter(Boolean).length;
   const confidenceLevel = getConfidenceLevel(answeredCount, totalCount, consistencySignals);
-  const topWorkstyleValue = getTopSignal(workstyle, FALLBACK_PATTERNS.workstyle);
-  const topStressValue = getTopSignal(stress, FALLBACK_PATTERNS.stress);
-  const topLeadershipValue = getTopSignal(leadership, FALLBACK_PATTERNS.leadership);
+  const topWorkstyleValue = getTopSectionValue(questions, answersById, 'workstyle');
+  const topStressValue = getTopSectionValue(questions, answersById, 'stress');
+  const topLeadershipValue = getTopSectionValue(questions, answersById, 'leadership');
   const combinedInsightKeys = [
-    topBigFive === 'conscientiousness' && topWorkstyleValue === 'planner'
+    topBigFive === 'conscientiousness' && ['planfirst', 'sequence', 'agendas', 'createstructure', 'systems'].includes(topWorkstyleValue)
       ? 'combinedInsightMilestones'
       : null,
     topRiasec === 'Investigative' && topBigFive === 'open'
@@ -192,7 +206,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     topBigFive === 'neuroticism' && topStressValue === 'control'
       ? 'combinedInsightStressControl'
       : null,
-    topRiasec === 'Social' && topLeadershipValue === 'facilitative'
+    topRiasec === 'Social' && ['coachquestions', 'barriers', 'alignconstraints', 'buildtrust', 'mutual'].includes(topLeadershipValue)
       ? 'combinedInsightSocialFacilitative'
       : null,
     'combinedInsightWorkflowAdjustments',

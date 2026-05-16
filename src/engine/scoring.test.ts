@@ -92,6 +92,23 @@ describe('scoreAssessment', () => {
     const profile = scoreAssessment(questions, answers);
     expect(profile.combinedInsightKeys.length).toBeGreaterThanOrEqual(2);
   });
+  it('derives combined insights from stable answer values, not display label casing', () => {
+    const consAnswers = questions
+      .filter((q) => q.section === 'ocean' && q.scoringDomain === 'conscientiousness')
+      .map((q) => ({
+        questionId: q.id,
+        value: 'conscientiousness',
+        score: q.scoringDirection === 'reverse' ? 1 : 5
+      }));
+    const workstylePlanfirst = questions.find((q) => q.id === 'mslw-workstyle-1');
+    if (!workstylePlanfirst) throw new Error('Expected workstyle question');
+
+    const profile = scoreAssessment(questions, [
+      ...consAnswers,
+      { questionId: workstylePlanfirst.id, value: 'planfirst', score: 2 }
+    ]);
+    expect(profile.combinedInsightKeys).toContain('combinedInsightMilestones');
+  });
 
   it('keeps memory scoring unchanged and isolated from ocean reverse logic', () => {
     const memoryQuestion = questions.find((q) => q.id === 'cog-memory-1');
