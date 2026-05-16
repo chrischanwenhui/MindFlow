@@ -19,6 +19,11 @@ export type ProfileReport = {
 };
 
 
+const STRONG_SIGNAL_DISTANCE_THRESHOLD = 25;
+const MODERATE_SIGNAL_DISTANCE_THRESHOLD = 12;
+const MIN_COMPLETION_FOR_ANY_SIGNAL = 0.5;
+const MIN_COMPLETION_FOR_STRONG_SIGNAL = 0.8;
+
 const FALLBACK_PATTERNS = {
   motivation: 'Balanced Explorer',
   cognitive: 'pattern',
@@ -49,8 +54,8 @@ function clampPercent(value: number): number {
 
 function getStrengthFromNormalizedDistance(normalized: number): 'Low signal' | 'Moderate signal' | 'Strong signal' {
   const distanceFromMidpoint = Math.abs(normalized - 50);
-  if (distanceFromMidpoint >= 25) return 'Strong signal';
-  if (distanceFromMidpoint >= 12) return 'Moderate signal';
+  if (distanceFromMidpoint >= STRONG_SIGNAL_DISTANCE_THRESHOLD) return 'Strong signal';
+  if (distanceFromMidpoint >= MODERATE_SIGNAL_DISTANCE_THRESHOLD) return 'Moderate signal';
   return 'Low signal';
 }
 
@@ -61,11 +66,10 @@ function getBigFiveSignalStrength(answeredCount: number, totalCount: number, nor
   const scoreStrength = getStrengthFromNormalizedDistance(normalized);
 
   // Partial assessments should not appear overconfident.
-  if (completionRatio < 0.5) return 'Low signal';
+  if (completionRatio < MIN_COMPLETION_FOR_ANY_SIGNAL) return 'Low signal';
 
-  if (completionRatio < 0.8) {
-    if (scoreStrength === 'Strong signal') return 'Moderate signal';
-    return 'Low signal';
+  if (completionRatio < MIN_COMPLETION_FOR_STRONG_SIGNAL) {
+    return scoreStrength === 'Strong signal' ? 'Moderate signal' : 'Low signal';
   }
 
   return scoreStrength;

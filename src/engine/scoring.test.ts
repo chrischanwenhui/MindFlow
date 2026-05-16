@@ -87,41 +87,31 @@ describe('scoreAssessment', () => {
   });
 
 
-  it('keeps partial assessments conservative even with extreme normalized scores', () => {
+  describe('bigFiveSignalStrength', () => {
     const openTraitQuestions = questions.filter((q) => q.section === 'ocean' && q.scoringDomain === 'open');
-    const answered = openTraitQuestions.slice(0, 2);
-    const answers = answered.map((q) => ({
-      questionId: q.id,
-      value: 'open',
-      score: q.scoringDirection === 'reverse' ? 1 : 5
-    }));
 
-    const profile = scoreAssessment(questions, answers);
-    expect(profile.bigFiveSignalStrength.open).toBe('Low signal');
-  });
+    const createAnswers = (selectedQuestions = openTraitQuestions) =>
+      selectedQuestions.map((q) => ({
+        questionId: q.id,
+        value: 'open',
+        score: q.scoringDirection === 'reverse' ? 1 : 5
+      }));
 
-  it('reports moderate signal for near-complete but not complete Big Five evidence', () => {
-    const openTraitQuestions = questions.filter((q) => q.section === 'ocean' && q.scoringDomain === 'open');
-    const answered = openTraitQuestions.slice(0, Math.max(1, openTraitQuestions.length - 1));
-    const answers = answered.map((q) => ({
-      questionId: q.id,
-      value: 'open',
-      score: q.scoringDirection === 'reverse' ? 1 : 5
-    }));
+    it('keeps partial assessments conservative even with extreme normalized scores', () => {
+      const answered = openTraitQuestions.slice(0, 2);
+      const profile = scoreAssessment(questions, createAnswers(answered));
+      expect(profile.bigFiveSignalStrength.open).toBe('Low signal');
+    });
 
-    const profile = scoreAssessment(questions, answers);
-    expect(profile.bigFiveSignalStrength.open).toBe('Moderate signal');
-  });
+    it('reports moderate signal for near-complete but not complete Big Five evidence', () => {
+      const answered = openTraitQuestions.slice(0, Math.max(1, openTraitQuestions.length - 1));
+      const profile = scoreAssessment(questions, createAnswers(answered));
+      expect(profile.bigFiveSignalStrength.open).toBe('Moderate signal');
+    });
 
-  it('reports strong signal only when completion and normalized score strength are both high', () => {
-    const openTraitQuestions = questions.filter((q) => q.section === 'ocean' && q.scoringDomain === 'open');
-    const answers = openTraitQuestions.map((q) => ({
-      questionId: q.id,
-      value: 'open',
-      score: q.scoringDirection === 'reverse' ? 1 : 5
-    }));
-
-    const profile = scoreAssessment(questions, answers);
-    expect(profile.bigFiveSignalStrength.open).toBe('Strong signal');
+    it('reports strong signal only when completion and normalized score strength are both high', () => {
+      const profile = scoreAssessment(questions, createAnswers());
+      expect(profile.bigFiveSignalStrength.open).toBe('Strong signal');
+    });
   });
 });
