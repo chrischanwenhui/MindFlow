@@ -3,17 +3,23 @@ import type { CognitiveDomain, Question } from '../data/questions';
 export type Answer = { questionId: string; value: string; score: number };
 
 export type ProfileReport = {
-  executiveSummary: string;
+  executiveSummaryParts: {
+    personalityTypeEstimate: string;
+    topBigFive: string;
+    topRiasec: string;
+    topOperating: string;
+    topCognitiveLabel: string;
+  };
   confidenceLevel: 'Light signal' | 'Moderate signal' | 'Stronger signal';
-  confidenceNote: string;
-  combinedInsights: string[];
+  combinedInsightKeys: string[];
+  cognitiveSignalLevel: 'light' | 'standard';
+  topCognitiveLabel: string;
   personalityTypeEstimate: string;
   bigFiveScores: Record<string, number>;
   bigFiveNormalizedScores: Record<string, number>;
   bigFiveSignalStrength: Record<string, 'Low signal' | 'Moderate signal' | 'Strong signal'>;
   riasecScores: Record<string, number>;
   motivationPattern: string;
-  cognitiveStyleSummary: string;
   stressPattern: string;
   leadershipPattern: string;
   workstylePattern: string;
@@ -173,39 +179,45 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     cognitiveAnsweredCount >= 10
   ].filter(Boolean).length;
   const confidenceLevel = getConfidenceLevel(answeredCount, totalCount, consistencySignals);
-  const confidenceNote = `Confidence: ${confidenceLevel}. This section is based on your current response set, and MindFlow remains a reflective tool rather than a validated psychometric instrument.`;
-  const executiveSummary = `Your response pattern suggests a ${personalityTypeEstimate}-leaning preference estimate with the clearest Big Five signal in ${topBigFive}. In this session, your strongest career-interest signal leaned toward ${topRiasec}, while your operating-style responses leaned toward ${topOperating}. This may indicate a meaningful pattern in how you approach decisions, and your clearest cognitive-style signal in this reasoning sample appeared in ${topCognitiveLabel}. A useful reflection point is to treat these signals as prompts for experimentation rather than fixed identity labels.`;
-  const combinedInsights = [
-    topBigFive === 'conscientiousness' && workstylePattern.toLowerCase().includes('plan')
-      ? 'You may work best when goals are broken into visible milestones and progress can be tracked clearly.'
+  const topWorkstyleValue = getTopSignal(workstyle, FALLBACK_PATTERNS.workstyle);
+  const topStressValue = getTopSignal(stress, FALLBACK_PATTERNS.stress);
+  const topLeadershipValue = getTopSignal(leadership, FALLBACK_PATTERNS.leadership);
+  const combinedInsightKeys = [
+    topBigFive === 'conscientiousness' && topWorkstyleValue === 'planner'
+      ? 'combinedInsightMilestones'
       : null,
     topRiasec === 'Investigative' && topBigFive === 'open'
-      ? 'You may be drawn to roles where analysis and new frameworks intersect.'
+      ? 'combinedInsightInvestigativeOpen'
       : null,
-    topBigFive === 'neuroticism' && stressPattern.toLowerCase().includes('control')
-      ? 'Under uncertainty, you may regain stability by turning ambiguity into a concrete next action.'
+    topBigFive === 'neuroticism' && topStressValue === 'control'
+      ? 'combinedInsightStressControl'
       : null,
-    topRiasec === 'Social' && leadershipPattern.toLowerCase().includes('facil')
-      ? 'You may contribute strongly in roles requiring trust-building, coaching, or team alignment.'
+    topRiasec === 'Social' && topLeadershipValue === 'facilitative'
+      ? 'combinedInsightSocialFacilitative'
       : null,
-    'In this session, your cross-domain signals suggest testing small workflow adjustments and reviewing what improves focus, energy, and follow-through.',
-    'A useful reflection point is to compare where you feel most effective with how your strongest signals appear across personality, motivation, and cognitive-style responses.'
+    'combinedInsightWorkflowAdjustments',
+    'combinedInsightCrossDomainReview'
   ].filter((item): item is string => Boolean(item)).slice(0, 5);
+  const cognitiveSignalLevel: ProfileReport['cognitiveSignalLevel'] = cognitiveAnsweredCount < 10 ? 'light' : 'standard';
 
   return {
-    executiveSummary,
+    executiveSummaryParts: {
+      personalityTypeEstimate,
+      topBigFive,
+      topRiasec,
+      topOperating,
+      topCognitiveLabel
+    },
     confidenceLevel,
-    confidenceNote,
-    combinedInsights,
+    combinedInsightKeys,
+    cognitiveSignalLevel,
+    topCognitiveLabel,
     personalityTypeEstimate,
     bigFiveScores: bigFive,
     bigFiveNormalizedScores,
     bigFiveSignalStrength,
     riasecScores: riasec,
     motivationPattern,
-    cognitiveStyleSummary: cognitiveAnsweredCount < 10
-      ? `Your strongest cognitive-style signal in this session appeared in ${topCognitiveLabel}. Your cognitive-style result is still a light signal because this is a short, non-diagnostic reasoning sample.`
-      : `Your strongest cognitive-style signal in this session appeared in ${topCognitiveLabel}. This non-diagnostic reasoning sample reflects cognitive-style tendencies such as working memory and problem framing, not any official intelligence ranking.`,
     stressPattern,
     leadershipPattern,
     workstylePattern,

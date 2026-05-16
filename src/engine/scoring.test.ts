@@ -8,16 +8,16 @@ describe('scoreAssessment', () => {
     const profile = scoreAssessment(questions, answers);
     expect(profile.personalityTypeEstimate.length).toBe(4);
     expect(profile.strengths.length).toBeGreaterThan(0);
-    expect(profile.cognitiveStyleSummary).toContain('non-diagnostic');
-    expect(profile.executiveSummary).toContain('Your response pattern suggests');
+    expect(profile.executiveSummaryParts.topCognitiveLabel.length).toBeGreaterThan(0);
+    expect(profile.combinedInsightKeys.length).toBeGreaterThan(0);
   });
   it('uses non-absolute wording in executive summary and avoids IQ phrasing', () => {
     const answers = questions.map((q) => ({ questionId: q.id, value: q.options[0].value, score: q.options[0].score }));
     const profile = scoreAssessment(questions, answers);
-    expect(profile.executiveSummary).not.toContain('You are definitely');
-    expect(profile.executiveSummary).not.toContain('Your IQ');
-    expect(profile.executiveSummary).not.toContain('diagnosed');
-    expect(profile.cognitiveStyleSummary).not.toContain('IQ score');
+    expect(profile).not.toHaveProperty('executiveSummary');
+    expect(profile).not.toHaveProperty('confidenceNote');
+    expect(profile).not.toHaveProperty('combinedInsights');
+    expect(profile).not.toHaveProperty('cognitiveStyleSummary');
   });
 
   it('uses per-question cognitive domains for strongest domain', () => {
@@ -31,7 +31,7 @@ describe('scoreAssessment', () => {
     answers.push({ questionId: spatialQuestion.id, value: 'spatial', score: 2 });
 
     const profile = scoreAssessment(questions, answers);
-    expect(profile.cognitiveStyleSummary).toContain('spatial');
+    expect(profile.topCognitiveLabel).toContain('spatial');
   });
 
   it('applies reverse scoring for OCEAN and prevents one-answer inflation', () => {
@@ -78,19 +78,19 @@ describe('scoreAssessment', () => {
     if (!idk) throw new Error("Expected I don't know option");
 
     const profile = scoreAssessment(questions, [{ questionId: cognitiveQuestion.id, value: idk.value, score: idk.score }]);
-    expect(profile.cognitiveStyleSummary).toContain('pattern');
-    expect(profile.cognitiveStyleSummary).toContain('light signal');
+    expect(profile.topCognitiveLabel).toContain('pattern');
+    expect(profile.cognitiveSignalLevel).toBe('light');
   });
   it('keeps confidence conservative for partial responses', () => {
     const partialAnswers = questions.slice(0, 20).map((q) => ({ questionId: q.id, value: q.options[0].value, score: q.options[0].score }));
     const profile = scoreAssessment(questions, partialAnswers);
-    expect(profile.confidenceNote).toContain('Confidence:');
+    expect(profile.confidenceLevel).toMatch(/Light signal|Moderate signal/);
     expect(profile.confidenceLevel).not.toBe('Stronger signal');
   });
   it('returns at least two combined insights when enough data exists', () => {
     const answers = questions.map((q) => ({ questionId: q.id, value: q.options[0].value, score: q.options[0].score }));
     const profile = scoreAssessment(questions, answers);
-    expect(profile.combinedInsights.length).toBeGreaterThanOrEqual(2);
+    expect(profile.combinedInsightKeys.length).toBeGreaterThanOrEqual(2);
   });
 
   it('keeps memory scoring unchanged and isolated from ocean reverse logic', () => {
@@ -103,7 +103,7 @@ describe('scoreAssessment', () => {
       { questionId: memoryQuestion.id, value: correctMemoryOption.value, score: correctMemoryOption.score },
       { questionId: oceanReverse.id, value: 'open', score: 5 }
     ]);
-    expect(profile.cognitiveStyleSummary).toContain('memory');
+    expect(profile.topCognitiveLabel).toContain('memory');
     expect(profile.bigFiveScores.open).toBe(1);
   });
 

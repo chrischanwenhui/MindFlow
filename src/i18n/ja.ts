@@ -62,6 +62,17 @@ export const ja = {
   leadershipLabel: '最も多く選ばれたリーダーシップ傾向：',
   workstyleLabel: '最も多く選ばれたワークスタイル傾向：',
   motivationSuffix: 'が、現時点で最も強い推定内省シグナルです。',
+  executiveSummaryTemplate: 'Your response pattern suggests a {personalityTypeEstimate}-leaning preference estimate with the clearest Big Five signal in {topBigFive}. In this session, your strongest career-interest signal leaned toward {topRiasec}, while your operating-style responses leaned toward {topOperating}. This may indicate a meaningful pattern in how you approach decisions, and your clearest cognitive-style signal in this reasoning sample appeared in {topCognitiveLabel}. A useful reflection point is to treat these signals as prompts for experimentation rather than fixed identity labels.',
+  confidenceNoteTemplate: 'Confidence: {confidenceLevel}. This section is based on your current response set, and MindFlow remains a reflective tool rather than a validated psychometric instrument.',
+  personalityEstimateSentence: 'Your estimated personality type signal in this session is',
+  cognitiveLightSummaryTemplate: 'Your strongest cognitive-style signal in this session appeared in {topCognitiveLabel}. Your cognitive-style result is still a light signal because this is a short, non-diagnostic reasoning sample.',
+  cognitiveStandardSummaryTemplate: 'Your strongest cognitive-style signal in this session appeared in {topCognitiveLabel}. This non-diagnostic reasoning sample reflects cognitive-style tendencies such as working memory and problem framing, not any official intelligence ranking.',
+  combinedInsightMilestones: 'You may work best when goals are broken into visible milestones and progress can be tracked clearly.',
+  combinedInsightInvestigativeOpen: 'You may be drawn to roles where analysis and new frameworks intersect.',
+  combinedInsightStressControl: 'Under uncertainty, you may regain stability by turning ambiguity into a concrete next action.',
+  combinedInsightSocialFacilitative: 'You may contribute strongly in roles requiring trust-building, coaching, or team alignment.',
+  combinedInsightWorkflowAdjustments: 'In this session, your cross-domain signals suggest testing small workflow adjustments and reviewing what improves focus, energy, and follow-through.',
+  combinedInsightCrossDomainReview: 'A useful reflection point is to compare where you feel most effective with how your strongest signals appear across personality, motivation, and cognitive-style responses.',
   cognitiveUnknownNotice: '「わからない」の選択は未回答の推論シグナルとして扱われ、減点ではありません。'
   // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;
