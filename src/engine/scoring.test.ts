@@ -26,7 +26,7 @@ describe('scoreAssessment', () => {
   });
 
   it('applies reverse scoring for OCEAN and prevents one-answer inflation', () => {
-    const reverseQuestion = questions.find((q) => q.id === 'ocean-cons-3');
+    const reverseQuestion = questions.find((q) => q.id === 'ocean-cons-5');
     const positiveQuestion = questions.find((q) => q.id === 'ocean-cons-1');
     if (!reverseQuestion || !positiveQuestion) throw new Error('Expected OCEAN questions missing');
 
@@ -74,7 +74,7 @@ describe('scoreAssessment', () => {
 
   it('keeps memory scoring unchanged and isolated from ocean reverse logic', () => {
     const memoryQuestion = questions.find((q) => q.id === 'cog-memory-1');
-    const oceanReverse = questions.find((q) => q.id === 'ocean-open-3');
+    const oceanReverse = questions.find((q) => q.id === 'ocean-open-5');
     if (!memoryQuestion || !oceanReverse) throw new Error('Expected memory and ocean reverse questions');
     const correctMemoryOption = memoryQuestion.options.find((o) => o.score === 2);
     if (!correctMemoryOption) throw new Error('Expected correct memory option');
