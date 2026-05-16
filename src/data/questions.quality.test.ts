@@ -37,13 +37,22 @@ describe('question quality checks', () => {
     for (const q of cognitive) {
       expect(q.cognitiveDomain).toBeTruthy();
       expect(q.difficulty).toBeTruthy();
+      expect(q.cognitiveFormat).toBeTruthy();
       expect(q.hint).toBeTruthy();
+      if (q.timed) expect(q.recommendedSeconds).toBeTruthy();
       expect(q.options[q.options.length - 1].label).toBe("I don't know");
       expect(q.options[q.options.length - 1].score).toBe(0);
       for (const o of q.options) expect(singleLetter.has(o.label.trim())).toBe(false);
       const nonIdk = q.options.slice(0, -1);
       expect(nonIdk.filter((o) => o.score === 2).length).toBe(1);
       expect(nonIdk.filter((o) => o.score === 0).length).toBe(nonIdk.length - 1);
+    }
+  });
+
+  it('prevents user-facing IQ score phrasing', () => {
+    for (const q of questions) {
+      const fields = [q.prompt, q.hint, q.memoryPrompt, q.memoryQuestion, ...q.options.map((o) => o.label)].filter(Boolean) as string[];
+      for (const field of fields) expect(field.toLowerCase()).not.toContain('iq score');
     }
   });
 
