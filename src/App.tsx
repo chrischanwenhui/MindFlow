@@ -3,15 +3,13 @@ import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { scoreAssessment, type Answer } from './engine/scoring';
+import { getInitialLanguage, t, type Language } from './i18n';
 import {
   buildReportReflection,
   deriveRiasecMaxScores,
   toSortedScores
 } from './utils/formatReport';
 
-const NON_DIAGNOSTIC_NOTICE = 'This experience is designed for self-discovery and reflection only. It is not a clinical, medical, diagnostic, or official IQ assessment.';
-const LOCAL_SAVE_NOTICE = 'Progress is saved locally on this device/browser.';
-const COGNITIVE_UNKNOWN_NOTICE = "Using 'I don’t know' is treated as an unanswered reasoning signal, not a penalty.";
 
 type Screen = 'assessment' | 'about' | 'provide';
 type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report';
@@ -38,9 +36,11 @@ export function App() {
   const [assessmentView, setAssessmentView] = useState<AssessmentView>('landing');
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>(() => parseStoredAnswers(localStorage.getItem(STORAGE_KEY)));
+  const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
   const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('idle');
   const [memoryCountdown, setMemoryCountdown] = useState(5);
   const hasSavedProgress = answers.length > 0;
+  const tx = (key: Parameters<typeof t>[1]) => t(language, key);
   const current = questions[index];
   const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
   const progress = Math.round((index / questions.length) * 100);
@@ -119,6 +119,10 @@ export function App() {
     setMemoryPhase('revealing');
   };
 
+  useEffect(() => {
+    localStorage.setItem('mindflow_language_v1', language);
+  }, [language]);
+
   const isQuestionFlow = screen === 'assessment' && assessmentView === 'question';
 
   return (
@@ -126,21 +130,27 @@ export function App() {
       <nav className={`top-nav no-print ${isQuestionFlow ? 'top-nav--compact' : ''}`}>
         {isQuestionFlow ? (
           <>
-            <strong className="brand">MindFlow</strong>
-            <button className="link-btn" onClick={() => setScreen('about')}>About</button>
-            <button className="link-btn" onClick={() => setScreen('provide')}>What We Provide</button>
-            <button className="link-btn" onClick={saveAndContinueLater}>Save & Exit</button>
+            <strong className="brand">{tx('navBrand')}</strong>
+            <label className="disclaimer" htmlFor="lang-select">{tx('langLabel')}:</label>
+            <select id="lang-select" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
+              <option value="en">{tx('langEnglish')}</option>
+              <option value="zh">{tx('langChinese')}</option>
+              <option value="ms">{tx('langMalay')}</option>
+            </select>
+            <button className="link-btn" onClick={() => setScreen('about')}>{tx('navAbout')}</button>
+            <button className="link-btn" onClick={() => setScreen('provide')}>{tx('navProvide')}</button>
+            <button className="link-btn" onClick={saveAndContinueLater}>{tx('navSaveExit')}</button>
           </>
         ) : (
           <>
             <button className="option" onClick={() => setScreen('assessment')}>
-              Assessment
+              {tx('navAssessment')}
             </button>
             <button className="option" onClick={() => setScreen('about')}>
-              About MindFlow
+              {tx('navAboutMindflow')}
             </button>
             <button className="option" onClick={() => setScreen('provide')}>
-              What We Provide
+              {tx('navProvide')}
             </button>
           </>
         )}
@@ -148,24 +158,24 @@ export function App() {
 
       {screen === 'assessment' && assessmentView === 'landing' && (
         <section className="card">
-          <h1>Mindflow <span>by Eirene Stack</span></h1>
-          <p>A self-discovery assessment for reflection profile signals, estimated traits, career direction, and cognitive-style awareness.</p>
-          <button onClick={() => setAssessmentView('start')}>Begin</button>
+          <h1>{tx('landingTitle')} <span>{tx('landingByline')}</span></h1>
+          <p>{tx('landingDesc')}</p>
+          <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
         </section>
       )}
 
       {screen === 'assessment' && assessmentView === 'start' && (
         <section className="card">
-          <h2>Assessment Start</h2>
-          <p>Estimated time: 12–18 minutes. This report is non-diagnostic and intended for reflection only.</p>
-          <p className="disclaimer">{LOCAL_SAVE_NOTICE}</p>
+          <h2>{tx('startTitle')}</h2>
+          <p>{tx('startEstimate')}</p>
+          <p className="disclaimer">{tx('localSaveNotice')}</p>
           <div className="stack">
-            <button onClick={startFreshAssessment}>Start Questions</button>
+            <button onClick={startFreshAssessment}>{tx('startQuestions')}</button>
             <button className="option" onClick={resumeAssessment} disabled={!hasSavedProgress}>
-              Resume saved progress
+              {tx('resumeSaved')}
             </button>
           </div>
-          {!hasSavedProgress && <p className="disclaimer">No saved responses found yet. Start a new assessment to begin.</p>}
+          {!hasSavedProgress && <p className="disclaimer">{tx('noSaved')}</p>}
         </section>
       )}
 
@@ -174,7 +184,7 @@ export function App() {
           <div
             className="progress"
             role="progressbar"
-            aria-label="Assessment progress"
+            aria-label={tx('progressAria')}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={progress}
@@ -184,14 +194,14 @@ export function App() {
           <small>{index + 1} / {questions.length}</small>
           {isMemoryQuestion && memoryPhase === 'ready' ? (
             <>
-              <h3>Memory Challenge</h3>
-              <p>You will see a sequence for a few seconds. Try to remember it clearly. When it disappears, answer the question without looking back.</p>
-              <button onClick={startMemoryReveal}>Ready — Show Sequence</button>
+              <h3>{tx('memoryTitle')}</h3>
+              <p>{tx('memoryIntro')}</p>
+              <button onClick={startMemoryReveal}>{tx('memoryReady')}</button>
             </>
           ) : isMemoryQuestion && memoryPhase === 'revealing' ? (
             <>
               <h3>{current.memoryPrompt}</h3>
-              <p><strong>Memorize this: {memoryCountdown}</strong></p>
+              <p><strong>{tx('memorizeThis')}: {memoryCountdown}</strong></p>
             </>
           ) : (
             <>
@@ -207,36 +217,36 @@ export function App() {
           )}
           {current.hint && memoryPhase !== 'revealing' && (
             <details className="hint">
-              <summary>Need help understanding the question?</summary>
+              <summary>{tx('needHelp')}</summary>
               <p>{current.hint}</p>
             </details>
           )}
-          {index > 0 && <button className="secondary-action" onClick={goToPreviousQuestion}>Back to previous question</button>}
-          <button className="secondary-action" onClick={saveAndContinueLater}>Save & Exit</button>
-          <p className="disclaimer">{LOCAL_SAVE_NOTICE}</p>
-          {current.section === 'cognitive' && <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>}
+          {index > 0 && <button className="secondary-action" onClick={goToPreviousQuestion}>{tx('backPrev')}</button>}
+          <button className="secondary-action" onClick={saveAndContinueLater}>{tx('navSaveExit')}</button>
+          <p className="disclaimer">{tx('localSaveNotice')}</p>
+          {current.section === 'cognitive' && <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>}
         </section>
       )}
 
       {screen === 'assessment' && assessmentView === 'results' && (
         <section className="card">
-          <h2>Results Summary</h2>
-          <p><b>Personality type estimate:</b> {report.personalityTypeEstimate}</p>
-          <p><b>Motivation pattern:</b> {report.motivationPattern}</p>
+          <h2>{tx('resultsTitle')}</h2>
+          <p><b>{tx('personalityEstimate')}</b> {report.personalityTypeEstimate}</p>
+          <p><b>{tx('motivationPattern')}</b> {report.motivationPattern}</p>
           <p>{report.cognitiveStyleSummary}</p>
-          <button onClick={() => setAssessmentView('report')}>View report preview</button>
+          <button onClick={() => setAssessmentView('report')}>{tx('viewReport')}</button>
         </section>
       )}
 
       {screen === 'assessment' && assessmentView === 'report' && (
         <section className="card report-card print-report">
-          <h2>Self-Discovery Report Preview</h2>
+          <h2>{tx('reportPreview')}</h2>
           <p className="disclaimer">{buildReportReflection(report)}</p>
-          <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
+          <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           <div className="no-print">
-            <button onClick={() => window.print()}>Print or Save as PDF</button>
+            <button onClick={() => window.print()}>{tx('printPdf')}</button>
           </div>
-          <ReportSection title="Personality Type Estimate">
+          <ReportSection title={tx('personalitySection')}>
             <p>
               Your estimated personality type signal is <strong>{report.personalityTypeEstimate}</strong>.
             </p>
@@ -255,7 +265,7 @@ export function App() {
               ))}
             </div>
           </ReportSection>
-          <ReportSection title="RIASEC Career Interests">
+          <ReportSection title={tx('riasecSection')}>
             <div className="score-grid">
               {riasecScores.map((item) => (
                 <ScoreBar
@@ -267,49 +277,50 @@ export function App() {
               ))}
             </div>
           </ReportSection>
-          <ReportSection title="Motivation Pattern">
-            <p>{report.motivationPattern} is your strongest estimated reflection signal right now.</p>
+          <ReportSection title={tx('motivationSection')}>
+            <p>{report.motivationPattern} {tx('motivationSuffix')}</p>
           </ReportSection>
-          <ReportSection title="Stress Tendency">
-            <p>Most selected stress tendency: <strong>{report.stressPattern}</strong>.</p>
+          <ReportSection title={tx('stressSection')}>
+            <p>{tx('stressLabel')} <strong>{report.stressPattern}</strong>.</p>
           </ReportSection>
-          <ReportSection title="Leadership Tendency">
-            <p>Most selected leadership tendency: <strong>{report.leadershipPattern}</strong>.</p>
+          <ReportSection title={tx('leadershipSection')}>
+            <p>{tx('leadershipLabel')} <strong>{report.leadershipPattern}</strong>.</p>
           </ReportSection>
-          <ReportSection title="Workstyle Tendency">
-            <p>Most selected workstyle tendency: <strong>{report.workstylePattern}</strong>.</p>
+          <ReportSection title={tx('workstyleSection')}>
+            <p>{tx('workstyleLabel')} <strong>{report.workstylePattern}</strong>.</p>
           </ReportSection>
-          <ReportSection title="Cognitive-Style Summary">
+          <ReportSection title={tx('cognitiveSection')}>
             <p>{report.cognitiveStyleSummary}</p>
-            <p className="disclaimer">{COGNITIVE_UNKNOWN_NOTICE}</p>
-            <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
+            <p className="disclaimer">{tx('cognitiveUnknownNotice')}</p>
+            <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           </ReportSection>
-          <ReportSection title="Strengths">
+          <ReportSection title={tx('strengthsSection')}>
             <ul>{report.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
           </ReportSection>
-          <ReportSection title="Blind Spots">
+          <ReportSection title={tx('blindSpotsSection')}>
             <ul>{report.blindSpots.map((item) => <li key={item}>{item}</li>)}</ul>
           </ReportSection>
-          <ReportSection title="Growth Areas">
+          <ReportSection title={tx('growthAreasSection')}>
             <ul>{report.suggestedGrowthAreas.map((item) => <li key={item}>{item}</li>)}</ul>
           </ReportSection>
-          <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>
-          <button className="no-print" onClick={restartToLanding}>Restart</button>
+          <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
+          <button className="no-print" onClick={restartToLanding}>{tx('restart')}</button>
         </section>
       )}
 
       {screen === 'about' && (
         <section className="card">
-          <h2>About MindFlow</h2>
+          <h2>{tx('navAboutMindflow')}</h2>
           <p>MindFlow by Eirene Stack is built for self-discovery, reflection, career direction, and cognitive-style awareness.</p>
           <p className="disclaimer">MindFlow is non-diagnostic and does not provide clinical accuracy, official IQ claims, or psychological diagnosis.</p>
           <p className="disclaimer">Local-first privacy note: this MVP stores responses locally in your browser only.</p>
+          <p className="disclaimer">{tx('translationNotice')}</p>
         </section>
       )}
 
       {screen === 'provide' && (
         <section className="card">
-          <h2>What We Provide</h2>
+          <h2>{tx('navProvide')}</h2>
           <ul>
             <li>Self-discovery assessment</li><li>Personality and trait reflection</li><li>Career-interest signals</li><li>Motivation patterns</li><li>Cognitive-style prompts</li><li>Printable report</li><li>Future: saved profiles, shareable reports, deeper analytics</li>
           </ul>
