@@ -151,6 +151,9 @@ export function App() {
               englishLabel={tx('langEnglish')}
               chineseLabel={tx('langChinese')}
               malayLabel={tx('langMalay')}
+              japaneseLabel={tx('langJapanese')}
+              koreanLabel={tx('langKorean')}
+              thaiLabel={tx('langThai')}
             />
             <button className="link-btn" onClick={() => setScreen('about')}>{tx('navAbout')}</button>
             <button className="link-btn" onClick={() => setScreen('provide')}>{tx('navProvide')}</button>
@@ -174,6 +177,9 @@ export function App() {
               englishLabel={tx('langEnglish')}
               chineseLabel={tx('langChinese')}
               malayLabel={tx('langMalay')}
+              japaneseLabel={tx('langJapanese')}
+              koreanLabel={tx('langKorean')}
+              thaiLabel={tx('langThai')}
             />
           </>
         )}
