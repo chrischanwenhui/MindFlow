@@ -6,7 +6,7 @@
   --border: #e1ebf7;
   --shadow-soft: 0 10px 24px rgba(0, 27, 68, 0.07);
   --shadow-hover: 0 14px 28px rgba(0, 27, 68, 0.1);
-  font-family: Inter, "Noto Sans Thai", "Noto Sans JP", "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  font-family: Inter, "Noto Sans Thai", "Noto Sans SC", "Noto Sans JP", "Noto Sans KR", system-ui, -apple-system, sans-serif;
   color: var(--text-color);
   background: var(--bg-color);
 }
@@ -152,7 +152,7 @@ button:focus-visible,
 .link-btn:focus-visible,
 summary:focus-visible,
 select:focus-visible {
-  outline: 3px solid rgba(43, 182, 200, 0.35);
+  outline: 3px solid rgba(43, 182, 200, 0.8);
   outline-offset: 2px;
 }
 button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
