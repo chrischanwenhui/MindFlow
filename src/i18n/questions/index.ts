@@ -6,6 +6,11 @@ import { msQuestionTranslations } from './ms';
 
 const maps = { en: enQuestionTranslations, zh: zhQuestionTranslations, ms: msQuestionTranslations } as const;
 
+function isLikertOptionSet(options: Question['options']): boolean {
+  const scores = options.map((option) => option.score);
+  return scores.length === 5 && [1, 2, 3, 4, 5].every((score) => scores.includes(score));
+}
+
 export function localizeQuestion(question: Question, language: Language): Question {
   const langMap = maps[language] ?? maps.en;
   const entry = langMap[question.id] ?? {};
@@ -13,13 +18,14 @@ export function localizeQuestion(question: Question, language: Language): Questi
   const likertOverride = langMap['default-likert']?.options;
   const idkOverride = langMap['default-idk']?.options?.[0];
 
+  const isLikert = isLikertOptionSet(question.options);
+
   const options = question.options.map((option, idx) => {
     const labelFromEntry = entry.options?.[idx];
     if (labelFromEntry) return { ...option, label: labelFromEntry };
     if (option.label === "I don't know" && idkOverride) return { ...option, label: idkOverride };
-    if (likertOverride && idx < 5 && ['Strongly disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly agree'].includes(option.label)) {
-      return { ...option, label: likertOverride[idx] };
-    }
+    const override = likertOverride?.[idx];
+    if (isLikert && override) return { ...option, label: override };
     return option;
   });
 
