@@ -38,6 +38,17 @@ const COGNITIVE_HINTS = {
 } as const;
 const cognitiveUnknownOption = (domain: CognitiveDomain): QuestionOption => ({ label: "I don't know", value: `${domain}-unknown`, score: 0 });
 const c = (q: Question): Question => ({ ...q, groupLabel: q.groupLabel ?? q.section.toUpperCase(), scoringDomain: q.scoringDomain ?? q.section });
+const toSafeOptions = (rawOptions: unknown, fallbackValue: string): QuestionOption[] => {
+  if (!Array.isArray(rawOptions)) return [];
+  return rawOptions
+    .filter((entry): entry is [unknown, unknown] => Array.isArray(entry) && entry.length >= 2)
+    .map(([label, score]) => ({
+      label: String(label ?? ''),
+      value: fallbackValue,
+      score: typeof score === 'number' ? score : 0
+    }))
+    .filter((option) => option.label.trim().length > 0);
+};
 
 export const questions: Question[] = [
   ...[
@@ -122,5 +133,26 @@ export const questions: Question[] = [
     ['memory',1,'easy','Working memory challenge','7 - 1 - 4 - 9 - 2','What was the 2nd number?', [['1',2],['4',0],['7',0],['9',0]]],
     ['memory',2,'medium','Working memory challenge','P - 3 - T - 8 - M - 6','Which came immediately after T?', [['8',2],['M',0],['3',0],['6',0]]],
     ['memory',3,'hard','Working memory challenge','D - 5 - K - 1 - R - 9 - B','Which is the 6th item?', [['R',0],['9',2],['1',0],['B',0]]]
-  ].map(([d,n,diff,p,memoryPrompt,memoryQuestion,opts]) => c({id:`cog-${d}-${n}`, section:'cognitive', groupLabel:'Cognitive Style', scoringDomain:d as string, cognitiveDomain:d as CognitiveDomain, difficulty:diff as CognitiveDifficulty, hint:COGNITIVE_HINTS[d as CognitiveDomain], prompt:p as string, memoryPrompt: d === 'memory' ? memoryPrompt as string : undefined, memoryQuestion: d === 'memory' ? memoryQuestion as string : undefined, revealSeconds: d === 'memory' ? 5 : undefined, options:[...(opts as (string|number)[][]).map(([label,score])=>({label:label as string,value:d as string,score:score as number})), cognitiveUnknownOption(d as CognitiveDomain)]}))
+  ].map((entry) => {
+    const [d, n, diff, p, fifth, sixth, seventh] = entry as [string, number, string, string, unknown, unknown, unknown];
+    const isMemory = d === 'memory';
+    const memoryPrompt = isMemory ? (fifth as string) : undefined;
+    const memoryQuestion = isMemory ? (sixth as string) : undefined;
+    const rawOptions = isMemory ? seventh : fifth;
+    const safeOptions = toSafeOptions(rawOptions, d);
+    return c({
+      id: `cog-${d}-${n}`,
+      section: 'cognitive',
+      groupLabel: 'Cognitive Style',
+      scoringDomain: d,
+      cognitiveDomain: d as CognitiveDomain,
+      difficulty: diff as CognitiveDifficulty,
+      hint: COGNITIVE_HINTS[d as CognitiveDomain],
+      prompt: p,
+      memoryPrompt,
+      memoryQuestion,
+      revealSeconds: isMemory ? 5 : undefined,
+      options: [...safeOptions, cognitiveUnknownOption(d as CognitiveDomain)]
+    });
+  })
 ];

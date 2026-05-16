@@ -2,6 +2,24 @@ import { describe, expect, it } from 'vitest';
 import { questions } from './questions';
 
 describe('question quality checks', () => {
+  it('ensures question bank integrity for required fields', () => {
+    for (const q of questions) {
+      expect(typeof q.id).toBe('string');
+      expect(q.id.trim().length).toBeGreaterThan(0);
+      expect(typeof q.prompt).toBe('string');
+      expect(q.prompt.trim().length).toBeGreaterThan(0);
+      expect(typeof q.section).toBe('string');
+      expect(Array.isArray(q.options)).toBe(true);
+      for (const option of q.options) {
+        expect(typeof option.label).toBe('string');
+        expect(option.label.trim().length).toBeGreaterThan(0);
+        expect(typeof option.value).toBe('string');
+        expect(option.value.trim().length).toBeGreaterThan(0);
+        expect(typeof option.score).toBe('number');
+      }
+    }
+  });
+
   it('has no duplicate question ids', () => {
     const ids = questions.map((q) => q.id);
     expect(new Set(ids).size).toBe(ids.length);
