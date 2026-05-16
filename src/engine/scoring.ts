@@ -24,6 +24,15 @@ const MODERATE_SIGNAL_DISTANCE_THRESHOLD = 12;
 const MIN_COMPLETION_FOR_ANY_SIGNAL = 0.5;
 const MIN_COMPLETION_FOR_STRONG_SIGNAL = 1;
 
+
+const COGNITIVE_DOMAIN_LABELS: Record<CognitiveDomain, string> = {
+  pattern: 'pattern reasoning',
+  verbal: 'verbal reasoning',
+  numerical: 'numerical reasoning',
+  spatial: 'spatial reasoning',
+  memory: 'working memory'
+};
+
 const FALLBACK_PATTERNS = {
   motivation: 'Balanced Explorer',
   cognitive: 'pattern',
@@ -123,7 +132,9 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
 
   const personalityTypeEstimate = `${mbti.E >= mbti.I ? 'E' : 'I'}${mbti.S >= mbti.N ? 'S' : 'N'}${mbti.T >= mbti.F ? 'T' : 'F'}${mbti.J >= mbti.P ? 'J' : 'P'}`;
   const motivationPattern = getTopSignal(motivations, FALLBACK_PATTERNS.motivation);
-  const topCognitive = getTopSignal(cognitive, FALLBACK_PATTERNS.cognitive);
+  const topCognitive = getTopSignal(cognitive, FALLBACK_PATTERNS.cognitive) as CognitiveDomain;
+  const topCognitiveLabel = COGNITIVE_DOMAIN_LABELS[topCognitive] ?? COGNITIVE_DOMAIN_LABELS.pattern;
+  const cognitiveAnsweredCount = answers.filter((answer) => qMap.get(answer.questionId)?.section === 'cognitive').length;
   const stressPattern = getTopSignal(stress, FALLBACK_PATTERNS.stress);
   const leadershipPattern = getTopSignal(leadership, FALLBACK_PATTERNS.leadership);
   const workstylePattern = getTopSignal(workstyle, FALLBACK_PATTERNS.workstyle);
@@ -147,7 +158,9 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     bigFiveSignalStrength,
     riasecScores: riasec,
     motivationPattern,
-    cognitiveStyleSummary: `Your strongest cognitive-style reasoning signal appeared in ${topCognitive}. This is an estimated, non-diagnostic reflection for self-discovery.`,
+    cognitiveStyleSummary: cognitiveAnsweredCount < 10
+      ? `Your strongest cognitive-style signal in this session appeared in ${topCognitiveLabel}. Your cognitive-style result is still a light signal because this is a short, non-diagnostic reasoning sample.`
+      : `Your strongest cognitive-style signal in this session appeared in ${topCognitiveLabel}. This is an estimated, non-diagnostic reflection signal for self-discovery, not an official IQ result.`,
     stressPattern,
     leadershipPattern,
     workstylePattern,
