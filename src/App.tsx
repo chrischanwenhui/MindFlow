@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { LanguageSelector } from './components/LanguageSelector';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
@@ -131,12 +132,15 @@ export function App() {
         {isQuestionFlow ? (
           <>
             <strong className="brand">{tx('navBrand')}</strong>
-            <label className="disclaimer" htmlFor="lang-select">{tx('langLabel')}:</label>
-            <select id="lang-select" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
-              <option value="en">{tx('langEnglish')}</option>
-              <option value="zh">{tx('langChinese')}</option>
-              <option value="ms">{tx('langMalay')}</option>
-            </select>
+            <LanguageSelector
+              compact
+              language={language}
+              onLanguageChange={setLanguage}
+              label={tx('langLabel')}
+              englishLabel={tx('langEnglish')}
+              chineseLabel={tx('langChinese')}
+              malayLabel={tx('langMalay')}
+            />
             <button className="link-btn" onClick={() => setScreen('about')}>{tx('navAbout')}</button>
             <button className="link-btn" onClick={() => setScreen('provide')}>{tx('navProvide')}</button>
             <button className="link-btn" onClick={saveAndContinueLater}>{tx('navSaveExit')}</button>
@@ -152,6 +156,14 @@ export function App() {
             <button className="option" onClick={() => setScreen('provide')}>
               {tx('navProvide')}
             </button>
+            <LanguageSelector
+              language={language}
+              onLanguageChange={setLanguage}
+              label={tx('langLabel')}
+              englishLabel={tx('langEnglish')}
+              chineseLabel={tx('langChinese')}
+              malayLabel={tx('langMalay')}
+            />
           </>
         )}
       </nav>
