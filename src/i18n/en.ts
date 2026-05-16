@@ -15,6 +15,10 @@ export const en = {
   begin: 'Begin',
   startTitle: 'Assessment Start',
   startEstimate: 'Estimated time: 12–18 minutes. This report is non-diagnostic and intended for reflection only.',
+  
+  sessionCountNotice: 'You will answer 75 questions in this session.',
+  sessionOrderNotice: 'Personality and workstyle questions come first. Cognitive-style questions come near the end.',
+  sessionSaveNotice: 'Your progress is saved locally on this device.',
   startQuestions: 'Start Questions',
   resumeSaved: 'Resume saved progress',
   noSaved: 'No saved responses found yet. Start a new assessment to begin.',

@@ -190,9 +190,9 @@ export function App() {
       {screen === 'assessment' && assessmentView === 'start' && (
         <section className="card">
           <h2>{tx('startTitle')}</h2>
-          <p>You will answer 75 questions in this session.</p>
-          <p>Personality and workstyle questions come first. Cognitive-style questions come near the end.</p>
-          <p>Your progress is saved locally on this device.</p>
+          <p>{tx('sessionCountNotice')}</p>
+          <p>{tx('sessionOrderNotice')}</p>
+          <p>{tx('sessionSaveNotice')}</p>
           <p className="disclaimer">{tx('localSaveNotice')}</p>
           <div className="stack">
             <button onClick={startFreshAssessment}>{tx('startQuestions')}</button>
