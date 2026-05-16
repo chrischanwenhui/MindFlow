@@ -136,6 +136,20 @@ export function App() {
   }, [language]);
 
   const isQuestionFlow = screen === 'assessment' && assessmentView === 'question';
+  const formatTemplate = (template: string, values: Record<string, string>) =>
+    Object.entries(values).reduce((acc, [key, value]) => acc.split(`{${key}}`).join(value), template);
+  const executiveSummaryText = formatTemplate(tx('executiveSummaryTemplate'), {
+    personalityTypeEstimate: report.executiveSummaryParts.personalityTypeEstimate,
+    topBigFive: report.executiveSummaryParts.topBigFive,
+    topRiasec: report.executiveSummaryParts.topRiasec,
+    topOperating: report.executiveSummaryParts.topOperating,
+    topCognitiveLabel: report.executiveSummaryParts.topCognitiveLabel
+  });
+  const cognitiveSummaryText = formatTemplate(
+    report.cognitiveSignalLevel === 'light' ? tx('cognitiveLightSummaryTemplate') : tx('cognitiveStandardSummaryTemplate'),
+    { topCognitiveLabel: report.topCognitiveLabel }
+  );
+  const confidenceNote = formatTemplate(tx('confidenceNoteTemplate'), { confidenceLevel: report.confidenceLevel });
 
   return (
     <main className={`app ${isQuestionFlow ? 'assessment-shell' : ''}`.trim()}>
@@ -264,7 +278,7 @@ export function App() {
           <h2>{tx('resultsTitle')}</h2>
           <p><b>{tx('personalityEstimate')}</b> {report.personalityTypeEstimate}</p>
           <p><b>{tx('motivationPattern')}</b> {report.motivationPattern}</p>
-          <p>{report.cognitiveStyleSummary}</p>
+          <p>{cognitiveSummaryText}</p>
           <button onClick={() => setAssessmentView('report')}>{tx('viewReport')}</button>
         </section>
       )}
@@ -277,12 +291,11 @@ export function App() {
           <div className="no-print">
             <button onClick={() => window.print()}>{tx('printPdf')}</button>
           </div>
-          <ReportSection title={tx('personalitySection')}>
-            <p>
-              Your estimated personality type signal is <strong>{report.personalityTypeEstimate}</strong>.
-            </p>
+          <ReportSection title={tx('executiveSummarySection')}>
+            <p>{executiveSummaryText}</p>
           </ReportSection>
-          <ReportSection title="Big Five / OCEAN">
+          <ReportSection title={tx('personalitySection')}>
+            <p>{tx('personalityEstimateSentence')} <strong>{report.personalityTypeEstimate}</strong>.</p>
             <p className="disclaimer">These scores are normalized reflection signals based on your responses, not clinical measurements.</p>
             <div className="score-grid">
               {bigFiveScores.map((item) => (
@@ -310,18 +323,14 @@ export function App() {
           </ReportSection>
           <ReportSection title={tx('motivationSection')}>
             <p>{report.motivationPattern} {tx('motivationSuffix')}</p>
-          </ReportSection>
-          <ReportSection title={tx('stressSection')}>
-            <p>{tx('stressLabel')} <strong>{report.stressPattern}</strong>.</p>
-          </ReportSection>
-          <ReportSection title={tx('leadershipSection')}>
-            <p>{tx('leadershipLabel')} <strong>{report.leadershipPattern}</strong>.</p>
-          </ReportSection>
-          <ReportSection title={tx('workstyleSection')}>
             <p>{tx('workstyleLabel')} <strong>{report.workstylePattern}</strong>.</p>
           </ReportSection>
+          <ReportSection title={tx('workOperatingSection')}>
+            <p>{tx('stressLabel')} <strong>{report.stressPattern}</strong>.</p>
+            <p>{tx('leadershipLabel')} <strong>{report.leadershipPattern}</strong>.</p>
+          </ReportSection>
           <ReportSection title={tx('cognitiveSection')}>
-            <p>{report.cognitiveStyleSummary}</p>
+            <p>{cognitiveSummaryText}</p>
             <p className="disclaimer">{tx('cognitiveUnknownNotice')}</p>
             <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           </ReportSection>
@@ -331,8 +340,14 @@ export function App() {
           <ReportSection title={tx('blindSpotsSection')}>
             <ul>{report.blindSpots.map((item) => <li key={item}>{item}</li>)}</ul>
           </ReportSection>
+          <ReportSection title={tx('combinedInsightsSection')}>
+            <ul>{report.combinedInsightKeys.map((item) => <li key={item}>{tx(item as TranslationKey)}</li>)}</ul>
+          </ReportSection>
           <ReportSection title={tx('growthAreasSection')}>
             <ul>{report.suggestedGrowthAreas.map((item) => <li key={item}>{item}</li>)}</ul>
+          </ReportSection>
+          <ReportSection title={tx('confidenceSection')}>
+            <p>{confidenceNote}</p>
           </ReportSection>
           <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           <button className="no-print" onClick={restartToLanding}>{tx('restart')}</button>

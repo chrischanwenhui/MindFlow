@@ -1,15 +1,25 @@
-import type { CognitiveDomain, Question } from '../data/questions';
+import type { CognitiveDomain, Question, Section } from '../data/questions';
 
 export type Answer = { questionId: string; value: string; score: number };
 
 export type ProfileReport = {
+  executiveSummaryParts: {
+    personalityTypeEstimate: string;
+    topBigFive: string;
+    topRiasec: string;
+    topOperating: string;
+    topCognitiveLabel: string;
+  };
+  confidenceLevel: 'Light signal' | 'Moderate signal' | 'Stronger signal';
+  combinedInsightKeys: string[];
+  cognitiveSignalLevel: 'light' | 'standard';
+  topCognitiveLabel: string;
   personalityTypeEstimate: string;
   bigFiveScores: Record<string, number>;
   bigFiveNormalizedScores: Record<string, number>;
   bigFiveSignalStrength: Record<string, 'Low signal' | 'Moderate signal' | 'Strong signal'>;
   riasecScores: Record<string, number>;
   motivationPattern: string;
-  cognitiveStyleSummary: string;
   stressPattern: string;
   leadershipPattern: string;
   workstylePattern: string;
@@ -84,6 +94,27 @@ function getBigFiveSignalStrength(answeredCount: number, totalCount: number, nor
   return scoreStrength;
 }
 
+function getConfidenceLevel(answered: number, total: number, consistencySignals: number): ProfileReport['confidenceLevel'] {
+  const completionRatio = total > 0 ? answered / total : 0;
+  if (completionRatio < 0.55) return 'Light signal';
+  if (completionRatio < 0.85) return 'Moderate signal';
+  if (consistencySignals < 3) return 'Moderate signal';
+  return 'Stronger signal';
+}
+
+function getTopSectionValue(questions: Question[], answersById: Map<string, Answer>, section: Section): string {
+  const counts: Record<string, number> = {};
+
+  for (const question of questions) {
+    if (question.section !== section) continue;
+    const answer = answersById.get(question.id);
+    if (!answer) continue;
+    counts[answer.value] = (counts[answer.value] ?? 0) + answer.score;
+  }
+
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'balanced';
+}
+
 export function scoreAssessment(questions: Question[], answers: Answer[]): ProfileReport {
   const mbti: Record<string, number> = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
@@ -108,6 +139,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   }
 
   const qMap = new Map(questions.map((q) => [q.id, q]));
+  const answersById = new Map(answers.map((answer) => [answer.questionId, answer]));
 
   for (const answer of answers) {
     const question = qMap.get(answer.questionId);
@@ -150,17 +182,56 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
       return [trait, getBigFiveSignalStrength(values.count, values.total, normalized)];
     })
   ) as ProfileReport['bigFiveSignalStrength'];
+  const answeredCount = answers.length;
+  const totalCount = questions.length;
+  const topBigFive = Object.entries(bigFiveNormalizedScores).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'open';
+  const topRiasec = Object.entries(riasec).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Investigative';
+  const topOperating = [motivationPattern, workstylePattern, leadershipPattern, stressPattern].find((value) => value !== 'Balanced') ?? motivationPattern;
+  const consistencySignals = [
+    bigFiveSignalStrength[topBigFive] === 'Strong signal',
+    riasec[topRiasec] > 0,
+    cognitiveAnsweredCount >= 10
+  ].filter(Boolean).length;
+  const confidenceLevel = getConfidenceLevel(answeredCount, totalCount, consistencySignals);
+  const topWorkstyleValue = getTopSectionValue(questions, answersById, 'workstyle');
+  const topStressValue = getTopSectionValue(questions, answersById, 'stress');
+  const topLeadershipValue = getTopSectionValue(questions, answersById, 'leadership');
+  const combinedInsightKeys = [
+    topBigFive === 'conscientiousness' && ['planfirst', 'sequence', 'agendas', 'createstructure', 'systems'].includes(topWorkstyleValue)
+      ? 'combinedInsightMilestones'
+      : null,
+    topRiasec === 'Investigative' && topBigFive === 'open'
+      ? 'combinedInsightInvestigativeOpen'
+      : null,
+    topBigFive === 'neuroticism' && topStressValue === 'control'
+      ? 'combinedInsightStressControl'
+      : null,
+    topRiasec === 'Social' && ['coachquestions', 'barriers', 'alignconstraints', 'buildtrust', 'mutual'].includes(topLeadershipValue)
+      ? 'combinedInsightSocialFacilitative'
+      : null,
+    'combinedInsightWorkflowAdjustments',
+    'combinedInsightCrossDomainReview'
+  ].filter((item): item is string => Boolean(item)).slice(0, 5);
+  const cognitiveSignalLevel: ProfileReport['cognitiveSignalLevel'] = cognitiveAnsweredCount < 10 ? 'light' : 'standard';
 
   return {
+    executiveSummaryParts: {
+      personalityTypeEstimate,
+      topBigFive,
+      topRiasec,
+      topOperating,
+      topCognitiveLabel
+    },
+    confidenceLevel,
+    combinedInsightKeys,
+    cognitiveSignalLevel,
+    topCognitiveLabel,
     personalityTypeEstimate,
     bigFiveScores: bigFive,
     bigFiveNormalizedScores,
     bigFiveSignalStrength,
     riasecScores: riasec,
     motivationPattern,
-    cognitiveStyleSummary: cognitiveAnsweredCount < 10
-      ? `Your strongest cognitive-style signal in this session appeared in ${topCognitiveLabel}. Your cognitive-style result is still a light signal because this is a short, non-diagnostic reasoning sample.`
-      : `Your strongest cognitive-style signal in this session appeared in ${topCognitiveLabel}. This is an estimated, non-diagnostic reflection signal for self-discovery, not an official IQ result.`,
     stressPattern,
     leadershipPattern,
     workstylePattern,

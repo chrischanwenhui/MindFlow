@@ -20,9 +20,22 @@ export const th = {
   translationNotice: 'ประกาศคุณภาพการแปล: UI หลายภาษานี้ยังเป็นฉบับร่างที่พัฒนาอย่างต่อเนื่อง บางถ้อยคำอาจปรับปรุงเพิ่มเติมเพื่อความชัดเจนในท้องถิ่น',
   localSaveNotice: 'ความคืบหน้าจะถูกบันทึกไว้ในอุปกรณ์/เบราว์เซอร์นี้เท่านั้น',
   nonDiagnosticNotice: 'ประสบการณ์นี้ออกแบบเพื่อการค้นพบตนเองและการสะท้อนตน ไม่ใช่การประเมินทางคลินิก ทางการแพทย์ ทางวินิจฉัย หรือการทดสอบ IQ อย่างเป็นทางการ',
-  personalitySection: 'การประมาณประเภทบุคลิกภาพ', riasecSection: 'ความสนใจอาชีพ RIASEC', motivationSection: 'รูปแบบแรงจูงใจ', stressSection: 'แนวโน้มความเครียด', leadershipSection: 'แนวโน้มภาวะผู้นำ', workstyleSection: 'แนวโน้มสไตล์การทำงาน', cognitiveSection: 'สรุปสไตล์การคิด',
+  personalitySection: 'การประมาณประเภทบุคลิกภาพ', riasecSection: 'ความสนใจอาชีพ RIASEC', motivationSection: 'รูปแบบแรงจูงใจ', stressSection: 'แนวโน้มความเครียด', leadershipSection: 'แนวโน้มภาวะผู้นำ', workstyleSection: 'แนวโน้มสไตล์การทำงาน',
+  executiveSummarySection: 'Executive Summary', workOperatingSection: 'Stress and Leadership Tendencies', combinedInsightsSection: 'Combined Insights', confidenceSection: 'Disclaimer / Confidence Note', cognitiveSection: 'สรุปสไตล์การคิด',
   strengthsSection: 'จุดแข็ง', blindSpotsSection: 'จุดบอด', growthAreasSection: 'พื้นที่เติบโต',
   stressLabel: 'แนวโน้มความเครียดที่ถูกเลือกมากที่สุด:', leadershipLabel: 'แนวโน้มภาวะผู้นำที่ถูกเลือกมากที่สุด:', workstyleLabel: 'แนวโน้มสไตล์การทำงานที่ถูกเลือกมากที่สุด:',
   motivationSuffix: 'คือสัญญาณการสะท้อนตนที่ประเมินว่าเด่นที่สุดของคุณในตอนนี้',
+  executiveSummaryTemplate: 'Your response pattern suggests a {personalityTypeEstimate}-leaning preference estimate with the clearest Big Five signal in {topBigFive}. In this session, your strongest career-interest signal leaned toward {topRiasec}, while your operating-style responses leaned toward {topOperating}. This may indicate a meaningful pattern in how you approach decisions, and your clearest cognitive-style signal in this reasoning sample appeared in {topCognitiveLabel}. A useful reflection point is to treat these signals as prompts for experimentation rather than fixed identity labels.',
+  confidenceNoteTemplate: 'Confidence: {confidenceLevel}. This section is based on your current response set, and MindFlow remains a reflective tool rather than a validated psychometric instrument.',
+  personalityEstimateSentence: 'Your estimated personality type signal in this session is',
+  cognitiveLightSummaryTemplate: 'Your strongest cognitive-style signal in this session appeared in {topCognitiveLabel}. Your cognitive-style result is still a light signal because this is a short, non-diagnostic reasoning sample.',
+  cognitiveStandardSummaryTemplate: 'Your strongest cognitive-style signal in this session appeared in {topCognitiveLabel}. This non-diagnostic reasoning sample reflects cognitive-style tendencies such as working memory and problem framing, not any official intelligence ranking.',
+  combinedInsightMilestones: 'You may work best when goals are broken into visible milestones and progress can be tracked clearly.',
+  combinedInsightInvestigativeOpen: 'You may be drawn to roles where analysis and new frameworks intersect.',
+  combinedInsightStressControl: 'Under uncertainty, you may regain stability by turning ambiguity into a concrete next action.',
+  combinedInsightSocialFacilitative: 'You may contribute strongly in roles requiring trust-building, coaching, or team alignment.',
+  combinedInsightWorkflowAdjustments: 'In this session, your cross-domain signals suggest testing small workflow adjustments and reviewing what improves focus, energy, and follow-through.',
+  combinedInsightCrossDomainReview: 'A useful reflection point is to compare where you feel most effective with how your strongest signals appear across personality, motivation, and cognitive-style responses.',
   cognitiveUnknownNotice: 'การเลือก “ไม่ทราบ” จะถือเป็นสัญญาณการให้เหตุผลที่ยังไม่ตอบ ไม่ใช่การหักคะแนน'
+  // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

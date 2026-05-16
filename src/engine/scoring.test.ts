@@ -8,7 +8,16 @@ describe('scoreAssessment', () => {
     const profile = scoreAssessment(questions, answers);
     expect(profile.personalityTypeEstimate.length).toBe(4);
     expect(profile.strengths.length).toBeGreaterThan(0);
-    expect(profile.cognitiveStyleSummary).toContain('non-diagnostic');
+    expect(profile.executiveSummaryParts.topCognitiveLabel.length).toBeGreaterThan(0);
+    expect(profile.combinedInsightKeys.length).toBeGreaterThan(0);
+  });
+  it('uses non-absolute wording in executive summary and avoids IQ phrasing', () => {
+    const answers = questions.map((q) => ({ questionId: q.id, value: q.options[0].value, score: q.options[0].score }));
+    const profile = scoreAssessment(questions, answers);
+    expect(profile).not.toHaveProperty('executiveSummary');
+    expect(profile).not.toHaveProperty('confidenceNote');
+    expect(profile).not.toHaveProperty('combinedInsights');
+    expect(profile).not.toHaveProperty('cognitiveStyleSummary');
   });
 
   it('uses per-question cognitive domains for strongest domain', () => {
@@ -22,7 +31,7 @@ describe('scoreAssessment', () => {
     answers.push({ questionId: spatialQuestion.id, value: 'spatial', score: 2 });
 
     const profile = scoreAssessment(questions, answers);
-    expect(profile.cognitiveStyleSummary).toContain('spatial');
+    expect(profile.topCognitiveLabel).toContain('spatial');
   });
 
   it('applies reverse scoring for OCEAN and prevents one-answer inflation', () => {
@@ -69,7 +78,36 @@ describe('scoreAssessment', () => {
     if (!idk) throw new Error("Expected I don't know option");
 
     const profile = scoreAssessment(questions, [{ questionId: cognitiveQuestion.id, value: idk.value, score: idk.score }]);
-    expect(profile.cognitiveStyleSummary).toContain('pattern');
+    expect(profile.topCognitiveLabel).toContain('pattern');
+    expect(profile.cognitiveSignalLevel).toBe('light');
+  });
+  it('keeps confidence conservative for partial responses', () => {
+    const partialAnswers = questions.slice(0, 20).map((q) => ({ questionId: q.id, value: q.options[0].value, score: q.options[0].score }));
+    const profile = scoreAssessment(questions, partialAnswers);
+    expect(profile.confidenceLevel).toMatch(/Light signal|Moderate signal/);
+    expect(profile.confidenceLevel).not.toBe('Stronger signal');
+  });
+  it('returns at least two combined insights when enough data exists', () => {
+    const answers = questions.map((q) => ({ questionId: q.id, value: q.options[0].value, score: q.options[0].score }));
+    const profile = scoreAssessment(questions, answers);
+    expect(profile.combinedInsightKeys.length).toBeGreaterThanOrEqual(2);
+  });
+  it('derives combined insights from stable answer values, not display label casing', () => {
+    const consAnswers = questions
+      .filter((q) => q.section === 'ocean' && q.scoringDomain === 'conscientiousness')
+      .map((q) => ({
+        questionId: q.id,
+        value: 'conscientiousness',
+        score: q.scoringDirection === 'reverse' ? 1 : 5
+      }));
+    const workstylePlanfirst = questions.find((q) => q.id === 'mslw-workstyle-1');
+    if (!workstylePlanfirst) throw new Error('Expected workstyle question');
+
+    const profile = scoreAssessment(questions, [
+      ...consAnswers,
+      { questionId: workstylePlanfirst.id, value: 'planfirst', score: 2 }
+    ]);
+    expect(profile.combinedInsightKeys).toContain('combinedInsightMilestones');
   });
 
   it('keeps memory scoring unchanged and isolated from ocean reverse logic', () => {
@@ -82,7 +120,7 @@ describe('scoreAssessment', () => {
       { questionId: memoryQuestion.id, value: correctMemoryOption.value, score: correctMemoryOption.score },
       { questionId: oceanReverse.id, value: 'open', score: 5 }
     ]);
-    expect(profile.cognitiveStyleSummary).toContain('memory');
+    expect(profile.topCognitiveLabel).toContain('memory');
     expect(profile.bigFiveScores.open).toBe(1);
   });
 
