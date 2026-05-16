@@ -43,7 +43,7 @@ export const zhQuestionTranslations: QuestionTranslations = {
     options: ['先直接上手试', '先读文档再操作', '先看演示流程', '先梳理整体架构']
   },
   'cog-pattern-1': {
-    prompt: '图形/规律推理：5, 8, 11, 14, ?'
+    prompt: '图形/规律推理：5, 8, 11, 14, ？'
   },
   'cog-verbal-1': {
     prompt: '语言推理：蓝图之于建筑，正如食谱之于……',

@@ -30,8 +30,6 @@ describe('question localization quality checks', () => {
     }
   });
 
-
-
   it('keeps explicit translated option arrays aligned with source option counts', () => {
     const maps = [zhQuestionTranslations, msQuestionTranslations];
     for (const map of maps) {
