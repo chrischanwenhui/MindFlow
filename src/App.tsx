@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { scoreAssessment, type Answer } from './engine/scoring';
 import {
-  BIG_FIVE_MAX_SCORES,
   buildReportReflection,
   deriveRiasecMaxScores,
   toSortedScores
@@ -16,6 +15,7 @@ const COGNITIVE_UNKNOWN_NOTICE = "Using 'I don’t know' is treated as an unansw
 
 type Screen = 'assessment' | 'about' | 'provide';
 type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report';
+type MemoryPhase = 'idle' | 'ready' | 'revealing' | 'answering';
 const STORAGE_KEY = 'mindflow_answers_v1';
 
 function parseStoredAnswers(raw: string | null): Answer[] {
@@ -38,9 +38,38 @@ export function App() {
   const [assessmentView, setAssessmentView] = useState<AssessmentView>('landing');
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>(() => parseStoredAnswers(localStorage.getItem(STORAGE_KEY)));
+  const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('idle');
+  const [memoryCountdown, setMemoryCountdown] = useState(5);
   const hasSavedProgress = answers.length > 0;
   const current = questions[index];
+  const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
   const progress = Math.round((index / questions.length) * 100);
+  const canAnswerCurrent = !isMemoryQuestion || memoryPhase === 'answering';
+
+  useEffect(() => {
+    if (!current) return;
+    if (current.section === 'cognitive' && current.cognitiveDomain === 'memory') {
+      setMemoryPhase('ready');
+      setMemoryCountdown(current.revealSeconds ?? 5);
+      return;
+    }
+    setMemoryPhase('idle');
+  }, [current?.id]);
+
+  useEffect(() => {
+    if (!current || !isMemoryQuestion || memoryPhase !== 'revealing') return;
+    const interval = window.setInterval(() => {
+      setMemoryCountdown((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(interval);
+          setMemoryPhase('answering');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [current, isMemoryQuestion, memoryPhase]);
 
   const report = useMemo(() => scoreAssessment(questions, answers), [answers]);
   const bigFiveScores = useMemo(() => toSortedScores(report.bigFiveScores), [report]);
@@ -79,6 +108,15 @@ export function App() {
   const saveAndContinueLater = () => {
     setScreen('assessment');
     setAssessmentView('landing');
+  };
+  const goToPreviousQuestion = () => {
+    if (index <= 0) return;
+    setIndex((v) => Math.max(0, v - 1));
+  };
+  const startMemoryReveal = () => {
+    if (!current || !isMemoryQuestion) return;
+    setMemoryCountdown(current.revealSeconds ?? 5);
+    setMemoryPhase('revealing');
   };
 
   const isQuestionFlow = screen === 'assessment' && assessmentView === 'question';
@@ -144,22 +182,38 @@ export function App() {
             <div style={{ width: `${progress}%` }} />
           </div>
           <small>{index + 1} / {questions.length}</small>
-          <h3>{current.prompt}</h3>
-          <div className="stack">
-            {current.options.map((o) => (
-              <button key={o.label} className="option" onClick={() => choose(o.value, o.score)}>
-                {o.label}
-              </button>
-            ))}
-          </div>
-          {current.hint && (
+          {isMemoryQuestion && memoryPhase === 'ready' ? (
+            <>
+              <h3>Memory Challenge</h3>
+              <p>You will see a sequence for a few seconds. Try to remember it clearly. When it disappears, answer the question without looking back.</p>
+              <button onClick={startMemoryReveal}>Ready — Show Sequence</button>
+            </>
+          ) : isMemoryQuestion && memoryPhase === 'revealing' ? (
+            <>
+              <h3>{current.memoryPrompt}</h3>
+              <p><strong>Memorize this: {memoryCountdown}</strong></p>
+            </>
+          ) : (
+            <>
+              <h3>{isMemoryQuestion ? current.memoryQuestion : current.prompt}</h3>
+              <div className="stack">
+                {canAnswerCurrent && current.options.map((o) => (
+                  <button key={o.label} className="option" onClick={() => choose(o.value, o.score)}>
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {current.hint && memoryPhase !== 'revealing' && (
             <details className="hint">
               <summary>Need help understanding the question?</summary>
               <p>{current.hint}</p>
             </details>
           )}
-          <p className="disclaimer">{LOCAL_SAVE_NOTICE}</p>
+          {index > 0 && <button className="secondary-action" onClick={goToPreviousQuestion}>Back to previous question</button>}
           <button className="secondary-action" onClick={saveAndContinueLater}>Save & Exit</button>
+          <p className="disclaimer">{LOCAL_SAVE_NOTICE}</p>
           {current.section === 'cognitive' && <p className="disclaimer">{NON_DIAGNOSTIC_NOTICE}</p>}
         </section>
       )}
@@ -188,13 +242,15 @@ export function App() {
             </p>
           </ReportSection>
           <ReportSection title="Big Five / OCEAN">
+            <p className="disclaimer">These scores are normalized reflection signals based on your responses, not clinical measurements.</p>
             <div className="score-grid">
               {bigFiveScores.map((item) => (
                 <ScoreBar
                   key={item.key}
-                  label={item.label}
-                  score={item.score}
-                  max={BIG_FIVE_MAX_SCORES[item.key]}
+                  label={`${item.label} — ${report.bigFiveSignalStrength[item.key] ?? 'Low signal'}`}
+                  score={report.bigFiveNormalizedScores[item.key] ?? 0}
+                  max={100}
+                  hint="Interpret this as a reflection signal, not a fixed identity."
                 />
               ))}
             </div>

@@ -14,6 +14,10 @@ export type Question = {
   difficulty?: CognitiveDifficulty;
   groupLabel?: string;
   scoringDomain?: string;
+  scoringDirection?: 'positive' | 'reverse';
+  memoryPrompt?: string;
+  memoryQuestion?: string;
+  revealSeconds?: number;
 };
 
 const likert = (value: string): QuestionOption[] => [
@@ -30,10 +34,21 @@ const COGNITIVE_HINTS = {
   verbal: 'Focus on meaning and logic, not only keyword similarity.',
   numerical: 'Translate the wording into numbers before comparing choices.',
   spatial: 'Mentally rotate, reflect, or fold while preserving relative positions.',
-  memory: 'Keep order stable first, then retrieve by position.'
+  memory: 'Keep the sequence order in mind, then locate the requested position carefully.'
 } as const;
 const cognitiveUnknownOption = (domain: CognitiveDomain): QuestionOption => ({ label: "I don't know", value: `${domain}-unknown`, score: 0 });
 const c = (q: Question): Question => ({ ...q, groupLabel: q.groupLabel ?? q.section.toUpperCase(), scoringDomain: q.scoringDomain ?? q.section });
+const toSafeOptions = (rawOptions: unknown, fallbackValue: string): QuestionOption[] => {
+  if (!Array.isArray(rawOptions)) return [];
+  return rawOptions
+    .filter((entry): entry is [unknown, unknown] => Array.isArray(entry) && entry.length >= 2)
+    .map(([label, score]) => ({
+      label: String(label ?? ''),
+      value: fallbackValue,
+      score: typeof score === 'number' ? score : 0
+    }))
+    .filter((option) => option.label.trim().length > 0);
+};
 
 export const questions: Question[] = [
   ...[
@@ -52,12 +67,27 @@ export const questions: Question[] = [
   ].map(([id,p,a,av,b,bv]) => c({id: id as string, section:'mbti', groupLabel:'MBTI Preference', scoringDomain:(id as string).split('-')[1], prompt:p as string, options:[{label:a as string,value:av as string,score:2},{label:b as string,value:bv as string,score:2}]})),
 
   ...[
-    ['ocean-open-1','I intentionally explore ideas that challenge my assumptions.','open'],['ocean-open-2','I enjoy trying unfamiliar methods when improving a workflow.','open'],['ocean-open-3','I look for broader connections across different fields.','open'],['ocean-open-4','I prefer variety over repeating the same approach every week.','open'],
-    ['ocean-cons-1','I deliver commitments even when supervision is low.','conscientiousness'],['ocean-cons-2','I break large goals into trackable actions.','conscientiousness'],['ocean-cons-3','I protect focus by limiting avoidable context switching.','conscientiousness'],['ocean-cons-4','I usually close loose ends before moving on.','conscientiousness'],
-    ['ocean-extra-1','I gain energy from active collaboration.','extraversion'],['ocean-extra-2','I am comfortable initiating conversations in new groups.','extraversion'],['ocean-extra-3','I naturally become more expressive in team settings.','extraversion'],['ocean-extra-4','I often prefer discussing ideas live rather than asynchronously.','extraversion'],
-    ['ocean-agree-1','I look for solutions where all parties can keep dignity.','agreeableness'],['ocean-agree-2','I make room for others before pushing my own view.','agreeableness'],['ocean-agree-3','I can challenge ideas without escalating tension.','agreeableness'],['ocean-agree-4','I am patient with different working paces.','agreeableness'],
-    ['ocean-neuro-1','Uncertainty can affect my focus more than I want.','neuroticism'],['ocean-neuro-2','I replay unresolved issues after work hours.','neuroticism']
-  ].map(([id,p,v]) => c({id:id as string, section:'ocean', groupLabel:'Big Five / OCEAN', scoringDomain:v as string, prompt:p as string, options:likert(v as string)})),
+    ['ocean-open-1', 'I enjoy exploring ideas that challenge my current views.', 'open', 'positive'],
+    ['ocean-open-2', 'I often seek new methods when a routine approach works only moderately well.', 'open', 'positive'],
+    ['ocean-open-3', 'I prefer familiar routines and rarely seek new ways of thinking.', 'open', 'reverse'],
+    ['ocean-open-4', 'When faced with an unfamiliar perspective, I usually dismiss it quickly.', 'open', 'reverse'],
+    ['ocean-cons-1', 'I keep track of tasks even when nobody is checking.', 'conscientiousness', 'positive'],
+    ['ocean-cons-2', 'I usually break goals into specific, trackable steps.', 'conscientiousness', 'positive'],
+    ['ocean-cons-3', 'I often leave important tasks until the last possible moment.', 'conscientiousness', 'reverse'],
+    ['ocean-cons-4', 'I frequently move on before I have closed key details.', 'conscientiousness', 'reverse'],
+    ['ocean-extra-1', 'I gain energy through active interaction with others.', 'extraversion', 'positive'],
+    ['ocean-extra-2', 'In new groups, I am usually comfortable initiating conversation.', 'extraversion', 'positive'],
+    ['ocean-extra-3', 'After social interaction, I usually need a long period alone before I feel steady again.', 'extraversion', 'reverse'],
+    ['ocean-extra-4', 'I generally prefer working quietly alone over discussing ideas in real time.', 'extraversion', 'reverse'],
+    ['ocean-agree-1', 'I look for cooperative outcomes in disagreement.', 'agreeableness', 'positive'],
+    ['ocean-agree-2', 'I try to keep respect intact even when views are very different.', 'agreeableness', 'positive'],
+    ['ocean-agree-3', 'When there is conflict, I usually focus on winning the point rather than preserving harmony.', 'agreeableness', 'reverse'],
+    ['ocean-agree-4', 'If someone slows progress, I tend to press my agenda instead of adapting.', 'agreeableness', 'reverse'],
+    ['ocean-neuro-1', 'Under uncertainty, I feel tension that affects focus.', 'neuroticism', 'positive'],
+    ['ocean-neuro-2', 'I replay unresolved issues long after the moment has passed.', 'neuroticism', 'positive'],
+    ['ocean-neuro-3', 'Even under pressure, I usually remain emotionally steady.', 'neuroticism', 'reverse'],
+    ['ocean-neuro-4', 'Unexpected setbacks rarely disturb my emotional balance for long.', 'neuroticism', 'reverse']
+  ].map(([id,p,v,direction]) => c({id:id as string, section:'ocean', groupLabel:'Big Five / OCEAN', scoringDomain:v as string, scoringDirection: direction as 'positive' | 'reverse', prompt:p as string, options:likert(v as string)})),
 
   ...[
     ['riasec-1','Which task feels most energizing?',[['Build or repair a practical system','Realistic'],['Investigate root causes in a complex issue','Investigative'],['Design an original concept or experience','Artistic']]],
@@ -100,8 +130,29 @@ export const questions: Question[] = [
     ['spatial',1,'easy','Spatial reasoning: Rotate letter “L” by 90° clockwise. It points…', [['Up-left',0],['Up-right',2],['Down-left',0],['Down-right',0]]],
     ['spatial',2,'medium','Spatial reasoning: A cube has opposite faces paired. If top is blue and bottom is green, they are…', [['Adjacent',0],['Opposite',2],['Same face',0],['Unknown by definition',0]]],
     ['spatial',3,'hard','Spatial reasoning: A paper arrow pointing right is reflected in a vertical mirror. It points…', [['Right',0],['Left',2],['Up',0],['Down',0]]],
-    ['memory',1,'easy','Working memory: Remember 7 - 1 - 4 - 9 - 2. What is the 2nd number?', [['1',2],['4',0],['7',0],['9',0]]],
-    ['memory',2,'medium','Working memory: Remember P - 3 - T - 8 - M - 6. Which came immediately after T?', [['8',2],['M',0],['3',0],['6',0]]],
-    ['memory',3,'hard','Working memory: Remember D - 5 - K - 1 - R - 9 - B. Which is 6th?', [['R',0],['9',2],['1',0],['B',0]]]
-  ].map(([d,n,diff,p,opts]) => c({id:`cog-${d}-${n}`, section:'cognitive', groupLabel:'Cognitive Style', scoringDomain:d as string, cognitiveDomain:d as CognitiveDomain, difficulty:diff as CognitiveDifficulty, hint:COGNITIVE_HINTS[d as CognitiveDomain], prompt:p as string, options:[...(opts as (string|number)[][]).map(([label,score])=>({label:label as string,value:d as string,score:score as number})), cognitiveUnknownOption(d as CognitiveDomain)]}))
+    ['memory',1,'easy','Working memory challenge','7 - 1 - 4 - 9 - 2','What was the 2nd number?', [['1',2],['4',0],['7',0],['9',0]]],
+    ['memory',2,'medium','Working memory challenge','P - 3 - T - 8 - M - 6','Which came immediately after T?', [['8',2],['M',0],['3',0],['6',0]]],
+    ['memory',3,'hard','Working memory challenge','D - 5 - K - 1 - R - 9 - B','Which is the 6th item?', [['R',0],['9',2],['1',0],['B',0]]]
+  ].map((entry) => {
+    const [d, n, diff, p, fifth, sixth, seventh] = entry as [string, number, string, string, unknown, unknown, unknown];
+    const isMemory = d === 'memory';
+    const memoryPrompt = isMemory ? (fifth as string) : undefined;
+    const memoryQuestion = isMemory ? (sixth as string) : undefined;
+    const rawOptions = isMemory ? seventh : fifth;
+    const safeOptions = toSafeOptions(rawOptions, d);
+    return c({
+      id: `cog-${d}-${n}`,
+      section: 'cognitive',
+      groupLabel: 'Cognitive Style',
+      scoringDomain: d,
+      cognitiveDomain: d as CognitiveDomain,
+      difficulty: diff as CognitiveDifficulty,
+      hint: COGNITIVE_HINTS[d as CognitiveDomain],
+      prompt: p,
+      memoryPrompt,
+      memoryQuestion,
+      revealSeconds: isMemory ? 5 : undefined,
+      options: [...safeOptions, cognitiveUnknownOption(d as CognitiveDomain)]
+    });
+  })
 ];

@@ -14,14 +14,6 @@ export type SortedScoreItem = {
   score: number;
 };
 
-export const BIG_FIVE_MAX_SCORES: Record<string, number> = {
-  open: 10,
-  conscientiousness: 10,
-  extraversion: 10,
-  agreeableness: 5,
-  neuroticism: 5
-};
-
 export function deriveRiasecMaxScores(allQuestions: Question[]): Record<string, number> {
   const maxes: Record<string, number> = {};
 
