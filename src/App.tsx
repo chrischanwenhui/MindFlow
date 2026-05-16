@@ -3,7 +3,7 @@ import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { scoreAssessment, type Answer } from './engine/scoring';
-import { getInitialLanguage, t, type Language } from './i18n';
+import { getInitialLanguage, t, type Language, type TranslationKey, LANGUAGE_STORAGE_KEY } from './i18n';
 import {
   buildReportReflection,
   deriveRiasecMaxScores,
@@ -40,7 +40,7 @@ export function App() {
   const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('idle');
   const [memoryCountdown, setMemoryCountdown] = useState(5);
   const hasSavedProgress = answers.length > 0;
-  const tx = (key: Parameters<typeof t>[1]) => t(language, key);
+  const tx = (key: TranslationKey) => t(language, key);
   const current = questions[index];
   const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
   const progress = Math.round((index / questions.length) * 100);
@@ -120,7 +120,7 @@ export function App() {
   };
 
   useEffect(() => {
-    localStorage.setItem('mindflow_language_v1', language);
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   }, [language]);
 
   const isQuestionFlow = screen === 'assessment' && assessmentView === 'question';

@@ -10,7 +10,7 @@ export const DEFAULT_LANGUAGE: Language = 'en';
 export const LANGUAGE_STORAGE_KEY = 'mindflow_language_v1';
 
 export function isLanguage(value: string | null): value is Language {
-  return value === 'en' || value === 'zh' || value === 'ms';
+  return !!value && Object.keys(dictionaries).includes(value);
 }
 
 export function getInitialLanguage(): Language {
