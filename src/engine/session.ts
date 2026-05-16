@@ -66,3 +66,19 @@ export function readStoredSessionIds(): string[] {
     return [];
   }
 }
+
+export function getReplacementMemoryQuestion(
+  allQuestions: Question[],
+  sessionQuestions: Question[],
+  usedMemoryQuestionIds: Set<string>,
+  currentMemoryQuestionId: string
+): Question | null {
+  const memoryPool = allQuestions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory');
+  const inSession = new Set(sessionQuestions.map((q) => q.id));
+  const candidates = memoryPool
+    .filter((q) => q.id !== currentMemoryQuestionId)
+    .filter((q) => !inSession.has(q.id))
+    .filter((q) => !usedMemoryQuestionIds.has(q.id))
+    .sort((a, b) => a.id.localeCompare(b.id));
+  return candidates[0] ?? null;
+}

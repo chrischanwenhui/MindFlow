@@ -42,6 +42,7 @@ export const en = {
   memoryProtectionBody: 'To keep the assessment fair, memory questions cannot be revisited once revealed. Going back will generate a different memory question and your previous memory response will be locked.',
   regenerateMemoryQuestion: 'Continue',
   memoryPoolExhausted: 'Memory question pool exhausted for this session.',
+  navCancel: 'Cancel',
   backPrev: 'Back to previous question',
   resultsTitle: 'Results Summary',
   personalityEstimate: 'Personality type estimate:',

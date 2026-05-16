@@ -3,7 +3,7 @@ import { LanguageSelector } from './components/LanguageSelector';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
-import { buildAssessmentSession, readStoredSessionIds, saveSessionIds, SESSION_IDS_STORAGE_KEY } from './engine/session';
+import { buildAssessmentSession, getReplacementMemoryQuestion, readStoredSessionIds, saveSessionIds, SESSION_IDS_STORAGE_KEY } from './engine/session';
 import { scoreAssessment, type Answer } from './engine/scoring';
 import { getInitialLanguage, t, type Language, type TranslationKey, LANGUAGE_STORAGE_KEY } from './i18n';
 import { localizeQuestion } from './i18n/questions';
@@ -12,7 +12,6 @@ import {
   deriveRiasecMaxScores,
   toSortedScores
 } from './utils/formatReport';
-import type { Question } from './data/questions';
 
 
 type Screen = 'assessment' | 'about' | 'provide';
@@ -20,18 +19,8 @@ type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report';
 type MemoryPhase = 'ready' | 'reveal' | 'answer';
 const STORAGE_KEY = 'mindflow_answers_v1';
 
-function isMemoryQuestionItem(question: Question | undefined): boolean {
+function isMemoryQuestionItem(question: (typeof questions)[number] | undefined): boolean {
   return Boolean(question?.section === 'cognitive' && question.cognitiveDomain === 'memory');
-}
-
-export function getReplacementMemoryQuestion(sessionQuestions: Question[], usedMemoryQuestionIds: Set<string>, currentMemoryQuestionId: string): Question | null {
-  const memoryPool = questions.filter((q) => isMemoryQuestionItem(q));
-  const inSession = new Set(sessionQuestions.map((q) => q.id));
-  const candidates = memoryPool.filter((q) => q.id !== currentMemoryQuestionId && !inSession.has(q.id) && !usedMemoryQuestionIds.has(q.id));
-  if (candidates.length > 0) return candidates[Math.floor(Math.random() * candidates.length)];
-  const fallback = memoryPool.filter((q) => q.id !== currentMemoryQuestionId && !usedMemoryQuestionIds.has(q.id));
-  if (fallback.length > 0) return fallback[Math.floor(Math.random() * fallback.length)];
-  return null;
 }
 
 function parseStoredAnswers(raw: string | null): Answer[] {
@@ -75,6 +64,7 @@ export function App() {
 
   useEffect(() => {
     if (!current) return;
+    setMemoryPoolExhaustedNotice('');
     if (current.section === 'cognitive' && current.cognitiveDomain === 'memory') {
       setMemoryPhase('ready');
       setRevealRemaining(current.revealSeconds ?? 5);
@@ -87,32 +77,22 @@ export function App() {
   }, [current?.id]);
 
   useEffect(() => {
-    if (!current || !isMemoryQuestion || memoryPhase !== 'reveal') return;
+    if (!current || !isMemoryQuestion || memoryPhase !== 'reveal' || revealRemaining <= 0) return;
     const interval = window.setInterval(() => {
-      setRevealRemaining((prev) => {
-        if (prev <= 1) {
-          window.clearInterval(interval);
-          setMemoryPhase('answer');
-          return 0;
-        }
-        return prev - 1;
-      });
+      setRevealRemaining((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => window.clearInterval(interval);
-  }, [current, isMemoryQuestion, memoryPhase]);
+  }, [current?.id, isMemoryQuestion, memoryPhase, revealRemaining]);
   useEffect(() => {
-    if (!hasTimedCountdown || questionTimerRemaining === null || questionTimerRemaining <= 0) return;
+    if (memoryPhase === 'reveal' && revealRemaining === 0) setMemoryPhase('answer');
+  }, [memoryPhase, revealRemaining]);
+  useEffect(() => {
+    if (!hasTimedCountdown) return;
     const interval = window.setInterval(() => {
-      setQuestionTimerRemaining((prev) => {
-        if (prev === null || prev <= 1) {
-          window.clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setQuestionTimerRemaining((prev) => (prev !== null && prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => window.clearInterval(interval);
-  }, [hasTimedCountdown, questionTimerRemaining, current?.id]);
+  }, [hasTimedCountdown, current?.id]);
 
   const report = useMemo(() => scoreAssessment(sessionQuestions, answers), [answers, sessionQuestions]);
   const bigFiveScores = useMemo(() => toSortedScores(report.bigFiveScores), [report]);
@@ -166,7 +146,7 @@ export function App() {
   };
   const confirmMemoryBack = () => {
     if (index <= 0 || !previousQuestion || !isMemoryQuestionItem(previousQuestion)) return;
-    const replacement = getReplacementMemoryQuestion(sessionQuestions, usedMemoryQuestionIds, previousQuestion.id);
+    const replacement = getReplacementMemoryQuestion(questions, sessionQuestions, usedMemoryQuestionIds, previousQuestion.id);
     if (!replacement) {
       setMemoryPoolExhaustedNotice(tx('memoryPoolExhausted'));
       setShowMemoryProtectionModal(false);
@@ -345,7 +325,7 @@ export function App() {
           <p>{tx('memoryProtectionBody')}</p>
           <div className="stack">
             <button onClick={confirmMemoryBack}>{tx('regenerateMemoryQuestion')}</button>
-            <button className="option" onClick={() => setShowMemoryProtectionModal(false)}>Cancel</button>
+            <button className="option" onClick={() => setShowMemoryProtectionModal(false)}>{tx('navCancel')}</button>
           </div>
         </section>
       )}
