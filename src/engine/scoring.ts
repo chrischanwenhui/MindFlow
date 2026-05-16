@@ -19,6 +19,11 @@ export type ProfileReport = {
 };
 
 
+const STRONG_SIGNAL_DISTANCE_THRESHOLD = 25;
+const MODERATE_SIGNAL_DISTANCE_THRESHOLD = 12;
+const MIN_COMPLETION_FOR_ANY_SIGNAL = 0.5;
+const MIN_COMPLETION_FOR_STRONG_SIGNAL = 0.8;
+
 const FALLBACK_PATTERNS = {
   motivation: 'Balanced Explorer',
   cognitive: 'pattern',
@@ -47,6 +52,29 @@ function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+function getStrengthFromNormalizedDistance(normalized: number): 'Low signal' | 'Moderate signal' | 'Strong signal' {
+  const distanceFromMidpoint = Math.abs(normalized - 50);
+  if (distanceFromMidpoint >= STRONG_SIGNAL_DISTANCE_THRESHOLD) return 'Strong signal';
+  if (distanceFromMidpoint >= MODERATE_SIGNAL_DISTANCE_THRESHOLD) return 'Moderate signal';
+  return 'Low signal';
+}
+
+function getBigFiveSignalStrength(answeredCount: number, totalCount: number, normalized: number): 'Low signal' | 'Moderate signal' | 'Strong signal' {
+  if (answeredCount === 0) return 'Low signal';
+
+  const completionRatio = totalCount > 0 ? answeredCount / totalCount : 0;
+  const scoreStrength = getStrengthFromNormalizedDistance(normalized);
+
+  // Partial assessments should not appear overconfident.
+  if (completionRatio < MIN_COMPLETION_FOR_ANY_SIGNAL) return 'Low signal';
+
+  if (completionRatio < MIN_COMPLETION_FOR_STRONG_SIGNAL) {
+    return scoreStrength === 'Strong signal' ? 'Moderate signal' : 'Low signal';
+  }
+
+  return scoreStrength;
+}
+
 export function scoreAssessment(questions: Question[], answers: Answer[]): ProfileReport {
   const mbti: Record<string, number> = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
@@ -56,17 +84,18 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const leadership: Record<string, number> = {};
   const workstyle: Record<string, number> = {};
   const cognitive: Record<CognitiveDomain, number> = { pattern: 0, verbal: 0, numerical: 0, spatial: 0, memory: 0 };
-  const bigFiveContributions: Record<string, { score: number; max: number; count: number }> = {
-    open: { score: 0, max: 0, count: 0 },
-    conscientiousness: { score: 0, max: 0, count: 0 },
-    extraversion: { score: 0, max: 0, count: 0 },
-    agreeableness: { score: 0, max: 0, count: 0 },
-    neuroticism: { score: 0, max: 0, count: 0 }
+  const bigFiveContributions: Record<string, { score: number; max: number; count: number; total: number }> = {
+    open: { score: 0, max: 0, count: 0, total: 0 },
+    conscientiousness: { score: 0, max: 0, count: 0, total: 0 },
+    extraversion: { score: 0, max: 0, count: 0, total: 0 },
+    agreeableness: { score: 0, max: 0, count: 0, total: 0 },
+    neuroticism: { score: 0, max: 0, count: 0, total: 0 }
   };
   for (const question of questions) {
     if (question.section !== 'ocean' || !question.scoringDomain || !bigFiveContributions[question.scoringDomain]) continue;
     const scores = question.options.map((option) => option.score);
     bigFiveContributions[question.scoringDomain].max += Math.max(...scores);
+    bigFiveContributions[question.scoringDomain].total += 1;
   }
 
   const qMap = new Map(questions.map((q) => [q.id, q]));
@@ -100,8 +129,6 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const workstylePattern = getTopSignal(workstyle, FALLBACK_PATTERNS.workstyle);
   const bigFiveNormalizedScores = Object.fromEntries(
     Object.entries(bigFiveContributions).map(([trait, values]) => {
-      // Unanswered OCEAN items contribute no evidence. We normalize against full possible max
-      // to prevent one-answer inflation without treating missing answers as minimum trait scores.
       const normalized = values.max > 0 ? (values.score / values.max) * 100 : 0;
       return [trait, clampPercent(normalized)];
     })
@@ -109,9 +136,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
   const bigFiveSignalStrength = Object.fromEntries(
     Object.entries(bigFiveContributions).map(([trait, values]) => {
       const normalized = bigFiveNormalizedScores[trait] ?? 0;
-      if (values.count <= 2 || normalized <= 50) return [trait, 'Low signal'];
-      if (values.count <= 4) return [trait, 'Moderate signal'];
-      return [trait, 'Strong signal'];
+      return [trait, getBigFiveSignalStrength(values.count, values.total, normalized)];
     })
   ) as ProfileReport['bigFiveSignalStrength'];
 
