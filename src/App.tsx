@@ -5,6 +5,7 @@ import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { scoreAssessment, type Answer } from './engine/scoring';
 import { getInitialLanguage, t, type Language, type TranslationKey, LANGUAGE_STORAGE_KEY } from './i18n';
+import { localizeQuestion } from './i18n/questions';
 import {
   buildReportReflection,
   deriveRiasecMaxScores,
@@ -42,7 +43,7 @@ export function App() {
   const [memoryCountdown, setMemoryCountdown] = useState(5);
   const hasSavedProgress = answers.length > 0;
   const tx = (key: TranslationKey) => t(language, key);
-  const current = questions[index];
+  const current = localizeQuestion(questions[index], language);
   const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
   const progress = Math.round((index / questions.length) * 100);
   const canAnswerCurrent = !isMemoryQuestion || memoryPhase === 'answering';
