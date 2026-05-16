@@ -26,6 +26,11 @@ export const ms = {
   stressSection: 'Kecenderungan Tekanan',
   leadershipSection: 'Kecenderungan Kepimpinan',
   workstyleSection: 'Kecenderungan Gaya Kerja',
+
+  executiveSummarySection: 'Executive Summary',
+  workOperatingSection: 'Stress and Leadership Tendencies',
+  combinedInsightsSection: 'Combined Insights',
+  confidenceSection: 'Disclaimer / Confidence Note',
   cognitiveSection: 'Ringkasan Gaya Kognitif',
   strengthsSection: 'Kekuatan',
   blindSpotsSection: 'Titik Buta',
@@ -35,4 +40,5 @@ export const ms = {
   workstyleLabel: 'Kecenderungan gaya kerja yang paling dipilih:',
   motivationSuffix: 'ialah isyarat refleksi anggaran anda yang paling kuat pada masa ini.',
   cognitiveUnknownNotice: "Penggunaan 'Saya tidak tahu' dianggap sebagai isyarat penaakulan tidak dijawab, bukan penalti."
+  // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

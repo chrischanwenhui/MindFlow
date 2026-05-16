@@ -3,6 +3,10 @@ import type { CognitiveDomain, Question } from '../data/questions';
 export type Answer = { questionId: string; value: string; score: number };
 
 export type ProfileReport = {
+  executiveSummary: string;
+  confidenceLevel: 'Light signal' | 'Moderate signal' | 'Stronger signal';
+  confidenceNote: string;
+  combinedInsights: string[];
   personalityTypeEstimate: string;
   bigFiveScores: Record<string, number>;
   bigFiveNormalizedScores: Record<string, number>;
@@ -84,6 +88,14 @@ function getBigFiveSignalStrength(answeredCount: number, totalCount: number, nor
   return scoreStrength;
 }
 
+function getConfidenceLevel(answered: number, total: number, consistencySignals: number): ProfileReport['confidenceLevel'] {
+  const completionRatio = total > 0 ? answered / total : 0;
+  if (completionRatio < 0.55) return 'Light signal';
+  if (completionRatio < 0.85) return 'Moderate signal';
+  if (consistencySignals < 3) return 'Moderate signal';
+  return 'Stronger signal';
+}
+
 export function scoreAssessment(questions: Question[], answers: Answer[]): ProfileReport {
   const mbti: Record<string, number> = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
@@ -150,8 +162,41 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
       return [trait, getBigFiveSignalStrength(values.count, values.total, normalized)];
     })
   ) as ProfileReport['bigFiveSignalStrength'];
+  const answeredCount = answers.length;
+  const totalCount = questions.length;
+  const topBigFive = Object.entries(bigFiveNormalizedScores).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'open';
+  const topRiasec = Object.entries(riasec).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Investigative';
+  const topOperating = [motivationPattern, workstylePattern, leadershipPattern, stressPattern].find((value) => value !== 'Balanced') ?? motivationPattern;
+  const consistencySignals = [
+    bigFiveSignalStrength[topBigFive] === 'Strong signal',
+    riasec[topRiasec] > 0,
+    cognitiveAnsweredCount >= 10
+  ].filter(Boolean).length;
+  const confidenceLevel = getConfidenceLevel(answeredCount, totalCount, consistencySignals);
+  const confidenceNote = `Confidence: ${confidenceLevel}. This section is based on your current response set, and MindFlow remains a reflective tool rather than a validated psychometric instrument.`;
+  const executiveSummary = `Your response pattern suggests a ${personalityTypeEstimate}-leaning preference estimate with the clearest Big Five signal in ${topBigFive}. In this session, your strongest career-interest signal leaned toward ${topRiasec}, while your operating-style responses leaned toward ${topOperating}. This may indicate a meaningful pattern in how you approach decisions, and your clearest cognitive-style signal in this reasoning sample appeared in ${topCognitiveLabel}. A useful reflection point is to treat these signals as prompts for experimentation rather than fixed identity labels.`;
+  const combinedInsights = [
+    topBigFive === 'conscientiousness' && workstylePattern.toLowerCase().includes('plan')
+      ? 'You may work best when goals are broken into visible milestones and progress can be tracked clearly.'
+      : null,
+    topRiasec === 'Investigative' && topBigFive === 'open'
+      ? 'You may be drawn to roles where analysis and new frameworks intersect.'
+      : null,
+    topBigFive === 'neuroticism' && stressPattern.toLowerCase().includes('control')
+      ? 'Under uncertainty, you may regain stability by turning ambiguity into a concrete next action.'
+      : null,
+    topRiasec === 'Social' && leadershipPattern.toLowerCase().includes('facil')
+      ? 'You may contribute strongly in roles requiring trust-building, coaching, or team alignment.'
+      : null,
+    'In this session, your cross-domain signals suggest testing small workflow adjustments and reviewing what improves focus, energy, and follow-through.',
+    'A useful reflection point is to compare where you feel most effective with how your strongest signals appear across personality, motivation, and cognitive-style responses.'
+  ].filter((item): item is string => Boolean(item)).slice(0, 5);
 
   return {
+    executiveSummary,
+    confidenceLevel,
+    confidenceNote,
+    combinedInsights,
     personalityTypeEstimate,
     bigFiveScores: bigFive,
     bigFiveNormalizedScores,
@@ -160,7 +205,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     motivationPattern,
     cognitiveStyleSummary: cognitiveAnsweredCount < 10
       ? `Your strongest cognitive-style signal in this session appeared in ${topCognitiveLabel}. Your cognitive-style result is still a light signal because this is a short, non-diagnostic reasoning sample.`
-      : `Your strongest cognitive-style signal in this session appeared in ${topCognitiveLabel}. This is an estimated, non-diagnostic reflection signal for self-discovery, not an official IQ result.`,
+      : `Your strongest cognitive-style signal in this session appeared in ${topCognitiveLabel}. This non-diagnostic reasoning sample reflects cognitive-style tendencies such as working memory and problem framing, not any official intelligence ranking.`,
     stressPattern,
     leadershipPattern,
     workstylePattern,
