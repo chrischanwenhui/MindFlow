@@ -124,6 +124,16 @@ export function App() {
   }, [language]);
 
   const isQuestionFlow = screen === 'assessment' && assessmentView === 'question';
+  const renderLanguageSelector = (compact = false) => (
+    <label className={`language-select ${compact ? 'language-select--compact' : ''}`.trim()} htmlFor="lang-select">
+      <span>{tx('langLabel')}</span>
+      <select id="lang-select" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
+        <option value="en">{tx('langEnglish')}</option>
+        <option value="zh">{tx('langChinese')}</option>
+        <option value="ms">{tx('langMalay')}</option>
+      </select>
+    </label>
+  );
 
   return (
     <main className={`app ${isQuestionFlow ? 'assessment-shell' : ''}`.trim()}>
@@ -131,12 +141,7 @@ export function App() {
         {isQuestionFlow ? (
           <>
             <strong className="brand">{tx('navBrand')}</strong>
-            <label className="disclaimer" htmlFor="lang-select">{tx('langLabel')}:</label>
-            <select id="lang-select" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
-              <option value="en">{tx('langEnglish')}</option>
-              <option value="zh">{tx('langChinese')}</option>
-              <option value="ms">{tx('langMalay')}</option>
-            </select>
+            {renderLanguageSelector(true)}
             <button className="link-btn" onClick={() => setScreen('about')}>{tx('navAbout')}</button>
             <button className="link-btn" onClick={() => setScreen('provide')}>{tx('navProvide')}</button>
             <button className="link-btn" onClick={saveAndContinueLater}>{tx('navSaveExit')}</button>
@@ -152,6 +157,7 @@ export function App() {
             <button className="option" onClick={() => setScreen('provide')}>
               {tx('navProvide')}
             </button>
+            {renderLanguageSelector()}
           </>
         )}
       </nav>
