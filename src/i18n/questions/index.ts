@@ -3,8 +3,18 @@ import type { Language } from '../index';
 import { enQuestionTranslations } from './en';
 import { zhQuestionTranslations } from './zh';
 import { msQuestionTranslations } from './ms';
+import { jaQuestionTranslations } from './ja';
+import { koQuestionTranslations } from './ko';
+import { thQuestionTranslations } from './th';
 
-const maps = { en: enQuestionTranslations, zh: zhQuestionTranslations, ms: msQuestionTranslations } as const;
+const maps = {
+  en: enQuestionTranslations,
+  zh: zhQuestionTranslations,
+  ms: msQuestionTranslations,
+  ja: jaQuestionTranslations,
+  ko: koQuestionTranslations,
+  th: thQuestionTranslations
+} as const;
 
 function isLikertOptionSet(options: Question['options']): boolean {
   const scores = options.map((option) => option.score);

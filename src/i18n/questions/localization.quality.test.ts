@@ -3,6 +3,9 @@ import { questions } from '../../data/questions';
 import { localizeQuestion } from './index';
 import { zhQuestionTranslations } from './zh';
 import { msQuestionTranslations } from './ms';
+import { jaQuestionTranslations } from './ja';
+import { koQuestionTranslations } from './ko';
+import { thQuestionTranslations } from './th';
 
 describe('question localization quality checks', () => {
   it('keeps translated question IDs aligned with source IDs', () => {
@@ -12,7 +15,7 @@ describe('question localization quality checks', () => {
   });
 
   it('keeps translated option count aligned with source', () => {
-    for (const language of ['en', 'zh', 'ms'] as const) {
+    for (const language of ['en', 'zh', 'ms', 'ja', 'ko', 'th'] as const) {
       for (const q of questions) {
         expect(localizeQuestion(q, language).options).toHaveLength(q.options.length);
       }
@@ -21,7 +24,7 @@ describe('question localization quality checks', () => {
 
   it('keeps memory prompts/questions available where needed', () => {
     const memory = questions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory');
-    for (const language of ['en', 'zh', 'ms'] as const) {
+    for (const language of ['en', 'zh', 'ms', 'ja', 'ko', 'th'] as const) {
       for (const q of memory) {
         const localized = localizeQuestion(q, language);
         expect(localized.memoryPrompt?.trim().length).toBeGreaterThan(0);
@@ -31,7 +34,7 @@ describe('question localization quality checks', () => {
   });
 
   it('keeps explicit translated option arrays aligned with source option counts', () => {
-    const maps = [zhQuestionTranslations, msQuestionTranslations];
+    const maps = [zhQuestionTranslations, msQuestionTranslations, jaQuestionTranslations, koQuestionTranslations, thQuestionTranslations];
     for (const map of maps) {
       for (const q of questions) {
         const translatedOptions = map[q.id]?.options;

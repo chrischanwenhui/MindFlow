@@ -8,8 +8,20 @@ type LanguageSelectorProps = {
   englishLabel: string;
   chineseLabel: string;
   malayLabel: string;
+  japaneseLabel: string;
+  koreanLabel: string;
+  thaiLabel: string;
   compact?: boolean;
 };
+
+export const supportedLanguageOptions = [
+  { value: 'en', labelKey: 'englishLabel' },
+  { value: 'zh', labelKey: 'chineseLabel' },
+  { value: 'ms', labelKey: 'malayLabel' },
+  { value: 'ja', labelKey: 'japaneseLabel' },
+  { value: 'ko', labelKey: 'koreanLabel' },
+  { value: 'th', labelKey: 'thaiLabel' }
+] as const;
 
 export function LanguageSelector({
   language,
@@ -18,9 +30,21 @@ export function LanguageSelector({
   englishLabel,
   chineseLabel,
   malayLabel,
+  japaneseLabel,
+  koreanLabel,
+  thaiLabel,
   compact = false
 }: LanguageSelectorProps) {
   const selectId = useId();
+
+  const optionLabels = {
+    englishLabel,
+    chineseLabel,
+    malayLabel,
+    japaneseLabel,
+    koreanLabel,
+    thaiLabel
+  } as const;
 
   return (
     <label
@@ -33,9 +57,11 @@ export function LanguageSelector({
         value={language}
         onChange={(event) => onLanguageChange(event.target.value as Language)}
       >
-        <option value="en">{englishLabel}</option>
-        <option value="zh">{chineseLabel}</option>
-        <option value="ms">{malayLabel}</option>
+        {supportedLanguageOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {optionLabels[option.labelKey]}
+          </option>
+        ))}
       </select>
     </label>
   );
