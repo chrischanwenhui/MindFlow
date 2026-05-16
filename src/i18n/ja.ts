@@ -49,6 +49,11 @@ export const ja = {
   stressSection: 'ストレス傾向',
   leadershipSection: 'リーダーシップ傾向',
   workstyleSection: 'ワークスタイル傾向',
+
+  executiveSummarySection: 'Executive Summary',
+  workOperatingSection: 'Stress and Leadership Tendencies',
+  combinedInsightsSection: 'Combined Insights',
+  confidenceSection: 'Disclaimer / Confidence Note',
   cognitiveSection: '認知スタイルサマリー',
   strengthsSection: '強み',
   blindSpotsSection: '盲点',
@@ -58,4 +63,5 @@ export const ja = {
   workstyleLabel: '最も多く選ばれたワークスタイル傾向：',
   motivationSuffix: 'が、現時点で最も強い推定内省シグナルです。',
   cognitiveUnknownNotice: '「わからない」の選択は未回答の推論シグナルとして扱われ、減点ではありません。'
+  // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

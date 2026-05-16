@@ -44,19 +44,25 @@ export const en = {
   translationNotice: 'Translation quality notice: This multilingual UI is an evolving draft. Some phrasing may be refined over time for local clarity.',
   localSaveNotice: 'Progress is saved locally on this device/browser.',
   nonDiagnosticNotice: 'This experience is designed for self-discovery and reflection only. It is not a clinical, medical, diagnostic, or official IQ assessment.',
-  personalitySection: 'Personality Type Estimate',
+  personalitySection: 'Personality & Preference Estimate',
   riasecSection: 'RIASEC Career Interests',
   motivationSection: 'Motivation Pattern',
   stressSection: 'Stress Tendency',
   leadershipSection: 'Leadership Tendency',
   workstyleSection: 'Workstyle Tendency',
+
+  executiveSummarySection: 'Executive Summary',
+  workOperatingSection: 'Stress and Leadership Tendencies',
+  combinedInsightsSection: 'Combined Insights',
+  confidenceSection: 'Disclaimer / Confidence Note',
   cognitiveSection: 'Cognitive-Style Summary',
   strengthsSection: 'Strengths',
-  blindSpotsSection: 'Blind Spots',
+  blindSpotsSection: 'Watch-outs',
   growthAreasSection: 'Growth Areas',
   stressLabel: 'Most selected stress tendency:',
   leadershipLabel: 'Most selected leadership tendency:',
   workstyleLabel: 'Most selected workstyle tendency:',
   motivationSuffix: 'is your strongest estimated reflection signal right now.',
   cognitiveUnknownNotice: "Using 'I don’t know' is treated as an unanswered reasoning signal, not a penalty."
+  // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

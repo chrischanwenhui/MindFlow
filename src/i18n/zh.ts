@@ -26,6 +26,11 @@ export const zh = {
   stressSection: '压力倾向',
   leadershipSection: '领导力倾向',
   workstyleSection: '工作风格倾向',
+
+  executiveSummarySection: 'Executive Summary',
+  workOperatingSection: 'Stress and Leadership Tendencies',
+  combinedInsightsSection: 'Combined Insights',
+  confidenceSection: 'Disclaimer / Confidence Note',
   cognitiveSection: '认知风格摘要',
   strengthsSection: '优势',
   blindSpotsSection: '盲点',
@@ -35,4 +40,5 @@ export const zh = {
   workstyleLabel: '最常选择的工作风格倾向：',
   motivationSuffix: '是您目前最强的反思信号。',
   cognitiveUnknownNotice: '选择“我不知道”会被视为未作答的推理信号，而非扣分。'
+  // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

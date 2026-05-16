@@ -20,9 +20,11 @@ export const th = {
   translationNotice: 'ประกาศคุณภาพการแปล: UI หลายภาษานี้ยังเป็นฉบับร่างที่พัฒนาอย่างต่อเนื่อง บางถ้อยคำอาจปรับปรุงเพิ่มเติมเพื่อความชัดเจนในท้องถิ่น',
   localSaveNotice: 'ความคืบหน้าจะถูกบันทึกไว้ในอุปกรณ์/เบราว์เซอร์นี้เท่านั้น',
   nonDiagnosticNotice: 'ประสบการณ์นี้ออกแบบเพื่อการค้นพบตนเองและการสะท้อนตน ไม่ใช่การประเมินทางคลินิก ทางการแพทย์ ทางวินิจฉัย หรือการทดสอบ IQ อย่างเป็นทางการ',
-  personalitySection: 'การประมาณประเภทบุคลิกภาพ', riasecSection: 'ความสนใจอาชีพ RIASEC', motivationSection: 'รูปแบบแรงจูงใจ', stressSection: 'แนวโน้มความเครียด', leadershipSection: 'แนวโน้มภาวะผู้นำ', workstyleSection: 'แนวโน้มสไตล์การทำงาน', cognitiveSection: 'สรุปสไตล์การคิด',
+  personalitySection: 'การประมาณประเภทบุคลิกภาพ', riasecSection: 'ความสนใจอาชีพ RIASEC', motivationSection: 'รูปแบบแรงจูงใจ', stressSection: 'แนวโน้มความเครียด', leadershipSection: 'แนวโน้มภาวะผู้นำ', workstyleSection: 'แนวโน้มสไตล์การทำงาน',
+  executiveSummarySection: 'Executive Summary', workOperatingSection: 'Stress and Leadership Tendencies', combinedInsightsSection: 'Combined Insights', confidenceSection: 'Disclaimer / Confidence Note', cognitiveSection: 'สรุปสไตล์การคิด',
   strengthsSection: 'จุดแข็ง', blindSpotsSection: 'จุดบอด', growthAreasSection: 'พื้นที่เติบโต',
   stressLabel: 'แนวโน้มความเครียดที่ถูกเลือกมากที่สุด:', leadershipLabel: 'แนวโน้มภาวะผู้นำที่ถูกเลือกมากที่สุด:', workstyleLabel: 'แนวโน้มสไตล์การทำงานที่ถูกเลือกมากที่สุด:',
   motivationSuffix: 'คือสัญญาณการสะท้อนตนที่ประเมินว่าเด่นที่สุดของคุณในตอนนี้',
   cognitiveUnknownNotice: 'การเลือก “ไม่ทราบ” จะถือเป็นสัญญาณการให้เหตุผลที่ยังไม่ตอบ ไม่ใช่การหักคะแนน'
+  // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;
