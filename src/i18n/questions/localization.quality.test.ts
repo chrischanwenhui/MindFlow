@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { questions } from '../../data/questions';
 import { localizeQuestion } from './index';
+import { zhQuestionTranslations } from './zh';
+import { msQuestionTranslations } from './ms';
 
 describe('question localization quality checks', () => {
   it('keeps translated question IDs aligned with source IDs', () => {
@@ -28,8 +30,22 @@ describe('question localization quality checks', () => {
     }
   });
 
+
+
+  it('keeps explicit translated option arrays aligned with source option counts', () => {
+    const maps = [zhQuestionTranslations, msQuestionTranslations];
+    for (const map of maps) {
+      for (const q of questions) {
+        const translatedOptions = map[q.id]?.options;
+        if (translatedOptions) {
+          expect(translatedOptions).toHaveLength(q.options.length);
+        }
+      }
+    }
+  });
+
   it('falls back to English/source values if translation is missing', () => {
-    const q = questions.find((item) => item.id === 'mbti-ei-1');
+    const q = questions.find((item) => item.id === 'mbti-ei-2');
     if (!q) throw new Error('expected question');
     const localized = localizeQuestion(q, 'zh');
     expect(localized.prompt).toBe(q.prompt);
