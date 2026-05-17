@@ -31,16 +31,31 @@ describe('buildAssessmentSession', () => {
     expect(resumed.map((q) => q.id)).toEqual(session.map((q) => q.id));
   });
 
-  it("keeps cognitive 'I don't know' last and preserves non-cognitive option order", () => {
+  it('keeps cognitive default-idk option last and preserves non-cognitive option order', () => {
     const session = buildAssessmentSession(questions, { sessionSeed: 'options-seed' });
     for (const q of session.filter((item) => item.section === 'cognitive')) {
-      expect(q.options[q.options.length - 1]?.label).toBe("I don't know");
+      expect(q.options[q.options.length - 1]?.value).toBe('default-idk');
       expect(q.options[q.options.length - 1]?.score).toBe(0);
     }
 
     const likertFromData = questions.find((q) => q.section === 'ocean');
     const likertFromSession = session.find((q) => q.id === likertFromData?.id);
     expect(likertFromSession?.options.map((o) => o.label)).toEqual(likertFromData?.options.map((o) => o.label));
+  });
+
+  it('label changes do not break default-idk placement', () => {
+    const mutatedQuestions = questions.map((q) => {
+      if (q.section !== 'cognitive') return q;
+      return {
+        ...q,
+        options: q.options.map((o) => (o.value === 'default-idk' ? { ...o, label: 'Not sure' } : o))
+      };
+    });
+    const session = buildAssessmentSession(mutatedQuestions, { sessionSeed: 'idk-value-seed' });
+    for (const q of session.filter((item) => item.section === 'cognitive')) {
+      expect(q.options[q.options.length - 1]?.value).toBe('default-idk');
+      expect(q.options[q.options.length - 1]?.label).toBe('Not sure');
+    }
   });
 
   it('preserves cognitive option score/value mapping after shuffle', () => {

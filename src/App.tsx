@@ -38,6 +38,20 @@ function parseStoredAnswers(raw: string | null): Answer[] {
   }
 }
 
+
+export function getInitialSessionState() {
+  const storedSeed = readStoredSessionSeed();
+  const seed = storedSeed || createSessionSeed();
+  const storedIds = readStoredSessionIds();
+  return {
+    seed,
+    questions: buildAssessmentSession(questions, {
+      sessionIds: storedIds,
+      sessionSeed: seed
+    })
+  };
+}
+
 export function App() {
   const [screen, setScreen] = useState<Screen>('assessment');
   const [assessmentView, setAssessmentView] = useState<AssessmentView>('landing');
@@ -47,8 +61,9 @@ export function App() {
   const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('ready');
   const [revealRemaining, setRevealRemaining] = useState(5);
   const [questionTimerRemaining, setQuestionTimerRemaining] = useState<number | null>(null);
-  const [sessionSeed, setSessionSeed] = useState(() => readStoredSessionSeed() || createSessionSeed());
-  const [sessionQuestions, setSessionQuestions] = useState(() => buildAssessmentSession(questions, { sessionIds: readStoredSessionIds(), sessionSeed: readStoredSessionSeed() || 'default-seed' }));
+  const initialSession = getInitialSessionState();
+  const [sessionSeed, setSessionSeed] = useState(initialSession.seed);
+  const [sessionQuestions, setSessionQuestions] = useState(initialSession.questions);
   const [usedMemoryQuestionIds, setUsedMemoryQuestionIds] = useState<Set<string>>(new Set());
   const [showMemoryProtectionModal, setShowMemoryProtectionModal] = useState(false);
   const [memoryPoolExhaustedNotice, setMemoryPoolExhaustedNotice] = useState('');
@@ -77,19 +92,6 @@ export function App() {
     else setQuestionTimerRemaining(null);
   }, [current?.id]);
 
-
-  useEffect(() => {
-    const storedSeed = readStoredSessionSeed();
-    if (storedSeed) {
-      setSessionSeed(storedSeed);
-      return;
-    }
-    const nextSeed = createSessionSeed();
-    setSessionSeed(nextSeed);
-    saveSessionSeed(nextSeed);
-    const storedIds = readStoredSessionIds();
-    if (storedIds.length > 0) setSessionQuestions(buildAssessmentSession(questions, { sessionIds: storedIds, sessionSeed: nextSeed }));
-  }, []);
 
   useEffect(() => {
     if (!current || !isMemoryQuestion || memoryPhase !== 'reveal' || revealRemaining <= 0) return;
@@ -130,7 +132,6 @@ export function App() {
     localStorage.removeItem(SESSION_SEED_STORAGE_KEY);
     const nextSeed = createSessionSeed();
     setSessionSeed(nextSeed);
-    saveSessionSeed(nextSeed);
     const fresh = buildAssessmentSession(questions, { sessionSeed: nextSeed });
     setSessionQuestions(fresh);
     saveSessionIds(fresh);

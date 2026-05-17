@@ -49,8 +49,8 @@ function takeSeeded<T>(items: T[], count: number, seed: string): T[] {
 
 function reorderCognitiveOptions(question: Question, sessionSeed: string): Question {
   if (question.section !== 'cognitive') return question;
-  const idkOption = question.options.find((option) => option.label === "I don't know");
-  const nonIdkOptions = question.options.filter((option) => option.label !== "I don't know");
+  const idkOption = question.options.find((option) => option.value === 'default-idk');
+  const nonIdkOptions = question.options.filter((option) => option.value !== 'default-idk');
   const shuffledOptions = seededShuffle(nonIdkOptions, `${sessionSeed}:${question.id}:options`);
   const nextOptions: QuestionOption[] = idkOption ? [...shuffledOptions, idkOption] : shuffledOptions;
   return { ...question, options: nextOptions };
