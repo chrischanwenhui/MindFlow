@@ -3,7 +3,7 @@ import { LanguageSelector } from './components/LanguageSelector';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
-import { buildAssessmentSession, getReplacementMemoryQuestion, readStoredSessionIds, saveSessionIds, SESSION_IDS_STORAGE_KEY } from './engine/session';
+import { buildAssessmentSession, createSessionSeed, getReplacementMemoryQuestion, readStoredSessionIds, readStoredSessionSeed, saveSessionIds, saveSessionSeed, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY } from './engine/session';
 import { scoreAssessment, type Answer } from './engine/scoring';
 import { getInitialLanguage, t, type Language, type TranslationKey, LANGUAGE_STORAGE_KEY } from './i18n';
 import { localizeQuestion } from './i18n/questions';
@@ -38,6 +38,20 @@ function parseStoredAnswers(raw: string | null): Answer[] {
   }
 }
 
+
+export function getInitialSessionState() {
+  const storedSeed = readStoredSessionSeed();
+  const seed = storedSeed || createSessionSeed();
+  const storedIds = readStoredSessionIds();
+  return {
+    seed,
+    questions: buildAssessmentSession(questions, {
+      sessionIds: storedIds,
+      sessionSeed: seed
+    })
+  };
+}
+
 export function App() {
   const [screen, setScreen] = useState<Screen>('assessment');
   const [assessmentView, setAssessmentView] = useState<AssessmentView>('landing');
@@ -47,7 +61,9 @@ export function App() {
   const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('ready');
   const [revealRemaining, setRevealRemaining] = useState(5);
   const [questionTimerRemaining, setQuestionTimerRemaining] = useState<number | null>(null);
-  const [sessionQuestions, setSessionQuestions] = useState(() => buildAssessmentSession(questions, { sessionIds: readStoredSessionIds() }));
+  const [initialSession] = useState(getInitialSessionState);
+  const [sessionSeed, setSessionSeed] = useState(initialSession.seed);
+  const [sessionQuestions, setSessionQuestions] = useState(initialSession.questions);
   const [usedMemoryQuestionIds, setUsedMemoryQuestionIds] = useState<Set<string>>(new Set());
   const [showMemoryProtectionModal, setShowMemoryProtectionModal] = useState(false);
   const [memoryPoolExhaustedNotice, setMemoryPoolExhaustedNotice] = useState('');
@@ -75,6 +91,7 @@ export function App() {
     if (current.timed && (current.recommendedSeconds ?? 0) > 0) setQuestionTimerRemaining(current.recommendedSeconds ?? 0);
     else setQuestionTimerRemaining(null);
   }, [current?.id]);
+
 
   useEffect(() => {
     if (!current || !isMemoryQuestion || memoryPhase !== 'reveal' || revealRemaining <= 0) return;
@@ -112,7 +129,10 @@ export function App() {
     localStorage.removeItem(STORAGE_KEY);
     setAnswers([]);
     localStorage.removeItem(SESSION_IDS_STORAGE_KEY);
-    const fresh = buildAssessmentSession(questions);
+    localStorage.removeItem(SESSION_SEED_STORAGE_KEY);
+    const nextSeed = createSessionSeed();
+    setSessionSeed(nextSeed);
+    const fresh = buildAssessmentSession(questions, { sessionSeed: nextSeed });
     setSessionQuestions(fresh);
     saveSessionIds(fresh);
     setIndex(0);
@@ -146,7 +166,7 @@ export function App() {
   };
   const confirmMemoryBack = () => {
     if (index <= 0 || !previousQuestion || !isMemoryQuestionItem(previousQuestion)) return;
-    const replacement = getReplacementMemoryQuestion(questions, sessionQuestions, usedMemoryQuestionIds, previousQuestion.id);
+    const replacement = getReplacementMemoryQuestion(questions, sessionQuestions, usedMemoryQuestionIds, previousQuestion.id, sessionSeed);
     if (!replacement) {
       setMemoryPoolExhaustedNotice(tx('memoryPoolExhausted'));
       setShowMemoryProtectionModal(false);
@@ -171,6 +191,9 @@ export function App() {
   useEffect(() => {
     if (sessionQuestions.length > 0) saveSessionIds(sessionQuestions);
   }, [sessionQuestions]);
+  useEffect(() => {
+    if (sessionSeed) saveSessionSeed(sessionSeed);
+  }, [sessionSeed]);
   useEffect(() => {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   }, [language]);

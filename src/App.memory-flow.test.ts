@@ -7,7 +7,7 @@ describe('memory anti-cheat replacement', () => {
     const session = questions.slice(0, 30);
     const currentMemory = questions.find((q) => q.id === 'cog-memory-1');
     if (!currentMemory) throw new Error('missing memory question');
-    const replacement = getReplacementMemoryQuestion(questions, session, new Set([currentMemory.id]), currentMemory.id);
+    const replacement = getReplacementMemoryQuestion(questions, session, new Set([currentMemory.id]), currentMemory.id, 'memory-seed');
     expect(replacement).toBeTruthy();
     expect(replacement?.id).not.toBe(currentMemory.id);
   });
@@ -16,7 +16,7 @@ describe('memory anti-cheat replacement', () => {
     const memoryIds = new Set(questions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory').map((q) => q.id));
     const session = questions;
     const current = 'cog-memory-1';
-    const replacement = getReplacementMemoryQuestion(questions, session, memoryIds, current);
+    const replacement = getReplacementMemoryQuestion(questions, session, memoryIds, current, 'memory-seed');
     expect(replacement).toBeNull();
   });
 });
