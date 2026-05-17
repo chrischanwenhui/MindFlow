@@ -61,7 +61,7 @@ export function App() {
   const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('ready');
   const [revealRemaining, setRevealRemaining] = useState(5);
   const [questionTimerRemaining, setQuestionTimerRemaining] = useState<number | null>(null);
-  const initialSession = getInitialSessionState();
+  const [initialSession] = useState(getInitialSessionState);
   const [sessionSeed, setSessionSeed] = useState(initialSession.seed);
   const [sessionQuestions, setSessionQuestions] = useState(initialSession.questions);
   const [usedMemoryQuestionIds, setUsedMemoryQuestionIds] = useState<Set<string>>(new Set());
