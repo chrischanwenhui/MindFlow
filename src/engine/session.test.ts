@@ -5,7 +5,7 @@ import { buildAssessmentSession } from './session';
 describe('buildAssessmentSession', () => {
   it('builds >=75 with no duplicates and cognitive last', () => {
     const session = buildAssessmentSession(questions, { sessionSeed: 'seed-a' });
-    expect(session.length).toBeGreaterThanOrEqual(75);
+    expect(session.length).toBeGreaterThanOrEqual(101);
     expect(new Set(session.map((q) => q.id)).size).toBe(session.length);
     const firstCognitive = session.findIndex((q) => q.section === 'cognitive');
     expect(firstCognitive).toBeGreaterThan(0);
@@ -74,3 +74,29 @@ describe('buildAssessmentSession', () => {
     expect(new Set(cognitiveIds).size).toBe(cognitiveIds.length);
   });
 });
+
+
+  it('samples 32-40 MBTI questions with all dichotomies represented and no duplicate MBTI IDs', () => {
+    const session = buildAssessmentSession(questions, { sessionSeed: 'mbti-coverage-seed' });
+    const mbti = session.filter((q) => q.section === 'mbti');
+    expect(mbti.length).toBeGreaterThanOrEqual(32);
+    expect(mbti.length).toBeLessThanOrEqual(40);
+    expect(new Set(mbti.map((q) => q.id)).size).toBe(mbti.length);
+    expect(new Set(mbti.map((q) => q.scoringDomain))).toEqual(new Set(['ei', 'sn', 'tf', 'jp']));
+  });
+
+  it('keeps MBTI option polarity scoring stable across deterministic option reordering', () => {
+    const seedA = buildAssessmentSession(questions, { sessionSeed: 'mbti-order-a' });
+    const seedB = buildAssessmentSession(questions, { sessionSeed: 'mbti-order-b' });
+    const targetA = seedA.find((q) => q.section === 'mbti');
+    if (!targetA) throw new Error('Expected MBTI question in session');
+    const targetB = seedB.find((q) => q.id === targetA.id);
+    if (!targetB) throw new Error('Expected same MBTI question across sessions');
+
+    const firstA = targetA.options[0];
+    const matchingInB = targetB.options.find((o) => o.value === firstA.value);
+    expect(matchingInB?.score).toBe(firstA.score);
+    expect(new Set(targetA.options.map((o) => `${o.label}|${o.value}|${o.score}`))).toEqual(
+      new Set(targetB.options.map((o) => `${o.label}|${o.value}|${o.score}`))
+    );
+  });

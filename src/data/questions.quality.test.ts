@@ -72,6 +72,27 @@ describe('question quality checks', () => {
     }
   });
 
+
+
+  it('keeps MBTI pool balanced at 20 items per dichotomy', () => {
+    const mbti = questions.filter((q) => q.section === 'mbti');
+    expect(mbti.length).toBe(80);
+    expect(mbti.filter((q) => q.scoringDomain === 'ei').length).toBe(20);
+    expect(mbti.filter((q) => q.scoringDomain === 'sn').length).toBe(20);
+    expect(mbti.filter((q) => q.scoringDomain === 'tf').length).toBe(20);
+    expect(mbti.filter((q) => q.scoringDomain === 'jp').length).toBe(20);
+  });
+
+  it('blocks low-quality MBTI stereotype wording', () => {
+    const banned = ['outgoing', 'emotional', 'messy', 'organized', 'introvert', 'extrovert'];
+    for (const q of questions.filter((item) => item.section === 'mbti')) {
+      const fields = [q.prompt, ...q.options.map((o) => o.label)].map((v) => v.toLowerCase());
+      for (const field of fields) {
+        for (const term of banned) expect(field).not.toContain(term);
+      }
+    }
+  });
+
   it('validates RIASEC option categories and no fallback bias', () => {
     const riasec = questions.filter((q) => q.section === 'riasec');
     for (const q of riasec) {
