@@ -19,6 +19,8 @@ export const ms = {
   aboutTitle: 'Tentang MindFlow', provideTitle: 'Apa Kami Sediakan', restart: 'Mula semula',
   translationNotice: 'Notis kualiti terjemahan: UI berbilang bahasa ini masih draf yang berkembang. Sebahagian frasa mungkin diperhalusi dari semasa ke semasa.',
   localSaveNotice: 'Kemajuan disimpan secara setempat pada peranti/pelayar ini.',
+  heroKicker: 'MindFlow • Eirene Stack',
+  heroDisclaimer: 'MindFlow is non-diagnostic and does not provide clinical accuracy, credentialed cognitive claims, or psychological diagnosis.',
   nonDiagnosticNotice: 'Pengalaman ini untuk penemuan diri dan refleksi sahaja. Ia bukan penilaian klinikal, perubatan, diagnostik atau IQ rasmi.',
   personalitySection: 'Anggaran Jenis Personaliti',
   riasecSection: 'Minat Kerjaya RIASEC',

@@ -55,6 +55,8 @@ export const en = {
   restart: 'Restart',
   translationNotice: 'Translation quality notice: This multilingual UI is an evolving draft. Some phrasing may be refined over time for local clarity.',
   localSaveNotice: 'Progress is saved locally on this device/browser.',
+  heroKicker: 'MindFlow • Eirene Stack',
+  heroDisclaimer: 'MindFlow is non-diagnostic and does not provide clinical accuracy, credentialed cognitive claims, or psychological diagnosis.',
   nonDiagnosticNotice: 'This experience is designed for self-discovery and reflection only. It is not a clinical, medical, diagnostic, or credentialed cognitive assessment.',
   personalitySection: 'Personality & Preference Estimate',
   riasecSection: 'RIASEC Career Interests',
