@@ -47,6 +47,29 @@ function takeSeeded<T>(items: T[], count: number, seed: string): T[] {
   return seededShuffle(items, seed).slice(0, Math.min(count, items.length));
 }
 
+function rebalanceCognitiveOrder(cognitive: Question[], sessionSeed: string): Question[] {
+  const easy = seededShuffle(cognitive.filter((q) => q.difficulty === 'easy'), `${sessionSeed}:cognitive:easy`);
+  const medium = seededShuffle(cognitive.filter((q) => q.difficulty === 'medium'), `${sessionSeed}:cognitive:medium`);
+  const hard = seededShuffle(cognitive.filter((q) => q.difficulty === 'hard'), `${sessionSeed}:cognitive:hard`);
+  const queue = [...easy, ...medium, ...hard];
+  const ordered: Question[] = [];
+
+  while (queue.length > 0) {
+    const twoPrevNumerical = ordered.length >= 2
+      && ordered[ordered.length - 1].cognitiveDomain === 'numerical'
+      && ordered[ordered.length - 2].cognitiveDomain === 'numerical';
+    const next = twoPrevNumerical
+      ? (queue.find((q) => q.cognitiveDomain !== 'numerical') ?? queue[0])
+      : queue[0];
+    ordered.push(next);
+    const index = queue.indexOf(next);
+    if (index !== -1) {
+      queue.splice(index, 1);
+    }
+  }
+
+  return ordered;
+}
 
 
 function reorderMbtiOptions(question: Question, sessionSeed: string): Question {
@@ -91,7 +114,7 @@ export function buildAssessmentSession(allQuestions: Question[], options?: { tar
     ...seededShuffle(ocean, `${sessionSeed}:order:ocean`),
     ...seededShuffle(riasec, `${sessionSeed}:order:riasec`),
     ...seededShuffle(motivation, `${sessionSeed}:order:motivation`),
-    ...seededShuffle(cognitive, `${sessionSeed}:order:cognitive`)
+    ...rebalanceCognitiveOrder(cognitive, `${sessionSeed}:order`)
   ];
 
   if (selected.length < targetCount) {

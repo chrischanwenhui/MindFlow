@@ -329,6 +329,7 @@ export function App() {
           )}
           {isLate && <p className="disclaimer">{tx('timeUpNotice')}</p>}
           {current.section === 'cognitive' && !isMemoryQuestion && <p className="disclaimer">{tx('cognitiveNoBackNotice')}</p>}
+          {current.section === 'cognitive' && !isMemoryQuestion && <p className="disclaimer">{tx('cognitiveSkipReassurance')}</p>}
           {memoryPoolExhaustedNotice && <p className="disclaimer">{memoryPoolExhaustedNotice}</p>}
           {current.hint && memoryPhase !== 'reveal' && (
             <details className="hint">
