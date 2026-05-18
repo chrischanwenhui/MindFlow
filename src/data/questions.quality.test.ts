@@ -93,6 +93,29 @@ describe('question quality checks', () => {
     }
   });
 
+
+  it('keeps MBTI first-option polarity statically balanced by dichotomy', () => {
+    const mbti = questions.filter((q) => q.section === 'mbti');
+    const pairs: Array<[string, string]> = [['ei', 'E'], ['sn', 'S'], ['tf', 'T'], ['jp', 'J']];
+    for (const [domain, firstPolarity] of pairs) {
+      const domainQuestions = mbti.filter((q) => q.scoringDomain === domain);
+      const firstCount = domainQuestions.filter((q) => q.options[0]?.value === firstPolarity).length;
+      expect(firstCount).toBeGreaterThanOrEqual(8);
+      expect(firstCount).toBeLessThanOrEqual(12);
+    }
+  });
+
+  it('keeps MBTI IDs unique and option scoring valid', () => {
+    const mbti = questions.filter((q) => q.section === 'mbti');
+    expect(new Set(mbti.map((q) => q.id)).size).toBe(mbti.length);
+    for (const q of mbti) {
+      expect(q.options.length).toBe(2);
+      expect(q.options[0].score).toBe(2);
+      expect(q.options[1].score).toBe(2);
+      expect(q.options[0].value).not.toBe(q.options[1].value);
+    }
+  });
+
   it('validates RIASEC option categories and no fallback bias', () => {
     const riasec = questions.filter((q) => q.section === 'riasec');
     for (const q of riasec) {

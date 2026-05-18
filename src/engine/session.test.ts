@@ -73,8 +73,6 @@ describe('buildAssessmentSession', () => {
     const cognitiveIds = session.filter((q) => q.section === 'cognitive').map((q) => q.id);
     expect(new Set(cognitiveIds).size).toBe(cognitiveIds.length);
   });
-});
-
 
   it('samples 32-40 MBTI questions with all dichotomies represented and no duplicate MBTI IDs', () => {
     const session = buildAssessmentSession(questions, { sessionSeed: 'mbti-coverage-seed' });
@@ -84,19 +82,4 @@ describe('buildAssessmentSession', () => {
     expect(new Set(mbti.map((q) => q.id)).size).toBe(mbti.length);
     expect(new Set(mbti.map((q) => q.scoringDomain))).toEqual(new Set(['ei', 'sn', 'tf', 'jp']));
   });
-
-  it('keeps MBTI option polarity scoring stable across deterministic option reordering', () => {
-    const seedA = buildAssessmentSession(questions, { sessionSeed: 'mbti-order-a' });
-    const seedB = buildAssessmentSession(questions, { sessionSeed: 'mbti-order-b' });
-    const targetA = seedA.find((q) => q.section === 'mbti');
-    if (!targetA) throw new Error('Expected MBTI question in session');
-    const targetB = seedB.find((q) => q.id === targetA.id);
-    if (!targetB) throw new Error('Expected same MBTI question across sessions');
-
-    const firstA = targetA.options[0];
-    const matchingInB = targetB.options.find((o) => o.value === firstA.value);
-    expect(matchingInB?.score).toBe(firstA.score);
-    expect(new Set(targetA.options.map((o) => `${o.label}|${o.value}|${o.score}`))).toEqual(
-      new Set(targetB.options.map((o) => `${o.label}|${o.value}|${o.score}`))
-    );
-  });
+});
