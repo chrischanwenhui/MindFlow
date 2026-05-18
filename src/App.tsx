@@ -265,18 +265,17 @@ export function App() {
       {screen === 'assessment' && assessmentView === 'landing' && (
         <section className="card hero-card">
           <p className="hero-kicker">MindFlow • Eirene Stack</p>
-          <h1 className="hero-title">Understand yourself with more clarity.</h1>
+          <h1 className="hero-title">{tx('landingTitle')}</h1>
           <p className="hero-subtitle">
-            MindFlow helps users explore personality tendencies, career interests, cognitive-style indicators, and reflective
-            self-discovery insights through clean profile reports.
+            {tx('landingDesc')}
           </p>
           <p className="disclaimer hero-disclaimer">
             MindFlow is educational and reflective. It is not a diagnosis and not a substitute for professional assessment.
           </p>
           <div className="hero-actions">
-            <button onClick={() => setAssessmentView('start')}>Start a sample assessment</button>
+            <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
             <button className="option hero-secondary-cta" onClick={() => setAssessmentView('report')}>
-              View sample report
+              {tx('viewReport')}
             </button>
           </div>
         </section>
