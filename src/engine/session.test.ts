@@ -82,4 +82,45 @@ describe('buildAssessmentSession', () => {
     expect(new Set(mbti.map((q) => q.id)).size).toBe(mbti.length);
     expect(new Set(mbti.map((q) => q.scoringDomain))).toEqual(new Set(['ei', 'sn', 'tf', 'jp']));
   });
+
+  it('same seed gives same MBTI option order for the same question', () => {
+    const sessionA = buildAssessmentSession(questions, { sessionSeed: 'mbti-order-seed' });
+    const sessionB = buildAssessmentSession(questions, { sessionSeed: 'mbti-order-seed' });
+    const qA = sessionA.find((q) => q.section === 'mbti');
+    const qB = sessionB.find((q) => q.id === qA?.id);
+    expect(qA?.options.map((o) => o.value)).toEqual(qB?.options.map((o) => o.value));
+  });
+
+  it('different seeds can vary MBTI option order', () => {
+    const sessionA = buildAssessmentSession(questions, { sessionSeed: 'mbti-order-seed-a' });
+    const sessionB = buildAssessmentSession(questions, { sessionSeed: 'mbti-order-seed-b' });
+    const mbtiA = sessionA.filter((q) => q.section === 'mbti');
+    const varied = mbtiA.some((qA) => {
+      const qB = sessionB.find((q) => q.id === qA.id);
+      return qB && qA.options.map((o) => o.value).join('|') !== qB.options.map((o) => o.value).join('|');
+    });
+    expect(varied).toBe(true);
+  });
+
+  it('preserves MBTI option label/value/score set after reorder', () => {
+    const session = buildAssessmentSession(questions, { sessionSeed: 'mbti-set-seed' });
+    const mbti = session.find((q) => q.section === 'mbti');
+    if (!mbti) throw new Error('Expected MBTI question');
+    const source = questions.find((q) => q.id === mbti.id);
+    expect(new Set(mbti.options.map((o) => `${o.label}|${o.value}|${o.score}`))).toEqual(
+      new Set(source?.options.map((o) => `${o.label}|${o.value}|${o.score}`))
+    );
+  });
+
+  it('keeps MBTI scoring attached to option values after reorder', () => {
+    const session = buildAssessmentSession(questions, { sessionSeed: 'mbti-score-seed' });
+    const mbti = session.find((q) => q.section === 'mbti');
+    if (!mbti) throw new Error('Expected MBTI question');
+    const source = questions.find((q) => q.id === mbti.id);
+    for (const option of mbti.options) {
+      const sourceOption = source?.options.find((o) => o.value === option.value);
+      expect(sourceOption?.score).toBe(option.score);
+      expect(sourceOption?.label).toBe(option.label);
+    }
+  });
 });

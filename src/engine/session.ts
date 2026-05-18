@@ -48,6 +48,15 @@ function takeSeeded<T>(items: T[], count: number, seed: string): T[] {
 }
 
 
+
+function reorderMbtiOptions(question: Question, sessionSeed: string): Question {
+  if (question.section !== 'mbti') return question;
+  return {
+    ...question,
+    options: seededShuffle(question.options, `${sessionSeed}:${question.id}:mbti-options`)
+  };
+}
+
 function reorderCognitiveOptions(question: Question, sessionSeed: string): Question {
   if (question.section !== 'cognitive') return question;
   const idkOption = question.options.find((option) => option.value === 'default-idk');
@@ -68,7 +77,7 @@ export function buildAssessmentSession(allQuestions: Question[], options?: { tar
 
   if (options?.sessionIds?.length) {
     const map = new Map(allQuestions.map((q) => [q.id, q]));
-    return options.sessionIds.map((id) => map.get(id)).filter((q): q is Question => Boolean(q)).map((q) => reorderCognitiveOptions(q, sessionSeed));
+    return options.sessionIds.map((id) => map.get(id)).filter((q): q is Question => Boolean(q)).map((q) => reorderCognitiveOptions(reorderMbtiOptions(q, sessionSeed), sessionSeed));
   }
 
   const mbti = takeSeeded(allQuestions.filter((q) => q.section === 'mbti'), SESSION_DISTRIBUTION.mbti, `${sessionSeed}:mbti`);
@@ -93,7 +102,7 @@ export function buildAssessmentSession(allQuestions: Question[], options?: { tar
     selected = [...selected.slice(0, selected.length - cognitive.length), ...nonCogFill, ...selected.slice(selected.length - cognitive.length), ...cogFill];
   }
 
-  return selected.slice(0, targetCount).map((q) => reorderCognitiveOptions(q, sessionSeed));
+  return selected.slice(0, targetCount).map((q) => reorderCognitiveOptions(reorderMbtiOptions(q, sessionSeed), sessionSeed));
 }
 
 export function saveSessionIds(sessionQuestions: Question[]): void {
