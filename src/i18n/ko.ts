@@ -20,7 +20,6 @@ export const ko = {
   translationNotice: '번역 품질 안내: 이 다국어 UI는 계속 개선 중인 초안입니다. 일부 표현은 현지 가독성에 맞게 조정될 수 있습니다.',
   localSaveNotice: '진행 상황은 이 기기/브라우저에 로컬 저장됩니다.',
   heroKicker: 'MindFlow • Eirene Stack',
-  heroDisclaimer: 'MindFlow is non-diagnostic and does not provide clinical accuracy, credentialed cognitive claims, or psychological diagnosis.',
   nonDiagnosticNotice: '이 경험은 자기 발견과 성찰을 위한 것이며, 임상·의료·진단 또는 공식 IQ 평가가 아닙니다.',
   personalitySection: '성격 유형 추정', riasecSection: 'RIASEC 진로 흥미', motivationSection: '동기 패턴', stressSection: '스트레스 경향', leadershipSection: '리더십 경향', workstyleSection: '업무스타일 경향',
   executiveSummarySection: 'Executive Summary', workOperatingSection: 'Stress and Leadership Tendencies', combinedInsightsSection: 'Combined Insights', confidenceSection: 'Disclaimer / Confidence Note', cognitiveSection: '인지 스타일 요약',
