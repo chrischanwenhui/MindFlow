@@ -72,6 +72,50 @@ describe('question quality checks', () => {
     }
   });
 
+
+
+  it('keeps MBTI pool balanced at 20 items per dichotomy', () => {
+    const mbti = questions.filter((q) => q.section === 'mbti');
+    expect(mbti.length).toBe(80);
+    expect(mbti.filter((q) => q.scoringDomain === 'ei').length).toBe(20);
+    expect(mbti.filter((q) => q.scoringDomain === 'sn').length).toBe(20);
+    expect(mbti.filter((q) => q.scoringDomain === 'tf').length).toBe(20);
+    expect(mbti.filter((q) => q.scoringDomain === 'jp').length).toBe(20);
+  });
+
+  it('blocks low-quality MBTI stereotype wording', () => {
+    const banned = ['outgoing', 'emotional', 'messy', 'organized', 'introvert', 'extrovert'];
+    for (const q of questions.filter((item) => item.section === 'mbti')) {
+      const fields = [q.prompt, ...q.options.map((o) => o.label)].map((v) => v.toLowerCase());
+      for (const field of fields) {
+        for (const term of banned) expect(field).not.toContain(term);
+      }
+    }
+  });
+
+
+  it('keeps MBTI first-option polarity statically balanced by dichotomy', () => {
+    const mbti = questions.filter((q) => q.section === 'mbti');
+    const pairs: Array<[string, string]> = [['ei', 'E'], ['sn', 'S'], ['tf', 'T'], ['jp', 'J']];
+    for (const [domain, firstPolarity] of pairs) {
+      const domainQuestions = mbti.filter((q) => q.scoringDomain === domain);
+      const firstCount = domainQuestions.filter((q) => q.options[0]?.value === firstPolarity).length;
+      expect(firstCount).toBeGreaterThanOrEqual(8);
+      expect(firstCount).toBeLessThanOrEqual(12);
+    }
+  });
+
+  it('keeps MBTI IDs unique and option scoring valid', () => {
+    const mbti = questions.filter((q) => q.section === 'mbti');
+    expect(new Set(mbti.map((q) => q.id)).size).toBe(mbti.length);
+    for (const q of mbti) {
+      expect(q.options.length).toBe(2);
+      expect(q.options[0].score).toBe(2);
+      expect(q.options[1].score).toBe(2);
+      expect(q.options[0].value).not.toBe(q.options[1].value);
+    }
+  });
+
   it('validates RIASEC option categories and no fallback bias', () => {
     const riasec = questions.filter((q) => q.section === 'riasec');
     for (const q of riasec) {
