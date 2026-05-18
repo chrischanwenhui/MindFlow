@@ -58,12 +58,14 @@ function rebalanceCognitiveOrder(cognitive: Question[], sessionSeed: string): Qu
     const twoPrevNumerical = ordered.length >= 2
       && ordered[ordered.length - 1].cognitiveDomain === 'numerical'
       && ordered[ordered.length - 2].cognitiveDomain === 'numerical';
-    const searchPool = twoPrevNumerical
-      ? queue.filter((q) => q.cognitiveDomain !== 'numerical')
-      : queue;
-    const next = searchPool[0] ?? queue[0];
+    const next = twoPrevNumerical
+      ? (queue.find((q) => q.cognitiveDomain !== 'numerical') ?? queue[0])
+      : queue[0];
     ordered.push(next);
-    queue.splice(queue.findIndex((q) => q.id === next.id), 1);
+    const index = queue.indexOf(next);
+    if (index !== -1) {
+      queue.splice(index, 1);
+    }
   }
 
   return ordered;
