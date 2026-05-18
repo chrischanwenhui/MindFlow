@@ -36,6 +36,7 @@ export const th = {
   combinedInsightSocialFacilitative: 'You may contribute strongly in roles requiring trust-building, coaching, or team alignment.',
   combinedInsightWorkflowAdjustments: 'In this session, your cross-domain signals suggest testing small workflow adjustments and reviewing what improves focus, energy, and follow-through.',
   combinedInsightCrossDomainReview: 'A useful reflection point is to compare where you feel most effective with how your strongest signals appear across personality, motivation, and cognitive-style responses.',
+  cognitiveSkipReassurance: 'Skipping difficult questions is okay. MindFlow looks at patterns across the full session, not perfection.',
   cognitiveUnknownNotice: 'การเลือก “ไม่ทราบ” จะถือเป็นสัญญาณการให้เหตุผลที่ยังไม่ตอบ ไม่ใช่การหักคะแนน'
   // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

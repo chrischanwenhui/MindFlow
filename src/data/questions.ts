@@ -24,6 +24,7 @@ const COG_HINTS = {
 
 const mk2 = (id:string, prompt:string, a:[string,'E'|'I'|'S'|'N'|'T'|'F'|'J'|'P'], b:[string,'E'|'I'|'S'|'N'|'T'|'F'|'J'|'P'], scoringDomain:string): Question => ({ id, section:'mbti', prompt, options:[{label:a[0],value:a[1],score:2},{label:b[0],value:b[1],score:2}], scoringDomain, groupLabel:'MBTI Preference' });
 const mkCog = (id:string, d:CognitiveDomain, difficulty:CognitiveDifficulty, prompt:string, opts:[string,number][], extra:Partial<Question>={}):Question => ({ id, section:'cognitive', cognitiveDomain:d, difficulty, hint:COG_HINTS[d], prompt, options:[...opts.map(([label,score])=>({label,value:d,score})), {label:"I don't know", value:'default-idk', score:0}], scoringDomain:d, groupLabel:'Cognitive Workstyle', ...extra });
+const cognitiveSecondsByDifficulty: Record<CognitiveDifficulty, number> = { easy: 60, medium: 75, hard: 90 };
 
 const mbti: Question[] = [
   mk2('mbti-ei-1','At the start of a high-stakes initiative, you prefer to…',['Draft an internal position memo before group debate','I'],['Open with a live working session to co-shape direction','E'],'ei'),
@@ -202,7 +203,9 @@ mkCog('cog-verbal-6','verbal','medium','Book is to reading as code is to…',[['
 mkCog('cog-verbal-7','verbal','medium','If some designers are managers, which must be true?',[['All managers design',0],['Some managers are designers',2],['No designers manage',0],['Only managers design',0]]),
 mkCog('cog-verbal-8','verbal','medium','Honest is to trust as accurate is to…',[['Precision',2],['Speed',0],['Novelty',0],['Popularity',0]]),
 mkCog('cog-verbal-9','verbal','hard','Clock is to time as compass is to…',[['Distance',0],['Direction',2],['Latitude',0],['Speed',0]]),
-mkCog('cog-verbal-10','verbal','hard','If no interns lead projects, and Ana leads a project, Ana is…',[['An intern',0],['Not an intern',2],['A director',0],['Impossible to tell',0]])
+mkCog('cog-verbal-10','verbal','hard','If no interns lead projects, and Ana leads a project, Ana is…',[['An intern',0],['Not an intern',2],['A director',0],['Impossible to tell',0]]),
+mkCog('cog-verbal-11','verbal','easy','A key opens a lock. In the same way, evidence supports a…',[['Conclusion',2],['Confusion',0],['Delay',0],['Rumor',0]]),
+mkCog('cog-verbal-12','verbal','medium','All teams that document decisions improve handoffs. Team Orion documents decisions. Team Orion will…',[['Avoid all errors',0],['Improve handoffs',2],['Need no meetings',0],['Move slower',0]])
 ];
 // numerical/spatial/memory kept meaningful
 const numerical = Array.from({length:10}).map((_,i)=>mkCog(`cog-numerical-${i+1}`,'numerical',i<3?'easy':i<8?'medium':'hard',['18 is 30% of what number?','A price rises 20% then falls 20%. Final is…','If 6 people finish work in 8h, 12 people need…','25% of 240 equals…','A number doubles then +6 gives 30. Original?','Ratio 3:5 equals ? : 20','If x + 7 = 19, x = ?','Train speed 60 km/h for 2.5h distance?','Increase 80 to 100 is what percent?','Average of 12, 18, 24 ?'][i],[['40',0],['50',0],['60',2],['70',0],['Higher than start',0],['Lower than start',2],['Exactly unchanged',0],['Cannot be determined',0],['2 hours',0],['4 hours',2],['6 hours',0],['8 hours',0],['50',0],['55',0],['60',2],['65',0],['9',0],['12',2],['15',0],['18',0],['10',0],['12',2],['15',0],['18',0],['10',0],['12',2],['14',0],['16',0],['120 km',0],['140 km',0],['150 km',2],['160 km',0],['20%',0],['25%',2],['30%',0],['40%',0],['16',0],['18',2],['20',0],['22',0]].slice(i*4,i*4+4).map((v)=>[String(v[0]), Number(v[1])] as [string,number])));
@@ -213,16 +216,17 @@ const spatial = Array.from({length:8}).map((_,i)=>mkCog(`cog-spatial-${i+1}`,'sp
 const memory = Array.from({length:10}).map((_,i)=>mkCog(`cog-memory-${i+1}`,'memory',i<3?'easy':i<7?'medium':'hard','Working memory challenge',[['7',0],['T',0],['M',2],['9',0],['3',2],['4',0],['5',0],['6',0],['K',0],['L',2],['M',0],['N',0],['8',0],['1',0],['5',2],['7',0],['Q',2],['R',0],['S',0],['T',0],['Letter B',0],['Letter D',0],['F',2],['H',0],['2',0],['3',2],['4',0],['5',0],['P',0],['M',2],['N',0],['O',0],['9',2],['7',0],['5',0],['3',0],['Letter C',0],['Letter A',2],['Letter B',0],['Letter D',0]].slice(i*4,i*4+4) as [string,number][], {memoryPrompt:['7 - 1 - M - 9 - T','3 - 8 - 4 - A - 5','K - 2 - L - 9 - M','8 - 3 - 1 - 5 - R','Q - 4 - R - 6 - S','B - C - D - F - H','2 - 9 - 3 - P - 4','P - L - M - N - O','9 - 7 - 5 - 3 - 1','C - B - A - D - E'][i], memoryQuestion:['What was the 3rd item?','What was the 1st number?','Which came immediately after 2?','What was the 4th item?','What was the 1st item?','Which letter is in 4th position?','What came right after 9?','Which came immediately after L?','What was the first number?','What was the 3rd item?'][i], revealSeconds:5, recommendedSeconds:25}));
 
 const COGNITIVE_METADATA: Record<CognitiveDomain, Partial<Question>> = {
-  pattern: { cognitiveFormat: 'sequence', timed: true, recommendedSeconds: 35 },
-  verbal: { cognitiveFormat: 'analogy', timed: true, recommendedSeconds: 40 },
-  numerical: { cognitiveFormat: 'data-interpretation', timed: true, recommendedSeconds: 45 },
-  spatial: { cognitiveFormat: 'spatial-rotation', timed: true, recommendedSeconds: 50 },
-  memory: { cognitiveFormat: 'memory-grid', timed: true, recommendedSeconds: 20 }
+  pattern: { cognitiveFormat: 'sequence', timed: true },
+  verbal: { cognitiveFormat: 'analogy', timed: true },
+  numerical: { cognitiveFormat: 'data-interpretation', timed: true },
+  spatial: { cognitiveFormat: 'spatial-rotation', timed: true },
+  memory: { cognitiveFormat: 'memory-grid', timed: true }
 };
 
 const withCognitiveMetadata = (q: Question): Question => {
-  if (q.section !== 'cognitive' || !q.cognitiveDomain) return q;
-  return { ...COGNITIVE_METADATA[q.cognitiveDomain], ...q };
+  if (q.section !== 'cognitive' || !q.cognitiveDomain || !q.difficulty) return q;
+  const difficultySeconds = q.cognitiveDomain === 'memory' ? q.recommendedSeconds : cognitiveSecondsByDifficulty[q.difficulty];
+  return { ...COGNITIVE_METADATA[q.cognitiveDomain], ...q, recommendedSeconds: difficultySeconds };
 };
 
 export const questions: Question[] = [...mbti, ...ocean, ...riasec, ...mslw, ...pattern, ...verbal, ...numerical, ...spatial, ...memory].map(withCognitiveMetadata);

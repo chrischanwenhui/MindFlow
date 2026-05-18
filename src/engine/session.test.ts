@@ -59,10 +59,10 @@ describe('buildAssessmentSession', () => {
   });
 
   it('preserves cognitive option score/value mapping after shuffle', () => {
-    const baseCognitive = questions.find((q) => q.section === 'cognitive');
     const session = buildAssessmentSession(questions, { sessionSeed: 'score-seed' });
-    const shuffled = session.find((q) => q.id === baseCognitive?.id);
+    const shuffled = session.find((q) => q.section === 'cognitive');
     expect(shuffled).toBeTruthy();
+    const baseCognitive = questions.find((q) => q.id === shuffled?.id);
     expect(new Set(shuffled?.options.map((o) => `${o.label}|${o.value}|${o.score}`))).toEqual(
       new Set(baseCognitive?.options.map((o) => `${o.label}|${o.value}|${o.score}`))
     );
@@ -72,6 +72,24 @@ describe('buildAssessmentSession', () => {
     const session = buildAssessmentSession(questions, { sessionSeed: 'dedupe-seed' });
     const cognitiveIds = session.filter((q) => q.section === 'cognitive').map((q) => q.id);
     expect(new Set(cognitiveIds).size).toBe(cognitiveIds.length);
+  });
+
+  it('ramps cognitive difficulty and avoids long numerical streaks while keeping domain coverage', () => {
+    const session = buildAssessmentSession(questions, { sessionSeed: 'cognitive-ramp-seed' });
+    const cognitive = session.filter((q) => q.section === 'cognitive');
+    const firstHardIndex = cognitive.findIndex((q) => q.difficulty === 'hard');
+    const firstMediumIndex = cognitive.findIndex((q) => q.difficulty === 'medium');
+    expect(firstMediumIndex).toBeGreaterThanOrEqual(0);
+    expect(firstHardIndex).toBeGreaterThan(firstMediumIndex);
+
+    let consecutiveNumerical = 0;
+    for (const q of cognitive) {
+      if (q.cognitiveDomain === 'numerical') consecutiveNumerical += 1;
+      else consecutiveNumerical = 0;
+      expect(consecutiveNumerical).toBeLessThanOrEqual(2);
+    }
+
+    expect(new Set(cognitive.map((q) => q.cognitiveDomain))).toEqual(new Set(['pattern', 'verbal', 'numerical', 'spatial', 'memory']));
   });
 
   it('samples 32-40 MBTI questions with all dichotomies represented and no duplicate MBTI IDs', () => {

@@ -63,6 +63,20 @@ describe('question quality checks', () => {
     expect(customTimedMemory?.recommendedSeconds).toBe(25);
   });
 
+  it('applies cognitive timers by difficulty and keeps memory reveal timer separate', () => {
+    const cognitive = questions.filter((q) => q.section === 'cognitive');
+    for (const q of cognitive) {
+      expect(q.recommendedSeconds).toBeTruthy();
+      if (q.cognitiveDomain === 'memory') {
+        expect(q.revealSeconds).toBe(5);
+        continue;
+      }
+      if (q.difficulty === 'easy') expect(q.recommendedSeconds).toBe(60);
+      if (q.difficulty === 'medium') expect(q.recommendedSeconds).toBe(75);
+      if (q.difficulty === 'hard') expect(q.recommendedSeconds).toBe(90);
+    }
+  });
+
   it('keeps OCEAN at 8 per trait with first 4 positive and last 4 reverse', () => {
     const ocean = questions.filter((q) => q.section === 'ocean');
     for (const trait of ['open', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism']) {
