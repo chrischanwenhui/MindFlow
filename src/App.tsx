@@ -213,6 +213,14 @@ export function App() {
     { topCognitiveLabel: report.topCognitiveLabel }
   );
   const confidenceNote = formatTemplate(tx('confidenceNoteTemplate'), { confidenceLevel: report.confidenceLevel });
+  const assessmentCategories = [
+    { icon: '🧭', titleKey: 'categoryPersonalityTitle', descriptionKey: 'categoryPersonalityDesc' },
+    { icon: '💼', titleKey: 'categoryCareerTitle', descriptionKey: 'categoryCareerDesc' },
+    { icon: '🧠', titleKey: 'categoryCognitiveTitle', descriptionKey: 'categoryCognitiveDesc' },
+    { icon: '🌱', titleKey: 'categoryStrengthsTitle', descriptionKey: 'categoryStrengthsDesc' },
+    { icon: '🔍', titleKey: 'categoryPatternsTitle', descriptionKey: 'categoryPatternsDesc' },
+    { icon: '📚', titleKey: 'categoryWorkLearningTitle', descriptionKey: 'categoryWorkLearningDesc' }
+  ] as const;
 
   return (
     <main className={`app ${isQuestionFlow ? 'assessment-shell' : ''}`.trim()}>
@@ -272,6 +280,16 @@ export function App() {
           <p className="disclaimer hero-disclaimer">
             {tx('nonDiagnosticNotice')}
           </p>
+          <section className="assessment-categories" aria-label={tx('assessmentCategoriesAriaLabel')}>
+            <p className="disclaimer">{tx('assessmentCategoriesDisclaimer')}</p>
+            {assessmentCategories.map((category) => (
+              <article key={category.titleKey} className="assessment-category-card">
+                <div className="assessment-category-card__icon" aria-hidden="true">{category.icon}</div>
+                <h2>{tx(category.titleKey)}</h2>
+                <p>{tx(category.descriptionKey)}</p>
+              </article>
+            ))}
+          </section>
           <div className="hero-actions">
             <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
             <button className="hero-secondary-cta" onClick={() => setAssessmentView('report')}>
