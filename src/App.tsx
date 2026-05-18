@@ -275,9 +275,11 @@ export function App() {
       </nav>
 
       {screen === 'assessment' && assessmentView === 'landing' && (
-        <section className="card">
+        <section className="card hero-card">
+          <p className="hero-kicker">{tx('heroKicker')}</p>
           <h1>{tx('landingTitle')} <span>{tx('landingByline')}</span></h1>
           <p>{tx('landingDesc')}</p>
+          <p className="disclaimer">{tx('heroDisclaimer')}</p>
 
           <section className="assessment-categories" aria-label={tx('assessmentCategoriesAriaLabel')}>
             {assessmentCategories.map((category) => (
@@ -290,7 +292,10 @@ export function App() {
           </section>
 
           <p className="disclaimer">{tx('assessmentCategoriesDisclaimer')}</p>
-          <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
+          <div className="hero-actions">
+            <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
+            <button className="hero-secondary-cta" onClick={() => setAssessmentView('report')}>{tx('viewReport')}</button>
+          </div>
         </section>
       )}
 
