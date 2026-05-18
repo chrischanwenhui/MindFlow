@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LanguageSelector } from './components/LanguageSelector';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
+import { DisclaimerNotice } from './components/DisclaimerNotice';
 import { questions } from './data/questions';
 import { buildAssessmentSession, createSessionSeed, getReplacementMemoryQuestion, readStoredSessionIds, readStoredSessionSeed, saveSessionIds, saveSessionSeed, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY } from './engine/session';
 import { scoreAssessment, type Answer } from './engine/scoring';
@@ -213,6 +214,7 @@ export function App() {
     { topCognitiveLabel: report.topCognitiveLabel }
   );
   const confidenceNote = formatTemplate(tx('confidenceNoteTemplate'), { confidenceLevel: report.confidenceLevel });
+  const educationalDisclaimer = 'MindFlow is a self-discovery and educational reflection tool. It is not a clinical diagnostic assessment and is not a substitute for professional psychological, medical, educational, or career advice.';
 
   return (
     <main className={`app ${isQuestionFlow ? 'assessment-shell' : ''}`.trim()}>
@@ -266,6 +268,7 @@ export function App() {
         <section className="card">
           <h1>{tx('landingTitle')} <span>{tx('landingByline')}</span></h1>
           <p>{tx('landingDesc')}</p>
+          <DisclaimerNotice text={educationalDisclaimer} />
           <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
         </section>
       )}
@@ -277,6 +280,7 @@ export function App() {
           <p>{tx('sessionOrderNotice')}</p>
           <p>{tx('sessionSaveNotice')}</p>
           <p className="disclaimer">{tx('localSaveNotice')}</p>
+          <DisclaimerNotice text={educationalDisclaimer} compact />
           <div className="stack">
             <button onClick={startFreshAssessment}>{tx('startQuestions')}</button>
             <button className="option" onClick={resumeAssessment} disabled={!hasSavedProgress}>
@@ -340,7 +344,7 @@ export function App() {
           {index > 0 && <button className="secondary-action" onClick={goToPreviousQuestion} disabled={isMemoryQuestion && memoryPhase === 'reveal'}>{tx('backPrev')}</button>}
           <button className="secondary-action" onClick={saveAndContinueLater}>{tx('navSaveExit')}</button>
           <p className="disclaimer">{tx('localSaveNotice')}</p>
-          {current.section === 'cognitive' && <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>}
+          <DisclaimerNotice text={educationalDisclaimer} compact />
         </section>
       )}
       {showMemoryProtectionModal && (
@@ -360,6 +364,7 @@ export function App() {
           <p><b>{tx('personalityEstimate')}</b> {report.personalityTypeEstimate}</p>
           <p><b>{tx('motivationPattern')}</b> {report.motivationPattern}</p>
           <p>{cognitiveSummaryText}</p>
+          <DisclaimerNotice text={educationalDisclaimer} compact />
           <button onClick={() => setAssessmentView('report')}>{tx('viewReport')}</button>
         </section>
       )}
@@ -368,7 +373,7 @@ export function App() {
         <section className="card report-card print-report">
           <h2>{tx('reportPreview')}</h2>
           <p className="disclaimer">{buildReportReflection(report)}</p>
-          <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
+          <DisclaimerNotice text={educationalDisclaimer} />
           <div className="no-print">
             <button onClick={() => window.print()}>{tx('printPdf')}</button>
           </div>
@@ -413,7 +418,7 @@ export function App() {
           <ReportSection title={tx('cognitiveSection')}>
             <p>{cognitiveSummaryText}</p>
             <p className="disclaimer">{tx('cognitiveUnknownNotice')}</p>
-            <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
+            <DisclaimerNotice text={educationalDisclaimer} compact />
           </ReportSection>
           <ReportSection title={tx('strengthsSection')}>
             <ul>{report.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
@@ -430,7 +435,7 @@ export function App() {
           <ReportSection title={tx('confidenceSection')}>
             <p>{confidenceNote}</p>
           </ReportSection>
-          <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
+          <DisclaimerNotice text={educationalDisclaimer} compact />
           <button className="no-print" onClick={restartToLanding}>{tx('restart')}</button>
         </section>
       )}
@@ -439,7 +444,7 @@ export function App() {
         <section className="card">
           <h2>{tx('navAboutMindflow')}</h2>
           <p>MindFlow by Eirene Stack is built for self-discovery, reflection, career direction, and cognitive-style awareness.</p>
-          <p className="disclaimer">MindFlow is non-diagnostic and does not provide clinical accuracy, credentialed cognitive claims, or psychological diagnosis.</p>
+          <DisclaimerNotice text={educationalDisclaimer} />
           <p className="disclaimer">Local-first privacy note: this MVP stores responses locally in your browser only.</p>
           <p className="disclaimer">{tx('translationNotice')}</p>
         </section>
