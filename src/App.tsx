@@ -277,9 +277,9 @@ export function App() {
       {screen === 'assessment' && assessmentView === 'landing' && (
         <section className="card hero-card">
           <p className="hero-kicker">{tx('heroKicker')}</p>
-          <h1>{tx('landingTitle')} <span>{tx('landingByline')}</span></h1>
-          <p>{tx('landingDesc')}</p>
-          <p className="disclaimer">{tx('heroDisclaimer')}</p>
+          <h1 className="hero-title">{tx('landingTitle')}</h1>
+          <p className="hero-subtitle">{tx('landingDesc')}</p>
+          <p className="disclaimer hero-disclaimer">{tx('heroDisclaimer')}</p>
 
           <section className="assessment-categories" aria-label={tx('assessmentCategoriesAriaLabel')}>
             {assessmentCategories.map((category) => (
