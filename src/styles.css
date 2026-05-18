@@ -158,6 +158,11 @@ body { margin: 0; line-height: 1.55; }
 .assessment-categories {
   display: grid;
   gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.assessment-categories .disclaimer {
+  grid-column: 1 / -1;
 }
 
 .assessment-category-card {
