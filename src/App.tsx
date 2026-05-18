@@ -294,8 +294,15 @@ export function App() {
           <p className="disclaimer">{tx('assessmentCategoriesDisclaimer')}</p>
           <div className="hero-actions">
             <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
-            <button className="hero-secondary-cta" onClick={() => setAssessmentView('report')}>{tx('viewReport')}</button>
+            <button
+              className="hero-secondary-cta"
+              onClick={() => setAssessmentView('report')}
+              disabled={answers.length < 10}
+            >
+              {tx('viewReport')}
+            </button>
           </div>
+          <p className="disclaimer">Complete part of the assessment to unlock your reflective profile.</p>
         </section>
       )}
 
@@ -380,6 +387,7 @@ export function App() {
             <button onClick={confirmMemoryBack}>{tx('regenerateMemoryQuestion')}</button>
             <button className="option" onClick={() => setShowMemoryProtectionModal(false)}>{tx('navCancel')}</button>
           </div>
+          <p className="disclaimer">Complete part of the assessment to unlock your reflective profile.</p>
         </section>
       )}
 
