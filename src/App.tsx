@@ -21,37 +21,14 @@ const STORAGE_KEY = 'mindflow_answers_v1';
 
 
 const assessmentCategories = [
-  {
-    icon: '◐',
-    title: 'Personality Tendencies',
-    description: 'Explore reflective personality patterns inspired by common trait frameworks, focused on how you tend to think and relate.'
-  },
-  {
-    icon: '◌',
-    title: 'Career Interest Mapping',
-    description: 'Identify work themes and environments you may naturally enjoy, for educational career exploration and planning.'
-  },
-  {
-    icon: '◈',
-    title: 'Cognitive-Style Indicators',
-    description: 'Surface learning and problem-solving preferences through lightweight indicators that support self-discovery, not diagnosis.'
-  },
-  {
-    icon: '✦',
-    title: 'Strengths & Growth Areas',
-    description: 'Highlight current strengths and potential growth edges so you can reflect on practical next steps.'
-  },
-  {
-    icon: '◔',
-    title: 'Reflective Life Patterns',
-    description: 'Notice repeating patterns in your choices and routines to support personal reflection and intentional habits.'
-  },
-  {
-    icon: '▣',
-    title: 'Work & Learning Preferences',
-    description: 'Understand preferred collaboration, pacing, and learning conditions to better design your day-to-day environment.'
-  }
+  { icon: '◐', titleKey: 'categoryPersonalityTitle', descriptionKey: 'categoryPersonalityDesc' },
+  { icon: '◌', titleKey: 'categoryCareerTitle', descriptionKey: 'categoryCareerDesc' },
+  { icon: '◈', titleKey: 'categoryCognitiveTitle', descriptionKey: 'categoryCognitiveDesc' },
+  { icon: '✦', titleKey: 'categoryStrengthsTitle', descriptionKey: 'categoryStrengthsDesc' },
+  { icon: '◔', titleKey: 'categoryPatternsTitle', descriptionKey: 'categoryPatternsDesc' },
+  { icon: '▣', titleKey: 'categoryWorkLearningTitle', descriptionKey: 'categoryWorkLearningDesc' }
 ] as const;
+
 
 
 function isMemoryQuestionItem(question: (typeof questions)[number] | undefined): boolean {
@@ -302,17 +279,17 @@ export function App() {
           <h1>{tx('landingTitle')} <span>{tx('landingByline')}</span></h1>
           <p>{tx('landingDesc')}</p>
 
-          <section className="assessment-categories" aria-label="MindFlow reflective assessment categories">
+          <section className="assessment-categories" aria-label={tx('assessmentCategoriesAriaLabel')}>
             {assessmentCategories.map((category) => (
-              <article key={category.title} className="assessment-category-card">
+              <article key={category.titleKey} className="assessment-category-card">
                 <span className="assessment-category-card__icon" aria-hidden="true">{category.icon}</span>
-                <h2>{category.title}</h2>
-                <p>{category.description}</p>
+                <h2>{tx(category.titleKey)}</h2>
+                <p>{tx(category.descriptionKey)}</p>
               </article>
             ))}
           </section>
 
-          <p className="disclaimer">MindFlow categories are reflective and educational. They are not a diagnosis or a substitute for professional assessment.</p>
+          <p className="disclaimer">{tx('assessmentCategoriesDisclaimer')}</p>
           <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
         </section>
       )}

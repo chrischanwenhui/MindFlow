@@ -283,7 +283,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform
 .assessment-category-card {
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff, #f8fcff);
+  background: linear-gradient(180deg, var(--surface), var(--surface-muted));
   padding: 0.8rem;
 }
 
