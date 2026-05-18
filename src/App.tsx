@@ -264,17 +264,17 @@ export function App() {
 
       {screen === 'assessment' && assessmentView === 'landing' && (
         <section className="card hero-card">
-          <p className="hero-kicker">MindFlow • Eirene Stack</p>
+          <p className="hero-kicker">{tx('heroKicker')}</p>
           <h1 className="hero-title">{tx('landingTitle')}</h1>
           <p className="hero-subtitle">
             {tx('landingDesc')}
           </p>
           <p className="disclaimer hero-disclaimer">
-            MindFlow is educational and reflective. It is not a diagnosis and not a substitute for professional assessment.
+            {tx('nonDiagnosticNotice')}
           </p>
           <div className="hero-actions">
             <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
-            <button className="option hero-secondary-cta" onClick={() => setAssessmentView('report')}>
+            <button className="hero-secondary-cta" onClick={() => setAssessmentView('report')}>
               {tx('viewReport')}
             </button>
           </div>
@@ -450,7 +450,7 @@ export function App() {
         <section className="card">
           <h2>{tx('navAboutMindflow')}</h2>
           <p>MindFlow by Eirene Stack is built for self-discovery, reflection, career direction, and cognitive-style awareness.</p>
-          <p className="disclaimer">MindFlow is non-diagnostic and does not provide clinical accuracy, credentialed cognitive claims, or psychological diagnosis.</p>
+          <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           <p className="disclaimer">Local-first privacy note: this MVP stores responses locally in your browser only.</p>
           <p className="disclaimer">{tx('translationNotice')}</p>
         </section>

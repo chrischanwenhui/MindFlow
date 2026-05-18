@@ -19,6 +19,7 @@ export const th = {
   aboutTitle: 'เกี่ยวกับ MindFlow', provideTitle: 'สิ่งที่เราให้', restart: 'เริ่มใหม่',
   translationNotice: 'ประกาศคุณภาพการแปล: UI หลายภาษานี้ยังเป็นฉบับร่างที่พัฒนาอย่างต่อเนื่อง บางถ้อยคำอาจปรับปรุงเพิ่มเติมเพื่อความชัดเจนในท้องถิ่น',
   localSaveNotice: 'ความคืบหน้าจะถูกบันทึกไว้ในอุปกรณ์/เบราว์เซอร์นี้เท่านั้น',
+  heroKicker: 'MindFlow • Eirene Stack',
   nonDiagnosticNotice: 'ประสบการณ์นี้ออกแบบเพื่อการค้นพบตนเองและการสะท้อนตน ไม่ใช่การประเมินทางคลินิก ทางการแพทย์ ทางวินิจฉัย หรือการทดสอบ IQ อย่างเป็นทางการ',
   personalitySection: 'การประมาณประเภทบุคลิกภาพ', riasecSection: 'ความสนใจอาชีพ RIASEC', motivationSection: 'รูปแบบแรงจูงใจ', stressSection: 'แนวโน้มความเครียด', leadershipSection: 'แนวโน้มภาวะผู้นำ', workstyleSection: 'แนวโน้มสไตล์การทำงาน',
   executiveSummarySection: 'Executive Summary', workOperatingSection: 'Stress and Leadership Tendencies', combinedInsightsSection: 'Combined Insights', confidenceSection: 'Disclaimer / Confidence Note', cognitiveSection: 'สรุปสไตล์การคิด',
