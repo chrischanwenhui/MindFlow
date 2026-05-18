@@ -19,6 +19,7 @@ export const zh = {
   aboutTitle: '关于 MindFlow', provideTitle: '我们提供什么', restart: '重新开始',
   translationNotice: '翻译质量说明：此多语言界面仍在持续完善，部分表述会继续优化。',
   localSaveNotice: '进度仅保存在此设备/浏览器本地。',
+  heroKicker: 'MindFlow • Eirene Stack',
   nonDiagnosticNotice: '本体验仅用于自我探索与反思，不构成临床、医疗、诊断或官方 IQ 评估。',
   personalitySection: '人格类型估计',
   riasecSection: 'RIASEC 职业兴趣',

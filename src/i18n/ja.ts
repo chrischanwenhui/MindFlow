@@ -54,6 +54,7 @@ export const ja = {
   restart: '再開',
   translationNotice: '翻訳品質のお知らせ：この多言語UIは継続的に改善中のドラフトです。表現は今後さらに最適化される場合があります。',
   localSaveNotice: '進捗はこの端末／ブラウザにローカル保存されます。',
+  heroKicker: 'MindFlow • Eirene Stack',
   nonDiagnosticNotice: 'この体験は自己理解と内省のためのもので、臨床・医療・診断・公式IQ評価ではありません。',
   personalitySection: '推定パーソナリティタイプ',
   riasecSection: 'RIASEC キャリア興味',
