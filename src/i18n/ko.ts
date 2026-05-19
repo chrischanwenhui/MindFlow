@@ -21,7 +21,7 @@ export const ko = {
   localSaveNotice: '진행 상황은 이 기기/브라우저에 로컬 저장됩니다.',
   heroKicker: 'MindFlow • Eirene Stack',
   nonDiagnosticNotice: '이 경험은 자기 발견과 성찰을 위한 것이며, 임상·의료·진단 또는 공식 IQ 평가가 아닙니다.',
-  reportUnlockNotice: 'Complete part of the assessment to unlock your reflective profile.',
+  reportUnlockNotice: '일부 문항에 답하면 성찰형 프로필을 확인할 수 있습니다.',
   assessmentCategoriesAriaLabel: 'Assessment categories',
   assessmentCategoriesDisclaimer: 'This assessment includes the following reflection categories:',
   categoryPersonalityTitle: 'Personality & Preferences',

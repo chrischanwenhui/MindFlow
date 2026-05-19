@@ -303,7 +303,7 @@ export function App() {
               {tx('viewReport')}
             </button>
           </div>
-          <p className="disclaimer">{tx('reportUnlockNotice')}</p>
+          {!canViewReport && <p className="disclaimer">{tx('reportUnlockNotice')}</p>}
         </section>
       )}
 

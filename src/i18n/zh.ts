@@ -21,7 +21,7 @@ export const zh = {
   localSaveNotice: '进度仅保存在此设备/浏览器本地。',
   heroKicker: 'MindFlow • Eirene Stack',
   nonDiagnosticNotice: '本体验仅用于自我探索与反思，不构成临床、医疗、诊断或官方 IQ 评估。',
-  reportUnlockNotice: 'Complete part of the assessment to unlock your reflective profile.',
+  reportUnlockNotice: '完成部分测评后即可解锁你的反思型个人报告。',
   assessmentCategoriesAriaLabel: 'Assessment categories',
   assessmentCategoriesDisclaimer: 'This assessment includes the following reflection categories:',
   categoryPersonalityTitle: 'Personality & Preferences',
