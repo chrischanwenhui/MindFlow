@@ -18,6 +18,7 @@ type Screen = 'assessment' | 'about' | 'provide';
 type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report';
 type MemoryPhase = 'ready' | 'reveal' | 'answer';
 const STORAGE_KEY = 'mindflow_answers_v1';
+const REPORT_UNLOCK_THRESHOLD = 10;
 
 function isMemoryQuestionItem(question: (typeof questions)[number] | undefined): boolean {
   return Boolean(question?.section === 'cognitive' && question.cognitiveDomain === 'memory');
@@ -77,6 +78,7 @@ export function App() {
   const isLate = hasTimedCountdown && questionTimerRemaining === 0;
   const previousQuestion = sessionQuestions[index - 1];
   const previousIsMemoryQuestion = isMemoryQuestionItem(previousQuestion);
+  const canViewReport = answers.length >= REPORT_UNLOCK_THRESHOLD;
 
   useEffect(() => {
     if (!current) return;
@@ -270,10 +272,7 @@ export function App() {
         )}
       </nav>
 
-      {screen === 'assessment' && assessmentView === 'landing' && (() => {
-        const canViewReport = answers.length >= 10;
-
-        return (
+      {screen === 'assessment' && assessmentView === 'landing' && (
         <section className="card hero-card">
           <p className="hero-kicker">{tx('heroKicker')}</p>
           <h1 className="hero-title">{tx('landingTitle')}</h1>
@@ -306,8 +305,7 @@ export function App() {
           </div>
           <p className="disclaimer">{tx('reportUnlockNotice')}</p>
         </section>
-        );
-      })()}
+      )}
 
       {screen === 'assessment' && assessmentView === 'start' && (
         <section className="card">
