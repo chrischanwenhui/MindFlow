@@ -270,7 +270,10 @@ export function App() {
         )}
       </nav>
 
-      {screen === 'assessment' && assessmentView === 'landing' && (
+      {screen === 'assessment' && assessmentView === 'landing' && (() => {
+        const canViewReport = answers.length >= 10;
+
+        return (
         <section className="card hero-card">
           <p className="hero-kicker">{tx('heroKicker')}</p>
           <h1 className="hero-title">{tx('landingTitle')}</h1>
@@ -292,12 +295,19 @@ export function App() {
           </section>
           <div className="hero-actions">
             <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
-            <button className="hero-secondary-cta" onClick={() => setAssessmentView('report')}>
+            <button
+              className="hero-secondary-cta"
+              onClick={() => setAssessmentView('report')}
+              disabled={!canViewReport}
+              aria-disabled={!canViewReport}
+            >
               {tx('viewReport')}
             </button>
           </div>
+          <p className="disclaimer">{tx('reportUnlockNotice')}</p>
         </section>
-      )}
+        );
+      })()}
 
       {screen === 'assessment' && assessmentView === 'start' && (
         <section className="card">

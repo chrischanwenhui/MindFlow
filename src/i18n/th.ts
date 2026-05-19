@@ -21,6 +21,7 @@ export const th = {
   localSaveNotice: 'ความคืบหน้าจะถูกบันทึกไว้ในอุปกรณ์/เบราว์เซอร์นี้เท่านั้น',
   heroKicker: 'MindFlow • Eirene Stack',
   nonDiagnosticNotice: 'ประสบการณ์นี้ออกแบบเพื่อการค้นพบตนเองและการสะท้อนตน ไม่ใช่การประเมินทางคลินิก ทางการแพทย์ ทางวินิจฉัย หรือการทดสอบ IQ อย่างเป็นทางการ',
+  reportUnlockNotice: 'Complete part of the assessment to unlock your reflective profile.',
   assessmentCategoriesAriaLabel: 'Assessment categories',
   assessmentCategoriesDisclaimer: 'This assessment includes the following reflection categories:',
   categoryPersonalityTitle: 'Personality & Preferences',

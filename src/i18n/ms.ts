@@ -21,6 +21,7 @@ export const ms = {
   localSaveNotice: 'Kemajuan disimpan secara setempat pada peranti/pelayar ini.',
   heroKicker: 'MindFlow • Eirene Stack',
   nonDiagnosticNotice: 'Pengalaman ini untuk penemuan diri dan refleksi sahaja. Ia bukan penilaian klinikal, perubatan, diagnostik atau IQ rasmi.',
+  reportUnlockNotice: 'Complete part of the assessment to unlock your reflective profile.',
   assessmentCategoriesAriaLabel: 'Assessment categories',
   assessmentCategoriesDisclaimer: 'This assessment includes the following reflection categories:',
   categoryPersonalityTitle: 'Personality & Preferences',
