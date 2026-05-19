@@ -57,6 +57,7 @@ export const en = {
   localSaveNotice: 'Progress is saved locally on this device/browser.',
   heroKicker: 'MindFlow • Eirene Stack',
   nonDiagnosticNotice: 'This experience is designed for self-discovery and reflection only. It is not a clinical, medical, diagnostic, or credentialed cognitive assessment.',
+  reportUnlockNotice: 'Complete part of the assessment to unlock your reflective profile.',
   assessmentCategoriesAriaLabel: 'Assessment categories',
   assessmentCategoriesDisclaimer: 'This assessment includes the following reflection categories:',
   categoryPersonalityTitle: 'Personality & Preferences',

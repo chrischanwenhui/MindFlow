@@ -56,6 +56,7 @@ export const ja = {
   localSaveNotice: '進捗はこの端末／ブラウザにローカル保存されます。',
   heroKicker: 'MindFlow • Eirene Stack',
   nonDiagnosticNotice: 'この体験は自己理解と内省のためのもので、臨床・医療・診断・公式IQ評価ではありません。',
+  reportUnlockNotice: '一部の質問に回答すると、内省用プロフィールを確認できます。',
   assessmentCategoriesAriaLabel: 'Assessment categories',
   assessmentCategoriesDisclaimer: 'This assessment includes the following reflection categories:',
   categoryPersonalityTitle: 'Personality & Preferences',
