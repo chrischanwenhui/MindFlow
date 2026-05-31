@@ -110,6 +110,83 @@ describe('scoreAssessment', () => {
     expect(profile.riasecScores[option.value]).toBe(option.score);
   });
 
+
+  describe('safe scoring keys', () => {
+    it('ignores malicious MBTI answer value "constructor" without changing MBTI scores', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [
+        { questionId: 'mbti-E', value: 'constructor', score: 99 }
+      ]);
+
+      expect(profile.mbtiScoreState.dimensions[0]).toMatchObject({
+        dimension: 'E/I',
+        scoreDominant: 0,
+        scoreOpposite: 0,
+        totalAnswers: 0,
+        margin: 0,
+        confidenceRatio: 0,
+        signalStrength: 'low'
+      });
+    });
+
+    it('ignores malicious answer value "toString" without creating NaN scores', () => {
+      const oceanQuestion = questions.find((q) => q.section === 'ocean' && q.scoringDomain === 'open');
+      if (!oceanQuestion) throw new Error('Expected OCEAN question');
+
+      const profile = scoreAssessment(questions, [
+        { questionId: 'mbti-E', value: 'toString', score: 99 },
+        { questionId: oceanQuestion.id, value: 'toString', score: 5 }
+      ]);
+
+      const numericScores = [
+        ...profile.mbtiScoreState.dimensions.flatMap((dimension) => [
+          dimension.scoreDominant,
+          dimension.scoreOpposite,
+          dimension.totalAnswers,
+          dimension.margin,
+          dimension.confidenceRatio
+        ]),
+        ...Object.values(profile.bigFiveScores),
+        ...Object.values(profile.riasecScores)
+      ];
+      expect(numericScores.every(Number.isFinite)).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(profile.bigFiveScores, 'toString')).toBe(false);
+    });
+
+    it('ignores malicious answer value "valueOf" for Big Five and RIASEC scoring', () => {
+      const oceanQuestion = questions.find((q) => q.section === 'ocean' && q.scoringDomain === 'open');
+      const riasecQuestion = questions.find((q) => q.section === 'riasec');
+      if (!oceanQuestion || !riasecQuestion) throw new Error('Expected OCEAN and RIASEC questions');
+
+      const profile = scoreAssessment(questions, [
+        { questionId: oceanQuestion.id, value: 'valueOf', score: 5 },
+        { questionId: riasecQuestion.id, value: 'valueOf', score: 2 }
+      ]);
+
+      expect(profile.bigFiveScores.open).toBe(0);
+      expect(Object.prototype.hasOwnProperty.call(profile.bigFiveScores, 'valueOf')).toBe(false);
+      expect(Object.values(profile.riasecScores).every((score) => score === 0)).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(profile.riasecScores, 'valueOf')).toBe(false);
+    });
+
+    it('continues to score normal MBTI, OCEAN, and RIASEC answers', () => {
+      const oceanQuestion = questions.find((q) => q.section === 'ocean' && q.scoringDomain === 'open' && q.scoringDirection === 'positive');
+      const riasecQuestion = questions.find((q) => q.section === 'riasec');
+      if (!oceanQuestion || !riasecQuestion) throw new Error('Expected OCEAN and RIASEC questions');
+      const riasecOption = riasecQuestion.options[0];
+
+      const profile = scoreAssessment([...mbtiTestQuestions, oceanQuestion, riasecQuestion], [
+        mbtiAnswer('I', 3),
+        { questionId: oceanQuestion.id, value: 'open', score: 4 },
+        { questionId: riasecQuestion.id, value: riasecOption.value, score: riasecOption.score }
+      ]);
+
+      expect(profile.mbtiScoreState.estimatedType.startsWith('I')).toBe(true);
+      expect(profile.bigFiveScores.open).toBe(4);
+      expect(profile.riasecScores[riasecOption.value]).toBe(riasecOption.score);
+    });
+  });
+
+
   it('keeps confidence conservative for partial responses', () => {
     const partialAnswers = questions.slice(0, 20).map((q) => ({ questionId: q.id, value: q.options[0].value, score: q.options[0].score }));
     const profile = scoreAssessment(questions, partialAnswers);

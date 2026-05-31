@@ -58,6 +58,9 @@ const MIN_COMPLETION_FOR_ANY_SIGNAL = 0.5;
 const MIN_COMPLETION_FOR_STRONG_SIGNAL = 1;
 
 
+const hasOwn = <T extends object>(object: T, key: PropertyKey): key is keyof T =>
+  Object.prototype.hasOwnProperty.call(object, key);
+
 const COGNITIVE_DOMAIN_LABELS: Record<CognitiveDomain, string> = {
   pattern: 'pattern reasoning',
   verbal: 'verbal reasoning',
@@ -230,13 +233,17 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     if (!question) continue;
 
     const effectiveScore = getEffectiveScore(question, answer);
-    if (question.section === 'mbti' && answer.value in mbti) mbti[answer.value as MbtiPole] += effectiveScore;
-    if (question.section === 'ocean' && bigFive[answer.value] !== undefined) {
+    if (question.section === 'mbti' && hasOwn(mbti, answer.value)) {
+      mbti[answer.value] += effectiveScore;
+    }
+    if (question.section === 'ocean' && hasOwn(bigFive, answer.value)) {
       bigFive[answer.value] += effectiveScore;
       bigFiveContributions[answer.value].score += effectiveScore;
       bigFiveContributions[answer.value].count += 1;
     }
-    if (question.section === 'riasec' && riasec[answer.value] !== undefined) riasec[answer.value] += effectiveScore;
+    if (question.section === 'riasec' && hasOwn(riasec, answer.value)) {
+      riasec[answer.value] += effectiveScore;
+    }
     if (question.section === 'motivation') motivations[answer.value] = (motivations[answer.value] ?? 0) + answer.score;
     if (question.section === 'stress') stress[answer.value] = (stress[answer.value] ?? 0) + answer.score;
     if (question.section === 'leadership') leadership[answer.value] = (leadership[answer.value] ?? 0) + answer.score;
