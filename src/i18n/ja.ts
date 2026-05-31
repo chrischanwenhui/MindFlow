@@ -100,7 +100,8 @@ export const ja = {
   combinedInsightSocialFacilitative: 'You may contribute strongly in roles requiring trust-building, coaching, or team alignment.',
   combinedInsightWorkflowAdjustments: 'In this session, your cross-domain signals suggest testing small workflow adjustments and reviewing what improves focus, energy, and follow-through.',
   combinedInsightCrossDomainReview: 'A useful reflection point is to compare where you feel most effective with how your strongest signals appear across personality, motivation, and cognitive-style responses.',
-  mbtiBestFitTemplate: 'Your current response pattern leans {personalityTypeEstimate} with {confidenceLevel} confidence.',
+  // TODO(i18n): Translate MBTI confidence/report keys. English fallback kept temporarily.
+  mbtiBestFitTemplate: 'Your current response pattern leans {personalityTypeEstimate}. Confidence: {confidenceLevel}.',
   personalitySignalDisclaimer: 'These scores are normalized reflection signals based on your responses, not clinical measurements.',
   scoreBarReflectionHint: 'Interpret this as a reflection signal, not a fixed identity.',
   mbtiDimensionDetailTemplate: '{leanStrength} toward {poleLabel} ({signalLabel})',

@@ -104,8 +104,8 @@ function getLowestSignal(signals: SignalStrength[]): SignalStrength {
 function buildMbtiScoreState(scores: Record<MbtiPole, number>): MbtiScoreState {
   const dimensions = MBTI_DIMENSIONS.map(({ dimension, poles }) => {
     const [poleA, poleB] = poles;
-    const scoreA = scores[poleA];
-    const scoreB = scores[poleB];
+    const scoreA = scores[poleA] ?? 0;
+    const scoreB = scores[poleB] ?? 0;
     const isADominant = scoreA >= scoreB;
     const dominantPole = isADominant ? poleA : poleB;
     const oppositePole = isADominant ? poleB : poleA;

@@ -43,18 +43,19 @@ function getMbtiDimensionLabelKey(dimension: DichotomyResult['dimension']): Tran
   return 'mbtiDimensionStructurePreference';
 }
 
+const MBTI_POLE_KEYS: Record<DichotomyResult['dominantPole'], TranslationKey> = {
+  E: 'mbtiPoleE',
+  I: 'mbtiPoleI',
+  S: 'mbtiPoleS',
+  N: 'mbtiPoleN',
+  T: 'mbtiPoleT',
+  F: 'mbtiPoleF',
+  J: 'mbtiPoleJ',
+  P: 'mbtiPoleP'
+};
+
 function getMbtiPoleLabelKey(pole: DichotomyResult['dominantPole']): TranslationKey {
-  const keys: Record<DichotomyResult['dominantPole'], TranslationKey> = {
-    E: 'mbtiPoleE',
-    I: 'mbtiPoleI',
-    S: 'mbtiPoleS',
-    N: 'mbtiPoleN',
-    T: 'mbtiPoleT',
-    F: 'mbtiPoleF',
-    J: 'mbtiPoleJ',
-    P: 'mbtiPoleP'
-  };
-  return keys[pole];
+  return MBTI_POLE_KEYS[pole];
 }
 
 function parseStoredAnswers(raw: string | null): Answer[] {
@@ -249,7 +250,7 @@ export function App() {
   const mbtiConfidenceLabel = tx(getMbtiSignalKey(report.mbtiScoreState.overallConfidence));
   const mbtiSummaryText = formatTemplate(tx('mbtiBestFitTemplate'), {
     personalityTypeEstimate: report.mbtiScoreState.estimatedType,
-    confidenceLevel: mbtiConfidenceLabel.toLowerCase()
+    confidenceLevel: mbtiConfidenceLabel
   });
   const confidenceNote = formatTemplate(tx('confidenceNoteTemplate'), { confidenceLevel: report.confidenceLevel });
   const assessmentCategories = [
