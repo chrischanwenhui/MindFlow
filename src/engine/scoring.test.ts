@@ -1,6 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { questions } from '../data/questions';
-import { scoreAssessment } from './scoring';
+import { questions, type Question } from '../data/questions';
+import { en } from '../i18n/en';
+import { scoreAssessment, type Answer } from './scoring';
+
+
+const mbtiTestQuestions: Question[] = ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P'].map((pole) => ({
+  id: `mbti-${pole}`,
+  section: 'mbti',
+  prompt: `Choose ${pole}`,
+  options: [{ label: pole, value: pole, score: 1 }],
+  scoringDomain: pole,
+  groupLabel: 'MBTI Preference'
+}));
+
+function mbtiAnswer(pole: string, score: number): Answer {
+  return { questionId: `mbti-${pole}`, value: pole, score };
+}
+
+function renderMbtiBestFit(type: string, confidence: string): string {
+  return en.mbtiBestFitTemplate
+    .replace('{personalityTypeEstimate}', type)
+    .replace('{confidenceLevel}', confidence);
+}
 
 describe('scoreAssessment', () => {
   it('returns deterministic profile object', () => {
@@ -81,6 +102,14 @@ describe('scoreAssessment', () => {
     expect(profile.topCognitiveLabel).toContain('pattern');
     expect(profile.cognitiveSignalLevel).toBe('light');
   });
+  it('keeps RIASEC scoring unchanged', () => {
+    const riasecQuestion = questions.find((q) => q.section === 'riasec');
+    if (!riasecQuestion) throw new Error('Expected RIASEC question');
+    const option = riasecQuestion.options[1];
+    const profile = scoreAssessment(questions, [{ questionId: riasecQuestion.id, value: option.value, score: option.score }]);
+    expect(profile.riasecScores[option.value]).toBe(option.score);
+  });
+
   it('keeps confidence conservative for partial responses', () => {
     const partialAnswers = questions.slice(0, 20).map((q) => ({ questionId: q.id, value: q.options[0].value, score: q.options[0].score }));
     const profile = scoreAssessment(questions, partialAnswers);
@@ -122,6 +151,76 @@ describe('scoreAssessment', () => {
     ]);
     expect(profile.topCognitiveLabel).toContain('memory');
     expect(profile.bigFiveScores.open).toBe(1);
+  });
+
+
+
+  describe('mbtiScoreState', () => {
+    it('reports low signal for a narrow MBTI margin', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [
+        mbtiAnswer('E', 11), mbtiAnswer('I', 9),
+        mbtiAnswer('S', 14), mbtiAnswer('N', 6),
+        mbtiAnswer('T', 14), mbtiAnswer('F', 6),
+        mbtiAnswer('J', 14), mbtiAnswer('P', 6)
+      ]);
+
+      const energy = profile.mbtiScoreState.dimensions.find((dimension) => dimension.dimension === 'E/I');
+      expect(energy?.confidenceRatio).toBe(0.1);
+      expect(energy?.signalStrength).toBe('low');
+    });
+
+    it('reports moderate signal for a medium MBTI margin', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [mbtiAnswer('E', 13), mbtiAnswer('I', 7)]);
+      const energy = profile.mbtiScoreState.dimensions.find((dimension) => dimension.dimension === 'E/I');
+      expect(energy?.confidenceRatio).toBe(0.3);
+      expect(energy?.signalStrength).toBe('moderate');
+    });
+
+    it('reports strong signal for a wide MBTI margin', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [mbtiAnswer('E', 14), mbtiAnswer('I', 6)]);
+      const energy = profile.mbtiScoreState.dimensions.find((dimension) => dimension.dimension === 'E/I');
+      expect(energy?.confidenceRatio).toBe(0.4);
+      expect(energy?.signalStrength).toBe('strong');
+    });
+
+    it('returns low signal instead of crashing when MBTI evidence total is zero', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, []);
+      expect(profile.mbtiScoreState.dimensions).toHaveLength(4);
+      expect(profile.mbtiScoreState.dimensions.every((dimension) => dimension.confidenceRatio === 0)).toBe(true);
+      expect(profile.mbtiScoreState.dimensions.every((dimension) => dimension.signalStrength === 'low')).toBe(true);
+      expect(profile.mbtiScoreState.overallConfidence).toBe('low');
+    });
+
+    it('uses the lowest dimensional signal for overall MBTI confidence', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [
+        mbtiAnswer('E', 14), mbtiAnswer('I', 6),
+        mbtiAnswer('S', 13), mbtiAnswer('N', 7),
+        mbtiAnswer('T', 11), mbtiAnswer('F', 9),
+        mbtiAnswer('J', 16), mbtiAnswer('P', 4)
+      ]);
+      expect(profile.mbtiScoreState.dimensions.map((dimension) => dimension.signalStrength)).toEqual([
+        'strong', 'moderate', 'low', 'strong'
+      ]);
+      expect(profile.mbtiScoreState.overallConfidence).toBe('low');
+    });
+
+    it('still generates a best-fit estimated type when one dimension has low signal', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [
+        mbtiAnswer('I', 11), mbtiAnswer('E', 9),
+        mbtiAnswer('N', 14), mbtiAnswer('S', 6),
+        mbtiAnswer('F', 14), mbtiAnswer('T', 6),
+        mbtiAnswer('P', 14), mbtiAnswer('J', 6)
+      ]);
+      expect(profile.mbtiScoreState.estimatedType).toBe('INFP');
+      expect(profile.personalityTypeEstimate).toBe('INFP');
+    });
+
+    it('uses safer report wording that avoids "You are" certainty', () => {
+      const output = renderMbtiBestFit('INFP', en.mbtiModerateSignal.toLowerCase());
+      expect(output).toContain('current response pattern leans INFP');
+      expect(output).not.toMatch(/\bYou are\b/i);
+      expect(output).not.toMatch(/definitely/i);
+    });
   });
 
 
