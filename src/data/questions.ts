@@ -4,7 +4,8 @@ export type CognitiveDomain = 'pattern' | 'verbal' | 'numerical' | 'spatial' | '
 export type CognitiveDifficulty = 'easy' | 'medium' | 'hard';
 export type CognitiveFormat = 'sequence' | 'analogy' | 'data-interpretation' | 'matrix' | 'memory-grid' | 'spatial-rotation';
 export type QuestionOption = { label: string; value: string; score: number };
-export type Question = { id: string; section: Section; prompt: string; options: QuestionOption[]; hint?: string; cognitiveDomain?: CognitiveDomain; difficulty?: CognitiveDifficulty; cognitiveFormat?: CognitiveFormat; timed?: boolean; recommendedSeconds?: number; groupLabel?: string; scoringDomain?: string; scoringDirection?: 'positive'|'reverse'; memoryPrompt?: string; memoryQuestion?: string; revealSeconds?: number };
+export type MemoryPhase = 'immediate';
+export type Question = { id: string; section: Section; prompt: string; options: QuestionOption[]; hint?: string; cognitiveDomain?: CognitiveDomain; difficulty?: CognitiveDifficulty; cognitiveFormat?: CognitiveFormat; timed?: boolean; recommendedSeconds?: number; groupLabel?: string; scoringDomain?: string; scoringDirection?: 'positive'|'reverse'; memoryPhase?: MemoryPhase; memoryPrompt?: string; memoryQuestion?: string; revealSeconds?: number };
 
 const likert = (value: string): QuestionOption[] => [
   { label: 'Strongly disagree', value, score: 1 },
@@ -213,7 +214,117 @@ const spatial = Array.from({length:8}).map((_,i)=>mkCog(`cog-spatial-${i+1}`,'sp
 // TODO(next-cognitive-pr): Add visual matrix reasoning component with richer rendering.
 // TODO(next-cognitive-pr): Add data interpretation questions with charts/tables.
 // TODO(next-cognitive-pr): Add memory grid component for non-verbal working memory.
-const memory = Array.from({length:10}).map((_,i)=>mkCog(`cog-memory-${i+1}`,'memory',i<3?'easy':i<7?'medium':'hard','Working memory challenge',[['7',0],['T',0],['M',2],['9',0],['3',2],['4',0],['5',0],['6',0],['K',0],['L',2],['M',0],['N',0],['8',0],['1',0],['5',2],['7',0],['Q',2],['R',0],['S',0],['T',0],['Letter B',0],['Letter D',0],['F',2],['H',0],['2',0],['3',2],['4',0],['5',0],['P',0],['M',2],['N',0],['O',0],['9',2],['7',0],['5',0],['3',0],['Letter C',0],['Letter A',2],['Letter B',0],['Letter D',0]].slice(i*4,i*4+4) as [string,number][], {memoryPrompt:['7 - 1 - M - 9 - T','3 - 8 - 4 - A - 5','K - 2 - L - 9 - M','8 - 3 - 1 - 5 - R','Q - 4 - R - 6 - S','B - C - D - F - H','2 - 9 - 3 - P - 4','P - L - M - N - O','9 - 7 - 5 - 3 - 1','C - B - A - D - E'][i], memoryQuestion:['What was the 3rd item?','What was the 1st number?','Which came immediately after 2?','What was the 4th item?','What was the 1st item?','Which letter is in 4th position?','What came right after 9?','Which came immediately after L?','What was the first number?','What was the 3rd item?'][i], revealSeconds:5, recommendedSeconds:25}));
+const immediateMemoryItems: Array<{
+  memoryPrompt: string;
+  memoryQuestion: string;
+  options: [string, number][];
+}> = [
+  {
+    memoryPrompt: '7 - 1 - M - 9 - T',
+    memoryQuestion: 'Recall the item shown earlier: what was the 3rd item?',
+    options: [['7', 0], ['T', 0], ['M', 2], ['9', 0]]
+  },
+  {
+    memoryPrompt: '3 - 8 - 4 - A - 5',
+    memoryQuestion: 'Recall the item shown earlier: what was the 1st number?',
+    options: [['3', 2], ['4', 0], ['5', 0], ['6', 0]]
+  },
+  {
+    memoryPrompt: 'K - 2 - L - 9 - M',
+    memoryQuestion: 'Recall the item shown earlier: which came immediately after 2?',
+    options: [['K', 0], ['L', 2], ['M', 0], ['N', 0]]
+  },
+  {
+    memoryPrompt: '8 - 3 - 1 - 5 - R',
+    memoryQuestion: 'Recall the item shown earlier: what was the 4th item?',
+    options: [['8', 0], ['1', 0], ['5', 2], ['7', 0]]
+  },
+  {
+    memoryPrompt: 'Q - 4 - R - 6 - S',
+    memoryQuestion: 'Recall the item shown earlier: what was the 1st item?',
+    options: [['Q', 2], ['R', 0], ['S', 0], ['T', 0]]
+  },
+  {
+    memoryPrompt: 'B - C - D - F - H',
+    memoryQuestion: 'Recall the item shown earlier: which letter was in 4th position?',
+    options: [['Letter B', 0], ['Letter D', 0], ['F', 2], ['H', 0]]
+  },
+  {
+    memoryPrompt: '2 - 9 - 3 - P - 4',
+    memoryQuestion: 'Recall the item shown earlier: what came right after 9?',
+    options: [['2', 0], ['3', 2], ['4', 0], ['5', 0]]
+  },
+  {
+    memoryPrompt: 'P - L - M - N - O',
+    memoryQuestion: 'Recall the item shown earlier: which came immediately after L?',
+    options: [['P', 0], ['M', 2], ['N', 0], ['O', 0]]
+  },
+  {
+    memoryPrompt: '9 - 7 - 5 - 3 - 1',
+    memoryQuestion: 'Recall the item shown earlier: what was the first number?',
+    options: [['9', 2], ['7', 0], ['5', 0], ['3', 0]]
+  },
+  {
+    memoryPrompt: 'C - B - A - D - E',
+    memoryQuestion: 'Recall the item shown earlier: what was the 3rd item?',
+    options: [['Letter C', 0], ['Letter A', 2], ['Letter B', 0], ['Letter D', 0]]
+  },
+  {
+    memoryPrompt: 'Remember this colour: teal',
+    memoryQuestion: 'Recall the item shown earlier: which colour was shown?',
+    options: [['Amber', 0], ['Teal', 2], ['Violet', 0], ['Silver', 0]]
+  },
+  {
+    memoryPrompt: 'Remember this animal: fox',
+    memoryQuestion: 'Recall the item shown earlier: which animal was shown?',
+    options: [['Otter', 0], ['Fox', 2], ['Robin', 0], ['Panda', 0]]
+  },
+  {
+    memoryPrompt: 'Remember this brand: Muji',
+    memoryQuestion: 'Recall the item shown earlier: which brand was shown?',
+    options: [['Zara', 0], ['Muji', 2], ['Ikea', 0], ['Sony', 0]]
+  },
+  {
+    memoryPrompt: 'Remember this object: compass',
+    memoryQuestion: 'Recall the item shown earlier: which object was shown?',
+    options: [['Lantern', 0], ['Compass', 2], ['Notebook', 0], ['Key', 0]]
+  },
+  {
+    memoryPrompt: 'Remember this shape: triangle',
+    memoryQuestion: 'Recall the item shown earlier: which shape was shown?',
+    options: [['Circle', 0], ['Square', 0], ['Triangle', 2], ['Hexagon', 0]]
+  },
+  {
+    memoryPrompt: 'Remember this word: harbor',
+    memoryQuestion: 'Recall the item shown earlier: which word was shown?',
+    options: [['Harbor', 2], ['Garden', 0], ['Summit', 0], ['Meadow', 0]]
+  },
+  {
+    memoryPrompt: 'Remember this material: linen',
+    memoryQuestion: 'Recall the item shown earlier: which material was shown?',
+    options: [['Canvas', 0], ['Linen', 2], ['Marble', 0], ['Copper', 0]]
+  },
+  {
+    memoryPrompt: 'Remember this place: library',
+    memoryQuestion: 'Recall the item shown earlier: which place was shown?',
+    options: [['Library', 2], ['Station', 0], ['Market', 0], ['Studio', 0]]
+  }
+];
+
+const memory = immediateMemoryItems.map((item, i) => mkCog(
+  `cog-memory-${i + 1}`,
+  'memory',
+  i < 5 ? 'easy' : i < 13 ? 'medium' : 'hard',
+  'Working memory sample',
+  item.options,
+  {
+    memoryPhase: 'immediate',
+    memoryPrompt: item.memoryPrompt,
+    memoryQuestion: item.memoryQuestion,
+    revealSeconds: i >= 10 ? 6 : 5,
+    recommendedSeconds: 25
+  }
+));
 
 const COGNITIVE_METADATA: Record<CognitiveDomain, Partial<Question>> = {
   pattern: { cognitiveFormat: 'sequence', timed: true },

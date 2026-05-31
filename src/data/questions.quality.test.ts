@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { en } from '../i18n/en';
 import { questions } from './questions';
 
 const bannedTerms = ['reflection item', 'scenario', 'Option A', 'Option B', 'Option C', 'Option D'];
@@ -68,12 +69,60 @@ describe('question quality checks', () => {
     for (const q of cognitive) {
       expect(q.recommendedSeconds).toBeTruthy();
       if (q.cognitiveDomain === 'memory') {
-        expect(q.revealSeconds).toBe(5);
+        expect(q.revealSeconds).toBeGreaterThanOrEqual(5);
+        expect(q.revealSeconds).toBeLessThanOrEqual(7);
         continue;
       }
       if (q.difficulty === 'easy') expect(q.recommendedSeconds).toBe(60);
       if (q.difficulty === 'medium') expect(q.recommendedSeconds).toBe(75);
       if (q.difficulty === 'hard') expect(q.recommendedSeconds).toBe(90);
+    }
+  });
+
+
+  it('marks every memory question as immediate with complete reveal metadata', () => {
+    const memory = questions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory');
+    expect(memory.length).toBeGreaterThanOrEqual(16);
+
+    for (const q of memory) {
+      expect(q.memoryPhase).toBe('immediate');
+      expect(q.revealSeconds).toBeGreaterThanOrEqual(5);
+      expect(q.revealSeconds).toBeLessThanOrEqual(7);
+      expect(q.memoryPrompt?.trim().length).toBeGreaterThan(0);
+      expect(q.memoryQuestion?.trim().length).toBeGreaterThan(0);
+      expect(q.options[q.options.length - 1]?.value).toBe('default-idk');
+      expect(q.options[q.options.length - 1]?.label).toBe("I don't know");
+      const nonIdk = q.options.filter((o) => o.value !== 'default-idk');
+      expect(nonIdk.filter((o) => o.score === 2).length).toBe(1);
+    }
+  });
+
+  it('keeps memory wording free of diagnostic terms', () => {
+    const diagnosticTerms = [/dementia/i, /adhd/i, /\biq\b/i, /brain age/i, /diagnosis/i, /failed/i];
+    const memoryQuestions = questions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory');
+    const memoryQuestionFields = memoryQuestions.flatMap((q) => [
+      q.prompt,
+      q.hint,
+      q.memoryPrompt,
+      q.memoryQuestion,
+      ...q.options.map((o) => o.label)
+    ]).filter(Boolean) as string[];
+    const memoryUxFields = [
+      en.memoryTitle,
+      en.memoryIntro,
+      en.memoryReady,
+      en.memoryReadyTitle,
+      en.memoryReadyBody,
+      en.memoryHiddenNotice,
+      en.memorizeThis,
+      en.memoryProtectionTitle,
+      en.memoryProtectionBody,
+      en.memoryPoolExhausted
+    ];
+
+    for (const field of [...memoryQuestionFields, ...memoryUxFields]) {
+      const normalized = field.toLowerCase();
+      for (const term of diagnosticTerms) expect(normalized).not.toMatch(term);
     }
   });
 

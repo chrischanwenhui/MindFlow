@@ -92,6 +92,30 @@ describe('buildAssessmentSession', () => {
     expect(new Set(cognitive.map((q) => q.cognitiveDomain))).toEqual(new Set(['pattern', 'verbal', 'numerical', 'spatial', 'memory']));
   });
 
+
+  it('keeps deterministic memory sampling and immediate metadata stable for the same seed', () => {
+    const a = buildAssessmentSession(questions, { sessionSeed: 'memory-stability-seed' })
+      .filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory')
+      .map((q) => ({
+        id: q.id,
+        memoryPhase: q.memoryPhase,
+        revealSeconds: q.revealSeconds,
+        options: q.options.map((o) => `${o.label}:${o.score}`)
+      }));
+    const b = buildAssessmentSession(questions, { sessionSeed: 'memory-stability-seed' })
+      .filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory')
+      .map((q) => ({
+        id: q.id,
+        memoryPhase: q.memoryPhase,
+        revealSeconds: q.revealSeconds,
+        options: q.options.map((o) => `${o.label}:${o.score}`)
+      }));
+
+    expect(a.length).toBeGreaterThan(0);
+    expect(a).toEqual(b);
+    expect(a.every((q) => q.memoryPhase === 'immediate')).toBe(true);
+  });
+
   it('samples 32-40 MBTI questions with all dichotomies represented and no duplicate MBTI IDs', () => {
     const session = buildAssessmentSession(questions, { sessionSeed: 'mbti-coverage-seed' });
     const mbti = session.filter((q) => q.section === 'mbti');
