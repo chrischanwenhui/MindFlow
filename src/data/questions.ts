@@ -311,20 +311,32 @@ const immediateMemoryItems: Array<{
   }
 ];
 
-const memory = immediateMemoryItems.map((item, i) => mkCog(
-  `cog-memory-${i + 1}`,
-  'memory',
-  i < 5 ? 'easy' : i < 13 ? 'medium' : 'hard',
-  'Working memory sample',
-  item.options,
-  {
-    memoryPhase: 'immediate',
-    memoryPrompt: item.memoryPrompt,
-    memoryQuestion: item.memoryQuestion,
-    revealSeconds: i >= 10 ? 6 : 5,
-    recommendedSeconds: 25
-  }
-));
+const memory = immediateMemoryItems.map((item, i) => {
+  const q = mkCog(
+    `cog-memory-${i + 1}`,
+    'memory',
+    i < 5 ? 'easy' : i < 13 ? 'medium' : 'hard',
+    'Working memory sample',
+    item.options,
+    {
+      memoryPhase: 'immediate',
+      memoryPrompt: item.memoryPrompt,
+      memoryQuestion: item.memoryQuestion,
+      revealSeconds: i >= 10 ? 6 : 5,
+      recommendedSeconds: 25
+    }
+  );
+
+  return {
+    ...q,
+    options: q.options.map((option, optionIndex) => ({
+      ...option,
+      value: option.value === 'default-idk'
+        ? 'default-idk'
+        : `${q.id}-option-${optionIndex}-${option.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+    }))
+  };
+});
 
 const COGNITIVE_METADATA: Record<CognitiveDomain, Partial<Question>> = {
   pattern: { cognitiveFormat: 'sequence', timed: true },

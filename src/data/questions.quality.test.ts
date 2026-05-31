@@ -90,6 +90,7 @@ describe('question quality checks', () => {
       expect(q.revealSeconds).toBeLessThanOrEqual(7);
       expect(q.memoryPrompt?.trim().length).toBeGreaterThan(0);
       expect(q.memoryQuestion?.trim().length).toBeGreaterThan(0);
+      expect(new Set(q.options.map((o) => o.value)).size).toBe(q.options.length);
       expect(q.options[q.options.length - 1]?.value).toBe('default-idk');
       expect(q.options[q.options.length - 1]?.label).toBe("I don't know");
       const nonIdk = q.options.filter((o) => o.value !== 'default-idk');

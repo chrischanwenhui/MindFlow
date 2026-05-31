@@ -100,7 +100,7 @@ describe('buildAssessmentSession', () => {
         id: q.id,
         memoryPhase: q.memoryPhase,
         revealSeconds: q.revealSeconds,
-        options: q.options.map((o) => `${o.label}:${o.score}`)
+        options: q.options.map((o) => `${o.label}:${o.value}:${o.score}`)
       }));
     const b = buildAssessmentSession(questions, { sessionSeed: 'memory-stability-seed' })
       .filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory')
@@ -108,7 +108,7 @@ describe('buildAssessmentSession', () => {
         id: q.id,
         memoryPhase: q.memoryPhase,
         revealSeconds: q.revealSeconds,
-        options: q.options.map((o) => `${o.label}:${o.score}`)
+        options: q.options.map((o) => `${o.label}:${o.value}:${o.score}`)
       }));
 
     expect(a.length).toBeGreaterThan(0);
