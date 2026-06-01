@@ -213,7 +213,6 @@ h1 span { color: #2189bb; font-size: 0.7em; display: block; }
 
 button {
   border: 0;
-  min-height: 44px;
   padding: 0.75rem 1rem;
   border-radius: 12px;
   background: linear-gradient(120deg, #163969, #2bb6c8);
@@ -225,6 +224,7 @@ button {
 
 button:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
 button:active { transform: translateY(0); }
+button:not(.link-btn):not(.secondary-action) { min-height: 44px; }
 button:focus-visible,
 .link-btn:focus-visible,
 summary:focus-visible,
