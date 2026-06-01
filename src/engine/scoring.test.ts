@@ -1,6 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { questions } from '../data/questions';
-import { scoreAssessment } from './scoring';
+import { questions, type Question } from '../data/questions';
+import { en } from '../i18n/en';
+import { scoreAssessment, type Answer } from './scoring';
+
+
+const mbtiTestQuestions: Question[] = ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P'].map((pole) => ({
+  id: `mbti-${pole}`,
+  section: 'mbti',
+  prompt: `Choose ${pole}`,
+  options: [{ label: pole, value: pole, score: 1 }],
+  scoringDomain: pole,
+  groupLabel: 'MBTI Preference'
+}));
+
+function mbtiAnswer(pole: string, score: number): Answer {
+  return { questionId: `mbti-${pole}`, value: pole, score };
+}
+
+function renderMbtiBestFit(type: string, confidence: string): string {
+  return en.mbtiBestFitTemplate
+    .replace('{personalityTypeEstimate}', type)
+    .replace('{confidenceLevel}', confidence);
+}
 
 describe('scoreAssessment', () => {
   it('returns deterministic profile object', () => {
@@ -81,6 +102,91 @@ describe('scoreAssessment', () => {
     expect(profile.topCognitiveLabel).toContain('pattern');
     expect(profile.cognitiveSignalLevel).toBe('light');
   });
+  it('keeps RIASEC scoring unchanged', () => {
+    const riasecQuestion = questions.find((q) => q.section === 'riasec');
+    if (!riasecQuestion) throw new Error('Expected RIASEC question');
+    const option = riasecQuestion.options[1];
+    const profile = scoreAssessment(questions, [{ questionId: riasecQuestion.id, value: option.value, score: option.score }]);
+    expect(profile.riasecScores[option.value]).toBe(option.score);
+  });
+
+
+  describe('safe scoring keys', () => {
+    it('ignores malicious MBTI answer value "constructor" without changing MBTI scores', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [
+        { questionId: 'mbti-E', value: 'constructor', score: 99 }
+      ]);
+
+      expect(profile.mbtiScoreState.dimensions[0]).toMatchObject({
+        dimension: 'E/I',
+        scoreDominant: 0,
+        scoreOpposite: 0,
+        totalAnswers: 0,
+        margin: 0,
+        confidenceRatio: 0,
+        signalStrength: 'low'
+      });
+    });
+
+    it('ignores malicious answer value "toString" without creating NaN scores', () => {
+      const oceanQuestion = questions.find((q) => q.section === 'ocean' && q.scoringDomain === 'open');
+      if (!oceanQuestion) throw new Error('Expected OCEAN question');
+
+      const profile = scoreAssessment(questions, [
+        { questionId: 'mbti-E', value: 'toString', score: 99 },
+        { questionId: oceanQuestion.id, value: 'toString', score: 5 }
+      ]);
+
+      const numericScores = [
+        ...profile.mbtiScoreState.dimensions.flatMap((dimension) => [
+          dimension.scoreDominant,
+          dimension.scoreOpposite,
+          dimension.totalAnswers,
+          dimension.margin,
+          dimension.confidenceRatio
+        ]),
+        ...Object.values(profile.bigFiveScores),
+        ...Object.values(profile.riasecScores)
+      ];
+      expect(numericScores.every(Number.isFinite)).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(profile.bigFiveScores, 'toString')).toBe(false);
+    });
+
+    it('ignores malicious answer value "valueOf" for Big Five and RIASEC scoring', () => {
+      const oceanQuestion = questions.find((q) => q.section === 'ocean' && q.scoringDomain === 'open');
+      const riasecQuestion = questions.find((q) => q.section === 'riasec');
+      if (!oceanQuestion || !riasecQuestion) throw new Error('Expected OCEAN and RIASEC questions');
+
+      const profile = scoreAssessment(questions, [
+        { questionId: oceanQuestion.id, value: 'valueOf', score: 5 },
+        { questionId: riasecQuestion.id, value: 'valueOf', score: 2 }
+      ]);
+
+      expect(profile.bigFiveScores.open).toBe(0);
+      expect(Object.prototype.hasOwnProperty.call(profile.bigFiveScores, 'valueOf')).toBe(false);
+      expect(Object.values(profile.riasecScores).every((score) => score === 0)).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(profile.riasecScores, 'valueOf')).toBe(false);
+    });
+
+    it('continues to score normal MBTI, OCEAN, and RIASEC answers', () => {
+      const oceanQuestion = questions.find((q) => q.section === 'ocean' && q.scoringDomain === 'open' && q.scoringDirection === 'positive');
+      const riasecQuestion = questions.find((q) => q.section === 'riasec');
+      if (!oceanQuestion || !riasecQuestion) throw new Error('Expected OCEAN and RIASEC questions');
+      const riasecOption = riasecQuestion.options[0];
+
+      const profile = scoreAssessment([...mbtiTestQuestions, oceanQuestion, riasecQuestion], [
+        mbtiAnswer('I', 3),
+        { questionId: oceanQuestion.id, value: 'open', score: 4 },
+        { questionId: riasecQuestion.id, value: riasecOption.value, score: riasecOption.score }
+      ]);
+
+      expect(profile.mbtiScoreState.estimatedType.startsWith('I')).toBe(true);
+      expect(profile.bigFiveScores.open).toBe(4);
+      expect(profile.riasecScores[riasecOption.value]).toBe(riasecOption.score);
+    });
+  });
+
+
   it('keeps confidence conservative for partial responses', () => {
     const partialAnswers = questions.slice(0, 20).map((q) => ({ questionId: q.id, value: q.options[0].value, score: q.options[0].score }));
     const profile = scoreAssessment(questions, partialAnswers);
@@ -122,6 +228,76 @@ describe('scoreAssessment', () => {
     ]);
     expect(profile.topCognitiveLabel).toContain('memory');
     expect(profile.bigFiveScores.open).toBe(1);
+  });
+
+
+
+  describe('mbtiScoreState', () => {
+    it('reports low signal for a narrow MBTI margin', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [
+        mbtiAnswer('E', 11), mbtiAnswer('I', 9),
+        mbtiAnswer('S', 14), mbtiAnswer('N', 6),
+        mbtiAnswer('T', 14), mbtiAnswer('F', 6),
+        mbtiAnswer('J', 14), mbtiAnswer('P', 6)
+      ]);
+
+      const energy = profile.mbtiScoreState.dimensions.find((dimension) => dimension.dimension === 'E/I');
+      expect(energy?.confidenceRatio).toBe(0.1);
+      expect(energy?.signalStrength).toBe('low');
+    });
+
+    it('reports moderate signal for a medium MBTI margin', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [mbtiAnswer('E', 13), mbtiAnswer('I', 7)]);
+      const energy = profile.mbtiScoreState.dimensions.find((dimension) => dimension.dimension === 'E/I');
+      expect(energy?.confidenceRatio).toBe(0.3);
+      expect(energy?.signalStrength).toBe('moderate');
+    });
+
+    it('reports strong signal for a wide MBTI margin', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [mbtiAnswer('E', 14), mbtiAnswer('I', 6)]);
+      const energy = profile.mbtiScoreState.dimensions.find((dimension) => dimension.dimension === 'E/I');
+      expect(energy?.confidenceRatio).toBe(0.4);
+      expect(energy?.signalStrength).toBe('strong');
+    });
+
+    it('returns low signal instead of crashing when MBTI evidence total is zero', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, []);
+      expect(profile.mbtiScoreState.dimensions).toHaveLength(4);
+      expect(profile.mbtiScoreState.dimensions.every((dimension) => dimension.confidenceRatio === 0)).toBe(true);
+      expect(profile.mbtiScoreState.dimensions.every((dimension) => dimension.signalStrength === 'low')).toBe(true);
+      expect(profile.mbtiScoreState.overallConfidence).toBe('low');
+    });
+
+    it('uses the lowest dimensional signal for overall MBTI confidence', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [
+        mbtiAnswer('E', 14), mbtiAnswer('I', 6),
+        mbtiAnswer('S', 13), mbtiAnswer('N', 7),
+        mbtiAnswer('T', 11), mbtiAnswer('F', 9),
+        mbtiAnswer('J', 16), mbtiAnswer('P', 4)
+      ]);
+      expect(profile.mbtiScoreState.dimensions.map((dimension) => dimension.signalStrength)).toEqual([
+        'strong', 'moderate', 'low', 'strong'
+      ]);
+      expect(profile.mbtiScoreState.overallConfidence).toBe('low');
+    });
+
+    it('still generates a best-fit estimated type when one dimension has low signal', () => {
+      const profile = scoreAssessment(mbtiTestQuestions, [
+        mbtiAnswer('I', 11), mbtiAnswer('E', 9),
+        mbtiAnswer('N', 14), mbtiAnswer('S', 6),
+        mbtiAnswer('F', 14), mbtiAnswer('T', 6),
+        mbtiAnswer('P', 14), mbtiAnswer('J', 6)
+      ]);
+      expect(profile.mbtiScoreState.estimatedType).toBe('INFP');
+      expect(profile.personalityTypeEstimate).toBe('INFP');
+    });
+
+    it('uses safer report wording that avoids "You are" certainty', () => {
+      const output = renderMbtiBestFit('INFP', en.mbtiModerateSignal.toLowerCase());
+      expect(output).toContain('current response pattern leans INFP');
+      expect(output).not.toMatch(/\bYou are\b/i);
+      expect(output).not.toMatch(/definitely/i);
+    });
   });
 
 

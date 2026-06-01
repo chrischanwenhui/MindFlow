@@ -4,7 +4,7 @@ import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { buildAssessmentSession, createSessionSeed, getReplacementMemoryQuestion, readStoredSessionIds, readStoredSessionSeed, saveSessionIds, saveSessionSeed, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY } from './engine/session';
-import { scoreAssessment, type Answer } from './engine/scoring';
+import { scoreAssessment, type Answer, type DichotomyResult, type SignalStrength } from './engine/scoring';
 import { getInitialLanguage, t, type Language, type TranslationKey, LANGUAGE_STORAGE_KEY } from './i18n';
 import { localizeQuestion } from './i18n/questions';
 import {
@@ -21,6 +21,41 @@ const STORAGE_KEY = 'mindflow_answers_v1';
 
 function isMemoryQuestionItem(question: (typeof questions)[number] | undefined): boolean {
   return Boolean(question?.section === 'cognitive' && question.cognitiveDomain === 'memory');
+}
+
+
+function getMbtiSignalKey(signal: SignalStrength): TranslationKey {
+  if (signal === 'strong') return 'mbtiStrongSignal';
+  if (signal === 'moderate') return 'mbtiModerateSignal';
+  return 'mbtiLowSignal';
+}
+
+function getMbtiLeanKey(signal: SignalStrength): TranslationKey {
+  if (signal === 'strong') return 'mbtiStrongLean';
+  if (signal === 'moderate') return 'mbtiModerateLean';
+  return 'mbtiSlightLean';
+}
+
+function getMbtiDimensionLabelKey(dimension: DichotomyResult['dimension']): TranslationKey {
+  if (dimension === 'E/I') return 'mbtiDimensionEnergyFocus';
+  if (dimension === 'S/N') return 'mbtiDimensionInformationStyle';
+  if (dimension === 'T/F') return 'mbtiDimensionDecisionAnchor';
+  return 'mbtiDimensionStructurePreference';
+}
+
+const MBTI_POLE_KEYS: Record<DichotomyResult['dominantPole'], TranslationKey> = {
+  E: 'mbtiPoleE',
+  I: 'mbtiPoleI',
+  S: 'mbtiPoleS',
+  N: 'mbtiPoleN',
+  T: 'mbtiPoleT',
+  F: 'mbtiPoleF',
+  J: 'mbtiPoleJ',
+  P: 'mbtiPoleP'
+};
+
+function getMbtiPoleLabelKey(pole: DichotomyResult['dominantPole']): TranslationKey {
+  return MBTI_POLE_KEYS[pole];
 }
 
 function parseStoredAnswers(raw: string | null): Answer[] {
@@ -212,6 +247,11 @@ export function App() {
     report.cognitiveSignalLevel === 'light' ? tx('cognitiveLightSummaryTemplate') : tx('cognitiveStandardSummaryTemplate'),
     { topCognitiveLabel: report.topCognitiveLabel }
   );
+  const mbtiConfidenceLabel = tx(getMbtiSignalKey(report.mbtiScoreState.overallConfidence));
+  const mbtiSummaryText = formatTemplate(tx('mbtiBestFitTemplate'), {
+    personalityTypeEstimate: report.mbtiScoreState.estimatedType,
+    confidenceLevel: mbtiConfidenceLabel
+  });
   const confidenceNote = formatTemplate(tx('confidenceNoteTemplate'), { confidenceLevel: report.confidenceLevel });
   const assessmentCategories = [
     { icon: '🧭', titleKey: 'categoryPersonalityTitle', descriptionKey: 'categoryPersonalityDesc' },
@@ -386,7 +426,7 @@ export function App() {
       {screen === 'assessment' && assessmentView === 'results' && (
         <section className="card">
           <h2>{tx('resultsTitle')}</h2>
-          <p><b>{tx('personalityEstimate')}</b> {report.personalityTypeEstimate}</p>
+          <p><b>{tx('personalityEstimate')}</b> {mbtiSummaryText}</p>
           <p><b>{tx('motivationPattern')}</b> {report.motivationPattern}</p>
           <p>{cognitiveSummaryText}</p>
           <button onClick={() => setAssessmentView('report')}>{tx('viewReport')}</button>
@@ -405,8 +445,20 @@ export function App() {
             <p>{executiveSummaryText}</p>
           </ReportSection>
           <ReportSection title={tx('personalitySection')}>
-            <p>{tx('personalityEstimateSentence')} <strong>{report.personalityTypeEstimate}</strong>.</p>
-            <p className="disclaimer">These scores are normalized reflection signals based on your responses, not clinical measurements.</p>
+            <p>{mbtiSummaryText}</p>
+            <p className="disclaimer">{tx('personalitySignalDisclaimer')}</p>
+            <ul>
+              {report.mbtiScoreState.dimensions.map((dimension) => (
+                <li key={dimension.dimension}>
+                  <strong>{tx(getMbtiDimensionLabelKey(dimension.dimension))}:</strong>{' '}
+                  {formatTemplate(tx('mbtiDimensionDetailTemplate'), {
+                    leanStrength: tx(getMbtiLeanKey(dimension.signalStrength)),
+                    poleLabel: tx(getMbtiPoleLabelKey(dimension.dominantPole)),
+                    signalLabel: tx(getMbtiSignalKey(dimension.signalStrength))
+                  })}
+                </li>
+              ))}
+            </ul>
             <div className="score-grid">
               {bigFiveScores.map((item) => (
                 <ScoreBar
@@ -414,7 +466,7 @@ export function App() {
                   label={`${item.label} — ${report.bigFiveSignalStrength[item.key] ?? 'Low signal'}`}
                   score={report.bigFiveNormalizedScores[item.key] ?? 0}
                   max={100}
-                  hint="Interpret this as a reflection signal, not a fixed identity."
+                  hint={tx('scoreBarReflectionHint')}
                 />
               ))}
             </div>

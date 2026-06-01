@@ -2,6 +2,28 @@ import type { CognitiveDomain, Question, Section } from '../data/questions';
 
 export type Answer = { questionId: string; value: string; score: number };
 
+export type SignalStrength = 'low' | 'moderate' | 'strong';
+export type MbtiDimension = 'E/I' | 'S/N' | 'T/F' | 'J/P';
+type MbtiPole = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P';
+
+export interface DichotomyResult {
+  dimension: MbtiDimension;
+  dominantPole: MbtiPole;
+  oppositePole: MbtiPole;
+  scoreDominant: number;
+  scoreOpposite: number;
+  totalAnswers: number;
+  margin: number;
+  confidenceRatio: number;
+  signalStrength: SignalStrength;
+}
+
+export interface MbtiScoreState {
+  estimatedType: string;
+  overallConfidence: SignalStrength;
+  dimensions: DichotomyResult[];
+}
+
 export type ProfileReport = {
   executiveSummaryParts: {
     personalityTypeEstimate: string;
@@ -15,6 +37,7 @@ export type ProfileReport = {
   cognitiveSignalLevel: 'light' | 'standard';
   topCognitiveLabel: string;
   personalityTypeEstimate: string;
+  mbtiScoreState: MbtiScoreState;
   bigFiveScores: Record<string, number>;
   bigFiveNormalizedScores: Record<string, number>;
   bigFiveSignalStrength: Record<string, 'Low signal' | 'Moderate signal' | 'Strong signal'>;
@@ -35,6 +58,9 @@ const MIN_COMPLETION_FOR_ANY_SIGNAL = 0.5;
 const MIN_COMPLETION_FOR_STRONG_SIGNAL = 1;
 
 
+const hasOwn = <T extends object>(object: T, key: PropertyKey): key is keyof T =>
+  Object.prototype.hasOwnProperty.call(object, key);
+
 const COGNITIVE_DOMAIN_LABELS: Record<CognitiveDomain, string> = {
   pattern: 'pattern reasoning',
   verbal: 'verbal reasoning',
@@ -50,6 +76,67 @@ const FALLBACK_PATTERNS = {
   leadership: 'Balanced',
   workstyle: 'Balanced'
 } as const;
+
+const MBTI_DIMENSIONS: { dimension: MbtiDimension; poles: [MbtiPole, MbtiPole] }[] = [
+  { dimension: 'E/I', poles: ['E', 'I'] },
+  { dimension: 'S/N', poles: ['S', 'N'] },
+  { dimension: 'T/F', poles: ['T', 'F'] },
+  { dimension: 'J/P', poles: ['J', 'P'] }
+];
+const SIGNAL_PRIORITY: Record<SignalStrength, number> = { low: 0, moderate: 1, strong: 2 };
+
+function roundToTwoDecimals(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function getMbtiSignalStrength(confidenceRatio: number): SignalStrength {
+  if (confidenceRatio >= 0.4) return 'strong';
+  if (confidenceRatio >= 0.15) return 'moderate';
+  return 'low';
+}
+
+function getLowestSignal(signals: SignalStrength[]): SignalStrength {
+  return signals.reduce<SignalStrength>((lowest, signal) => (
+    SIGNAL_PRIORITY[signal] < SIGNAL_PRIORITY[lowest] ? signal : lowest
+  ), 'strong');
+}
+
+function buildMbtiScoreState(scores: Record<MbtiPole, number>): MbtiScoreState {
+  const dimensions = MBTI_DIMENSIONS.map(({ dimension, poles }) => {
+    const [poleA, poleB] = poles;
+    const scoreA = scores[poleA] ?? 0;
+    const scoreB = scores[poleB] ?? 0;
+    const isADominant = scoreA >= scoreB;
+    const dominantPole = isADominant ? poleA : poleB;
+    const oppositePole = isADominant ? poleB : poleA;
+    const scoreDominant = Math.max(scoreA, scoreB);
+    const scoreOpposite = Math.min(scoreA, scoreB);
+    const totalAnswers = scoreA + scoreB;
+    const margin = Math.abs(scoreA - scoreB);
+    // MBTI confidence uses margin ratio: C = abs(S_A - S_B) / (S_A + S_B).
+    // If N = 0, C defaults to 0. C is rounded to two decimals before thresholding:
+    // C >= 0.40 = strong, 0.15 <= C < 0.40 = moderate, C < 0.15 = low.
+    const confidenceRatio = totalAnswers === 0 ? 0 : roundToTwoDecimals(margin / totalAnswers);
+
+    return {
+      dimension,
+      dominantPole,
+      oppositePole,
+      scoreDominant,
+      scoreOpposite,
+      totalAnswers,
+      margin,
+      confidenceRatio,
+      signalStrength: getMbtiSignalStrength(confidenceRatio)
+    };
+  });
+
+  return {
+    estimatedType: dimensions.map((dimension) => dimension.dominantPole).join(''),
+    overallConfidence: getLowestSignal(dimensions.map((dimension) => dimension.signalStrength)),
+    dimensions
+  };
+}
 
 function getTopSignal(record: Record<string, number>, fallback: string): string {
   return Object.entries(record).sort((a, b) => b[1] - a[1])[0]?.[0] ?? fallback;
@@ -116,7 +203,7 @@ function getTopSectionValue(questions: Question[], answersById: Map<string, Answ
 }
 
 export function scoreAssessment(questions: Question[], answers: Answer[]): ProfileReport {
-  const mbti: Record<string, number> = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+  const mbti: Record<MbtiPole, number> = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
   const bigFive: Record<string, number> = { open: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
   const riasec: Record<string, number> = { Realistic: 0, Investigative: 0, Artistic: 0, Social: 0, Enterprising: 0, Conventional: 0 };
   const motivations: Record<string, number> = {};
@@ -146,13 +233,17 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     if (!question) continue;
 
     const effectiveScore = getEffectiveScore(question, answer);
-    if (question.section === 'mbti' && mbti[answer.value] !== undefined) mbti[answer.value] += effectiveScore;
-    if (question.section === 'ocean' && bigFive[answer.value] !== undefined) {
+    if (question.section === 'mbti' && hasOwn(mbti, answer.value)) {
+      mbti[answer.value] += effectiveScore;
+    }
+    if (question.section === 'ocean' && hasOwn(bigFive, answer.value)) {
       bigFive[answer.value] += effectiveScore;
       bigFiveContributions[answer.value].score += effectiveScore;
       bigFiveContributions[answer.value].count += 1;
     }
-    if (question.section === 'riasec' && riasec[answer.value] !== undefined) riasec[answer.value] += effectiveScore;
+    if (question.section === 'riasec' && hasOwn(riasec, answer.value)) {
+      riasec[answer.value] += effectiveScore;
+    }
     if (question.section === 'motivation') motivations[answer.value] = (motivations[answer.value] ?? 0) + answer.score;
     if (question.section === 'stress') stress[answer.value] = (stress[answer.value] ?? 0) + answer.score;
     if (question.section === 'leadership') leadership[answer.value] = (leadership[answer.value] ?? 0) + answer.score;
@@ -162,7 +253,8 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     }
   }
 
-  const personalityTypeEstimate = `${mbti.E >= mbti.I ? 'E' : 'I'}${mbti.S >= mbti.N ? 'S' : 'N'}${mbti.T >= mbti.F ? 'T' : 'F'}${mbti.J >= mbti.P ? 'J' : 'P'}`;
+  const mbtiScoreState = buildMbtiScoreState(mbti);
+  const personalityTypeEstimate = mbtiScoreState.estimatedType;
   const motivationPattern = getTopSignal(motivations, FALLBACK_PATTERNS.motivation);
   const topCognitive = getTopSignal(cognitive, FALLBACK_PATTERNS.cognitive) as CognitiveDomain;
   const topCognitiveLabel = COGNITIVE_DOMAIN_LABELS[topCognitive] ?? COGNITIVE_DOMAIN_LABELS.pattern;
@@ -227,6 +319,7 @@ export function scoreAssessment(questions: Question[], answers: Answer[]): Profi
     cognitiveSignalLevel,
     topCognitiveLabel,
     personalityTypeEstimate,
+    mbtiScoreState,
     bigFiveScores: bigFive,
     bigFiveNormalizedScores,
     bigFiveSignalStrength,
