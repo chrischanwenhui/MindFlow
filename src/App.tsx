@@ -453,7 +453,7 @@ export function App() {
           <h2>{tx('reportPreview')}</h2>
           <p className="disclaimer">{buildReportReflection(report)}</p>
           <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
-          <div className="no-print">
+          <div className="report-actions no-print">
             <button onClick={() => window.print()}>{tx('printPdf')}</button>
           </div>
           <ReportSection title={tx('executiveSummarySection')}>
@@ -541,7 +541,9 @@ export function App() {
             <p>{confidenceNote}</p>
           </ReportSection>
           <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
-          <button className="no-print" onClick={restartToLanding}>{tx('restart')}</button>
+          <div className="report-actions no-print">
+            <button onClick={restartToLanding}>{tx('restart')}</button>
+          </div>
         </section>
       )}
 
