@@ -183,7 +183,7 @@ function getLowDimensions(dimensions: DichotomyResult[]): DichotomyResult[] {
 
 function getMbtiDescriptors(type: string): string[] {
   if (type === 'balanced') return ['balanced', 'context-responsive'];
-  return type.split('').map((letter) => MBTI_STYLE_DESCRIPTORS[letter]).filter(Boolean).slice(0, 3);
+  return type.split('').map((letter) => MBTI_STYLE_DESCRIPTORS[letter]).filter(Boolean);
 }
 
 function getTopEntry(record: Record<string, number> | undefined): [string, number] | null {
@@ -208,8 +208,15 @@ function getTopCognitiveKey(label: string | undefined): string | null {
 }
 
 function getTopBigFiveFragment(report: ProfileReport): string {
-  const top = getTopEntry(report.bigFiveNormalizedScores);
-  if (!top) return 'balanced self-management';
+  const entries = Object.entries(report.bigFiveNormalizedScores ?? {}).filter(([, value]) => isFiniteNumber(value));
+  if (entries.length === 0) return 'balanced self-management';
+
+  const values = entries.map(([, value]) => value);
+  if (new Set(values).size <= 1) return 'balanced self-management';
+
+  const top = [...entries].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+  if (!top || top[1] <= 0) return 'balanced self-management';
+
   const [trait, value] = top;
   if (!(trait in BIG_FIVE_OPERATIONAL_FRAGMENTS)) return 'balanced self-management';
   const fragments = BIG_FIVE_OPERATIONAL_FRAGMENTS[trait as BigFiveKey];
@@ -296,7 +303,7 @@ function buildStrengthZone(report: ProfileReport): SynthesisSection {
 
   return {
     heading: 'Strength Zone',
-    body: `This profile typically performs well when ${environment.replace(/^environments that /, '')}. You may find a productive strength zone where ${cognitivePhrase}, meaningful context, and clear ownership of outcomes meet.`
+    body: `This profile may perform well in ${environment}, especially when ${cognitivePhrase} can be translated into practical decisions.`
   };
 }
 

@@ -103,6 +103,23 @@ function allSectionText(report: ProfileReport): string {
   ].join(' ');
 }
 
+function operationalDriveText(report: ProfileReport): string {
+  return generateExecutiveSummary(report).operationalDrive.body;
+}
+
+const RANDOM_BIG_FIVE_FRAGMENTS = [
+  'conceptual exploration',
+  'practical focus',
+  'structured follow-through',
+  'flexible prioritization',
+  'active external engagement',
+  'focused independent momentum',
+  'collaborative alignment',
+  'direct tradeoff evaluation',
+  'early risk detection',
+  'composed pressure management'
+];
+
 describe('generateExecutiveSummary', () => {
   it('uses strong preference-style wording for a high-confidence MBTI profile', () => {
     const summary = generateExecutiveSummary(createReport());
@@ -120,6 +137,20 @@ describe('generateExecutiveSummary', () => {
     const summary = generateExecutiveSummary(report);
 
     expect(summary.primaryWorkstyle.body).toMatch(/adaptive|fluidity/i);
+  });
+
+  it('includes all four MBTI descriptors in the primary workstyle sentence', () => {
+    const intjSummary = generateExecutiveSummary(createReport({
+      mbtiScoreState: mbtiState('INTJ', 'strong'),
+      personalityTypeEstimate: 'INTJ'
+    }));
+    const infpSummary = generateExecutiveSummary(createReport({
+      mbtiScoreState: mbtiState('INFP', 'low'),
+      personalityTypeEstimate: 'INFP'
+    }));
+
+    expect(intjSummary.primaryWorkstyle.body).toContain('reflective, conceptual, principle-led, and structured');
+    expect(infpSummary.primaryWorkstyle.body).toContain('reflective, conceptual, values-aware, and adaptive');
   });
 
   it('handles flat or zero score data without undefined or NaN output', () => {
@@ -143,6 +174,52 @@ describe('generateExecutiveSummary', () => {
 
     expect(() => generateExecutiveSummary(report)).not.toThrow();
     expect(allSectionText(report)).not.toMatch(/undefined|NaN/);
+  });
+
+  it('uses balanced Big Five fallback when all normalized scores are zero', () => {
+    const report = createReport({
+      bigFiveNormalizedScores: {
+        open: 0,
+        conscientiousness: 0,
+        extraversion: 0,
+        agreeableness: 0,
+        neuroticism: 0
+      }
+    });
+    const text = operationalDriveText(report);
+
+    expect(text).toContain('balanced self-management');
+    RANDOM_BIG_FIVE_FRAGMENTS.forEach((fragment) => expect(text).not.toContain(fragment));
+  });
+
+  it('uses balanced Big Five fallback when all normalized scores are flat at the midpoint', () => {
+    const report = createReport({
+      bigFiveNormalizedScores: {
+        open: 50,
+        conscientiousness: 50,
+        extraversion: 50,
+        agreeableness: 50,
+        neuroticism: 50
+      }
+    });
+    const text = operationalDriveText(report);
+
+    expect(text).toContain('balanced self-management');
+    RANDOM_BIG_FIVE_FRAGMENTS.forEach((fragment) => expect(text).not.toContain(fragment));
+  });
+
+  it('keeps meaningful top Big Five trait wording when a clear top trait exists', () => {
+    const report = createReport({
+      bigFiveNormalizedScores: {
+        open: 84,
+        conscientiousness: 58,
+        extraversion: 42,
+        agreeableness: 50,
+        neuroticism: 35
+      }
+    });
+
+    expect(operationalDriveText(report)).toContain('conceptual exploration');
   });
 
   it('keeps generated narrative sections free of banned absolute or clinical phrases', () => {
