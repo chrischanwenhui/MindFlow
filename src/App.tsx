@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LanguageSelector } from './components/LanguageSelector';
+import { MbtiFluiditySpectrum } from './components/MbtiFluiditySpectrum';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
@@ -57,6 +58,10 @@ const MBTI_POLE_KEYS: Record<DichotomyResult['dominantPole'], TranslationKey> = 
 
 function getMbtiPoleLabelKey(pole: DichotomyResult['dominantPole']): TranslationKey {
   return MBTI_POLE_KEYS[pole];
+}
+
+export function shouldRenderMbtiFluiditySpectrum(language: Language): boolean {
+  return language === 'en';
 }
 
 function parseStoredAnswers(raw: string | null): Answer[] {
@@ -470,6 +475,7 @@ export function App() {
           <ReportSection title={tx('personalitySection')}>
             <p>{mbtiSummaryText}</p>
             <p className="disclaimer">{tx('personalitySignalDisclaimer')}</p>
+            {shouldRenderMbtiFluiditySpectrum(language) && <MbtiFluiditySpectrum dimensions={report.mbtiScoreState.dimensions} />}
             <ul>
               {report.mbtiScoreState.dimensions.map((dimension) => (
                 <li key={dimension.dimension}>

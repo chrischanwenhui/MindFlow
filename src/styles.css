@@ -352,4 +352,167 @@ button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform
   .scorebar { box-shadow: none; border-color: #ddd; background: #fff; break-inside: avoid; }
   .scorebar__hint { color: #222; }
   .disclaimer { color: #222; font-size: 10.5pt; line-height: 1.4; }
+  .mbti-fluidity-spectrum {
+    background: #fff !important;
+    border: 1px solid #dcebf4 !important;
+    page-break-inside: avoid;
+  }
+  .mbti-fluidity-spectrum__card {
+    background: #fff !important;
+    border: 1px solid rgba(176, 207, 219, 0.82) !important;
+    box-shadow: none !important;
+  }
+  .mbti-fluidity-spectrum__track {
+    background: #f0f0f0 !important;
+    border: 1px solid #aaa !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .mbti-fluidity-spectrum__pill {
+    background: #447691 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .mbti-fluidity-spectrum__centerline {
+    background: #999 !important;
+  }
+}
+
+.mbti-fluidity-spectrum {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  margin: 0.75rem 0 0.9rem;
+  border: 1px solid #dcebf4;
+  border-radius: 18px;
+  background: linear-gradient(155deg, #f8fbfd 0%, #eef8f7 100%);
+}
+
+.mbti-fluidity-spectrum__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.mbti-fluidity-spectrum__intro div {
+  margin: 0;
+  color: #4d6078;
+}
+
+.mbti-fluidity-spectrum__kicker,
+.mbti-fluidity-spectrum__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.73rem;
+  font-weight: 800;
+  color: #25747c;
+}
+
+.mbti-fluidity-spectrum__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+}
+
+.mbti-fluidity-spectrum__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: clamp(0.75rem, 2.5vw, 1rem);
+  border: 1px solid rgba(176, 207, 219, 0.82);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 12px 26px rgba(25, 64, 92, 0.06);
+}
+
+.mbti-fluidity-spectrum__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.mbti-fluidity-spectrum__title,
+.mbti-fluidity-spectrum__eyebrow {
+  margin: 0;
+}
+
+.mbti-fluidity-spectrum__title {
+  color: #14324d;
+  font-size: 1rem;
+}
+
+.mbti-fluidity-spectrum__signal {
+  flex: 0 0 auto;
+  border: 1px solid rgba(61, 139, 151, 0.22);
+  border-radius: 9999px;
+  background: #eef8f7;
+  color: #22626d;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.mbti-fluidity-spectrum__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+}
+
+.mbti-fluidity-spectrum__poles {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  color: #465c74;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.mbti-fluidity-spectrum__poles div:last-child {
+  text-align: right;
+}
+
+.mbti-fluidity-spectrum__track {
+  position: relative;
+  width: 100%;
+  height: 1.35rem;
+  border: 1px solid #d7e7ef;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #e9f1f6 0%, #f8fbfd 50%, #e3f3f1 100%);
+}
+
+.mbti-fluidity-spectrum__centerline {
+  position: absolute;
+  top: 20%;
+  bottom: 20%;
+  left: 50%;
+  width: 1px;
+  background: rgba(69, 95, 116, 0.22);
+}
+
+.mbti-fluidity-spectrum__pill {
+  position: absolute;
+  top: 0.22rem;
+  bottom: 0.22rem;
+  min-width: 0.75rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(68, 118, 145, 0.78), rgba(60, 177, 170, 0.78));
+}
+
+.mbti-fluidity-spectrum__insight {
+  margin: 0;
+  color: #465a70;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .mbti-fluidity-spectrum { padding: 0.65rem; border-radius: 15px; }
+  .mbti-fluidity-spectrum__header { flex-direction: column; gap: 0.45rem; }
+  .mbti-fluidity-spectrum__signal { align-self: flex-start; }
+  .mbti-fluidity-spectrum__poles { font-size: 0.72rem; }
+  .mbti-fluidity-spectrum__track { height: 1.25rem; }
 }
