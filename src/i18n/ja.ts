@@ -18,7 +18,7 @@ export const ja = {
   begin: '開始',
   startTitle: 'アセスメント開始',
   startEstimate: '所要時間の目安：12〜18分。このレポートは診断目的ではなく、内省のためのものです。',
-  sessionCountNotice: 'このセッションでは75問に回答します。',
+  sessionCountNotice: 'このセッションでは{count}問に回答します。',
   sessionOrderNotice: '性格・ワークスタイルの質問が先、認知スタイルの質問が後半にあります。',
   sessionSaveNotice: '進捗はこの端末にローカル保存されます。',
   startQuestions: '質問を開始',

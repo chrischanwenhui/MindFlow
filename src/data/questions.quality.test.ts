@@ -3,6 +3,23 @@ import { en } from '../i18n/en';
 import { questions } from './questions';
 
 const bannedTerms = ['reflection item', 'scenario', 'Option A', 'Option B', 'Option C', 'Option D'];
+const bannedCorporateTerms = [
+  /\bstakeholders?\b/i,
+  /\bdeliverables?\b/i,
+  /\bproposals?\b/i,
+  /\bbriefings?\b/i,
+  /\balignment\b/i,
+  /\bbandwidth\b/i,
+  /\bsynergy\b/i,
+  /\blaunch(?:ing)?\b/i,
+  /\bdeploy(?:ing)?\b/i,
+  /\boptimi[sz](?:e|ing)\b/i,
+  /\bmapping\b/i,
+  /\bescalat(?:e|ing|ion)\b/i,
+  /\bboard room\b/i,
+  /\bq3\b/i,
+  /\bmetrics review\b/i
+];
 const validRiasec = new Set(['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional']);
 
 describe('question quality checks', () => {
@@ -17,6 +34,36 @@ describe('question quality checks', () => {
       for (const field of fields) {
         const lower = field.toLowerCase();
         expect(bannedTerms.some((term) => lower.includes(term.toLowerCase()))).toBe(false);
+      }
+    }
+  });
+
+  it('keeps active English prompts and options free of unnecessary corporate jargon', () => {
+    for (const q of questions) {
+      const fields = [q.prompt, q.memoryPrompt, q.memoryQuestion, ...q.options.map((o) => o.label)].filter(Boolean) as string[];
+      for (const field of fields) {
+        for (const term of bannedCorporateTerms) expect(field).not.toMatch(term);
+      }
+    }
+  });
+
+  it('keeps core question data shape and scoring metadata present', () => {
+    for (const q of questions) {
+      expect(q.id).toMatch(/^[a-z0-9-]+$/);
+      expect(q.section).toBeTruthy();
+      expect(q.scoringDomain).toBeTruthy();
+      expect(q.groupLabel).toBeTruthy();
+      expect(q.options.length).toBeGreaterThanOrEqual(2);
+      for (const option of q.options) {
+        expect(option.label).toBeTruthy();
+        expect(option.value).toBeTruthy();
+        expect(typeof option.score).toBe('number');
+      }
+      if (q.section === 'ocean') expect(q.scoringDirection).toMatch(/^(positive|reverse)$/);
+      if (q.section === 'cognitive') {
+        expect(q.cognitiveDomain).toBeTruthy();
+        expect(q.difficulty).toBeTruthy();
+        expect(q.cognitiveFormat).toBeTruthy();
       }
     }
   });
@@ -79,7 +126,6 @@ describe('question quality checks', () => {
     }
   });
 
-
   it('marks every memory question as immediate with complete reveal metadata', () => {
     const memory = questions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory');
     expect(memory.length).toBeGreaterThanOrEqual(16);
@@ -136,8 +182,6 @@ describe('question quality checks', () => {
     }
   });
 
-
-
   it('keeps MBTI pool balanced at 20 items per dichotomy', () => {
     const mbti = questions.filter((q) => q.section === 'mbti');
     expect(mbti.length).toBe(80);
@@ -156,7 +200,6 @@ describe('question quality checks', () => {
       }
     }
   });
-
 
   it('keeps MBTI first-option polarity statically balanced by dichotomy', () => {
     const mbti = questions.filter((q) => q.section === 'mbti');
