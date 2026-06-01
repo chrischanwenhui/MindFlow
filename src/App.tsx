@@ -12,6 +12,7 @@ import {
   deriveRiasecMaxScores,
   toSortedScores
 } from './utils/formatReport';
+import { generateExecutiveSummary } from './utils/reportSynthesis';
 
 
 type Screen = 'assessment' | 'about' | 'provide';
@@ -243,6 +244,15 @@ export function App() {
     topOperating: report.executiveSummaryParts.topOperating,
     topCognitiveLabel: report.executiveSummaryParts.topCognitiveLabel
   });
+  const executiveSummary = useMemo(() => generateExecutiveSummary(report), [report]);
+  const executiveSummarySections = [
+    executiveSummary.primaryWorkstyle,
+    executiveSummary.cognitiveStyle,
+    executiveSummary.operationalDrive,
+    executiveSummary.strengthZone,
+    executiveSummary.watchArea,
+    executiveSummary.optimizationStrategy
+  ];
   const cognitiveSummaryText = formatTemplate(
     report.cognitiveSignalLevel === 'light' ? tx('cognitiveLightSummaryTemplate') : tx('cognitiveStandardSummaryTemplate'),
     { topCognitiveLabel: report.topCognitiveLabel }
@@ -442,7 +452,20 @@ export function App() {
             <button onClick={() => window.print()}>{tx('printPdf')}</button>
           </div>
           <ReportSection title={tx('executiveSummarySection')}>
-            <p>{executiveSummaryText}</p>
+            {language === 'en' ? (
+              <>
+                {executiveSummarySections.map((section) => (
+                  <div key={section.heading}>
+                    <h3>{section.heading}</h3>
+                    <p>{section.body}</p>
+                  </div>
+                ))}
+                <p className="disclaimer">{executiveSummary.disclaimer}</p>
+              </>
+            ) : (
+              // TODO: Localize generated executive-summary synthesis in a dedicated i18n PR.
+              <p>{executiveSummaryText}</p>
+            )}
           </ReportSection>
           <ReportSection title={tx('personalitySection')}>
             <p>{mbtiSummaryText}</p>
