@@ -357,7 +357,7 @@ export function App() {
       {screen === 'assessment' && assessmentView === 'start' && (
         <section className="card">
           <h2>{tx('startTitle')}</h2>
-          <p>{tx('sessionCountNotice')}</p>
+          <p>{formatTemplate(tx('sessionCountNotice'), { count: String(sessionQuestions.length) })}</p>
           <p>{tx('sessionOrderNotice')}</p>
           <p>{tx('sessionSaveNotice')}</p>
           <p className="disclaimer">{tx('localSaveNotice')}</p>

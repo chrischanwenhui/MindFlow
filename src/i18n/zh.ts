@@ -10,7 +10,7 @@ export const zh = {
   landingTitle: 'Mindflow', landingByline: '由 Eirene Stack 打造',
   landingDesc: '用于自我探索的测评，提供反思画像信号、特质估计、职业方向与认知风格意识。',
   begin: '开始', startTitle: '测评开始', startEstimate: '预计时长：12–18 分钟。本报告非诊断用途，仅用于反思。', 
-  sessionCountNotice: '本次测评将回答 75 题。',
+  sessionCountNotice: '本次测评将回答 {count} 题。',
   sessionOrderNotice: '人格与工作风格问题在前，认知风格问题在后段。',
   sessionSaveNotice: '你的进度会保存在此设备本地。',
   startQuestions: '开始答题', resumeSaved: '继续已保存进度', noSaved: '尚未找到已保存作答。请开始新的测评。',

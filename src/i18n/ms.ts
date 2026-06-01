@@ -10,7 +10,7 @@ export const ms = {
   landingTitle: 'Mindflow', landingByline: 'oleh Eirene Stack',
   landingDesc: 'Penilaian penemuan diri untuk isyarat refleksi profil, anggaran ciri, hala tuju kerjaya, dan kesedaran gaya kognitif.',
   begin: 'Mula', startTitle: 'Mula Penilaian', startEstimate: 'Anggaran masa: 12–18 minit. Laporan ini bukan diagnostik dan untuk refleksi sahaja.', 
-  sessionCountNotice: 'Anda akan menjawab 75 soalan dalam sesi ini.',
+  sessionCountNotice: 'Anda akan menjawab {count} soalan dalam sesi ini.',
   sessionOrderNotice: 'Soalan personaliti dan gaya kerja datang dahulu. Soalan gaya kognitif muncul hampir di hujung.',
   sessionSaveNotice: 'Kemajuan anda disimpan secara setempat pada peranti ini.',
   startQuestions: 'Mula Soalan', resumeSaved: 'Sambung kemajuan tersimpan', noSaved: 'Tiada respons tersimpan ditemui lagi. Mulakan penilaian baharu.',
