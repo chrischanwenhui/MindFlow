@@ -209,8 +209,17 @@ mkCog('cog-verbal-11','verbal','easy','A key opens a lock. In the same way, evid
 mkCog('cog-verbal-12','verbal','medium','All teams that document decisions improve handoffs. Team Orion documents decisions. Team Orion will…',[['Avoid all errors',0],['Improve handoffs',2],['Need no meetings',0],['Move slower',0]])
 ];
 // numerical/spatial/memory kept meaningful
-const numerical = Array.from({length:10}).map((_,i)=>mkCog(`cog-numerical-${i+1}`,'numerical',i<3?'easy':i<8?'medium':'hard',['18 is 30% of what number?','A price rises 20% then falls 20%. Final is…','If 6 people finish work in 8h, 12 people need…','25% of 240 equals…','A number doubles then +6 gives 30. Original?','Ratio 3:5 equals ? : 20','If x + 7 = 19, x = ?','Train speed 60 km/h for 2.5h distance?','Increase 80 to 100 is what percent?','Average of 12, 18, 24 ?'][i],[['40',0],['50',0],['60',2],['70',0],['Higher than start',0],['Lower than start',2],['Exactly unchanged',0],['Cannot be determined',0],['2 hours',0],['4 hours',2],['6 hours',0],['8 hours',0],['50',0],['55',0],['60',2],['65',0],['9',0],['12',2],['15',0],['18',0],['10',0],['12',2],['15',0],['18',0],['10',0],['12',2],['14',0],['16',0],['120 km',0],['140 km',0],['150 km',2],['160 km',0],['20%',0],['25%',2],['30%',0],['40%',0],['16',0],['18',2],['20',0],['22',0]].slice(i*4,i*4+4).map((v)=>[String(v[0]), Number(v[1])] as [string,number])));
-const spatial = Array.from({length:8}).map((_,i)=>mkCog(`cog-spatial-${i+1}`,'spatial',i<2?'easy':i<6?'medium':'hard',['Rotate the letter L by 90° clockwise. Base points…','Mirror a right-pointing arrow on vertical line. It points…','On a cube, top is opposite bottom. If top is red, bottom is…','Paper folded once vertically, hole punched near left edge, then unfolded shows…','Facing north, turn right then right. Now facing…','A shape rotated 180° appears…','If east is right on a map, north is…','Mirror the text AB. First visible character is…'][i],[['Right',2],['Left',0],['Up',0],['Down',0],['Left',2],['Right',0],['Up',0],['Down',0],['Opposite the red top face',2],['Adjacent to red',0],['The same as red',0],['Not enough information',0],['Two symmetric holes',2],['One hole',0],['Four holes',0],['No hole',0],['South',2],['East',0],['West',0],['North',0],['Upside-down equivalent',2],['Mirror only',0],['No change',0],['Random distortion',0],['Up',2],['Down',0],['Left',0],['Right',0],['Letter B',2],['Letter A',0],['AB',0],['BA',0]].slice(i*4,i*4+4).map((v)=>[String(v[0]),Number(v[1])] as [string,number])));
+const numerical = Array.from({length:10}).map((_,i)=> {
+  const question = mkCog(`cog-numerical-${i+1}`,'numerical',i<3?'easy':i<8?'medium':'hard',['18 is 30% of what number?','A price rises 20% then falls 20%. Final is…','If 6 people finish work in 8h, 12 people need…','25% of 240 equals…','A number doubles then +6 gives 30. Original?','Ratio 3:5 equals ? : 20','If x + 7 = 19, x = ?','A train travels at a steady speed of 60 km/h for 2.5 hours. How far does it travel?','Increase 80 to 100 is what percent?','Average of 12, 18, 24 ?'][i],[['40',0],['50',0],['60',2],['70',0],['Higher than start',0],['Lower than start',2],['Exactly unchanged',0],['Cannot be determined',0],['2 hours',0],['4 hours',2],['6 hours',0],['8 hours',0],['50',0],['55',0],['60',2],['65',0],['9',0],['12',2],['15',0],['18',0],['10',0],['12',2],['15',0],['18',0],['10',0],['12',2],['14',0],['16',0],['120 km',0],['140 km',0],['150 km',2],['160 km',0],['20%',0],['25%',2],['30%',0],['40%',0],['16',0],['18',2],['20',0],['22',0]].slice(i*4,i*4+4).map((v)=>[String(v[0]), Number(v[1])] as [string,number]));
+  if (i === 7) {
+    return {
+      ...question,
+      hint: 'Use D = S × T: distance = speed × time. Convert the wording into numbers, then compare the choices.'
+    };
+  }
+  return question;
+});
+const spatial = Array.from({length:8}).map((_,i)=>mkCog(`cog-spatial-${i+1}`,'spatial',i<2?'easy':i<6?'medium':'hard',['Rotate the letter L by 90° clockwise. Base points…','Mirror a right-pointing arrow on vertical line. It points…','On a cube, top is opposite bottom. If top is red, bottom is…','Paper folded once vertically, hole punched near left edge, then unfolded shows…','Facing north, turn right then right. Now facing…','A shape rotated 180° appears…','If east is right on a map, north is…','Imagine the letters ‘AB’ are reflected in a vertical mirror. Reading the mirrored version from left to right, which letter appears first?'][i],[['Right',2],['Left',0],['Up',0],['Down',0],['Left',2],['Right',0],['Up',0],['Down',0],['Opposite the red top face',2],['Adjacent to red',0],['The same as red',0],['Not enough information',0],['Two symmetric holes',2],['One hole',0],['Four holes',0],['No hole',0],['South',2],['East',0],['West',0],['North',0],['Upside-down equivalent',2],['Mirror only',0],['No change',0],['Random distortion',0],['Up',2],['Down',0],['Left',0],['Right',0],['Letter B',2],['Letter A',0]].slice(i*4, i === 7 ? i*4+2 : i*4+4).map((v)=>[String(v[0]),Number(v[1])] as [string,number])));
 // TODO(next-cognitive-pr): Add visual matrix reasoning component with richer rendering.
 // TODO(next-cognitive-pr): Add data interpretation questions with charts/tables.
 // TODO(next-cognitive-pr): Add memory grid component for non-verbal working memory.
@@ -311,6 +320,11 @@ const immediateMemoryItems: Array<{
   }
 ];
 
+const isMixedFiveItemAlphanumericMemoryPrompt = (prompt: string): boolean => {
+  const parts = prompt.split(' - ').map((part) => part.trim()).filter(Boolean);
+  return parts.length === 5 && parts.some((part) => /[A-Za-z]/.test(part)) && parts.some((part) => /\d/.test(part));
+};
+
 const memory = immediateMemoryItems.map((item, i) => {
   const q = mkCog(
     `cog-memory-${i + 1}`,
@@ -322,7 +336,7 @@ const memory = immediateMemoryItems.map((item, i) => {
       memoryPhase: 'immediate',
       memoryPrompt: item.memoryPrompt,
       memoryQuestion: item.memoryQuestion,
-      revealSeconds: i >= 10 ? 6 : 5,
+      revealSeconds: isMixedFiveItemAlphanumericMemoryPrompt(item.memoryPrompt) ? 8 : i >= 10 ? 6 : 5,
       recommendedSeconds: 25
     }
   );

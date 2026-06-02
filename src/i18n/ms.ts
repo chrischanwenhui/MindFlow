@@ -88,6 +88,8 @@ export const ms = {
   mbtiPoleJ: 'Penilaian',
   mbtiPoleP: 'Persepsi',
   cognitiveSkipReassurance: 'Skipping difficult questions is okay. MindFlow looks at patterns across the full session, not perfection.',
-  cognitiveUnknownNotice: "Penggunaan 'Saya tidak tahu' dianggap sebagai isyarat penaakulan tidak dijawab, bukan penalti."
+  cognitiveUnknownNotice: "Penggunaan 'Saya tidak tahu' dianggap sebagai isyarat penaakulan tidak dijawab, bukan penalti.",
+  forcedChoiceHelper: 'Choose the option closer to your usual first instinct. Both can be useful.',
+  studyThisSequence: 'Study this item'
   // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

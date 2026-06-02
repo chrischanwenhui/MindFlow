@@ -80,6 +80,18 @@ Balanced options:
 - “Set milestones early and track against them.”
 - “Preserve room for new insight as the situation evolves.”
 
+## Cognitive and Working-Memory Items
+
+Cognitive and working-memory prompts should spend the user's effort on solving the task, not decoding unclear wording. These items are still non-diagnostic reflection samples, so clarity and reassurance matter as much as brevity.
+
+- Use complete, active sentences instead of shorthand or broken phrasing.
+- Avoid abbreviations that make the user reconstruct the task before solving it.
+- Formula questions may include a high-level method hint when appropriate, such as naming the relationship before asking the user to compare answer choices.
+- Spatial or reversal questions should ask for one clear target and keep answer options consistent with that target.
+- Timed memory screens must visually and semantically separate the content to study from the countdown timer.
+- “I don’t know” is acceptable and should not be framed as failure; it is a safe option when a reasoning or recall item feels unclear or out of reach.
+- Preserve cognitive correctness logic, delayed recall architecture, IDs, scoring weights, and scoring metadata unless a dedicated scoring change is planned and reviewed.
+
 ## PR Checklist for Question Changes
 
 - Active English question strings contain no unnecessary corporate jargon.

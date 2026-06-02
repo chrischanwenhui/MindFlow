@@ -117,7 +117,7 @@ describe('question quality checks', () => {
       expect(q.recommendedSeconds).toBeTruthy();
       if (q.cognitiveDomain === 'memory') {
         expect(q.revealSeconds).toBeGreaterThanOrEqual(5);
-        expect(q.revealSeconds).toBeLessThanOrEqual(7);
+        expect(q.revealSeconds).toBeLessThanOrEqual(12);
         continue;
       }
       if (q.difficulty === 'easy') expect(q.recommendedSeconds).toBe(60);
@@ -133,7 +133,7 @@ describe('question quality checks', () => {
     for (const q of memory) {
       expect(q.memoryPhase).toBe('immediate');
       expect(q.revealSeconds).toBeGreaterThanOrEqual(5);
-      expect(q.revealSeconds).toBeLessThanOrEqual(7);
+      expect(q.revealSeconds).toBeLessThanOrEqual(12);
       expect(q.memoryPrompt?.trim().length).toBeGreaterThan(0);
       expect(q.memoryQuestion?.trim().length).toBeGreaterThan(0);
       expect(new Set(q.options.map((o) => o.value)).size).toBe(q.options.length);
@@ -142,6 +142,52 @@ describe('question quality checks', () => {
       const nonIdk = q.options.filter((o) => o.value !== 'default-idk');
       expect(nonIdk.filter((o) => o.score === 2).length).toBe(1);
     }
+  });
+
+
+  it('keeps targeted cognitive wording clear while preserving scoring metadata', () => {
+    const speedDistance = questions.find((q) => q.id === 'cog-numerical-8');
+    expect(speedDistance).toBeTruthy();
+    expect(speedDistance?.prompt).toBe('A train travels at a steady speed of 60 km/h for 2.5 hours. How far does it travel?');
+    expect(speedDistance?.hint).toBe('Use D = S × T: distance = speed × time. Convert the wording into numbers, then compare the choices.');
+    expect(speedDistance?.scoringDomain).toBe('numerical');
+    expect(speedDistance?.groupLabel).toBe('Cognitive Workstyle');
+    expect(speedDistance?.options.map((o) => [o.label, o.score])).toEqual([
+      ['120 km', 0],
+      ['140 km', 0],
+      ['150 km', 2],
+      ['160 km', 0],
+      ["I don't know", 0]
+    ]);
+
+    const mirror = questions.find((q) => q.id === 'cog-spatial-8');
+    expect(mirror).toBeTruthy();
+    expect(mirror?.prompt).toBe('Imagine the letters ‘AB’ are reflected in a vertical mirror. Reading the mirrored version from left to right, which letter appears first?');
+    expect(mirror?.scoringDomain).toBe('spatial');
+    expect(mirror?.groupLabel).toBe('Cognitive Workstyle');
+    expect(mirror?.options.map((o) => [o.label, o.score])).toEqual([
+      ['Letter B', 2],
+      ['Letter A', 0],
+      ["I don't know", 0]
+    ]);
+  });
+
+  it('uses 8 seconds for mixed five-item alphanumeric memory prompts', () => {
+    const mixedMemory = questions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory' && q.memoryPrompt && /[A-Za-z]/.test(q.memoryPrompt) && /\d/.test(q.memoryPrompt));
+    expect(mixedMemory.length).toBeGreaterThan(0);
+    for (const q of mixedMemory) {
+      expect(q.revealSeconds).toBe(8);
+      expect(q.scoringDomain).toBe('memory');
+      expect(q.groupLabel).toBe('Cognitive Workstyle');
+      expect(q.memoryPhase).toBe('immediate');
+    }
+  });
+
+  it('documents mixed alphanumeric detection expectations for uppercase and lowercase prompts', () => {
+    const hasLetterAndDigit = (prompt: string) => /[A-Za-z]/.test(prompt) && /\d/.test(prompt);
+
+    expect(hasLetterAndDigit('7 - 1 - M - 9 - T')).toBe(true);
+    expect(hasLetterAndDigit('7 - 1 - m - 9 - t')).toBe(true);
   });
 
   it('keeps memory wording free of diagnostic terms', () => {
