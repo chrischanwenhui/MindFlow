@@ -322,7 +322,7 @@ const immediateMemoryItems: Array<{
 
 const isMixedFiveItemAlphanumericMemoryPrompt = (prompt: string): boolean => {
   const parts = prompt.split(' - ').map((part) => part.trim()).filter(Boolean);
-  return parts.length === 5 && parts.some((part) => /[A-Z]/.test(part)) && parts.some((part) => /\d/.test(part));
+  return parts.length === 5 && parts.some((part) => /[A-Za-z]/.test(part)) && parts.some((part) => /\d/.test(part));
 };
 
 const memory = immediateMemoryItems.map((item, i) => {

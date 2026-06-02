@@ -90,6 +90,6 @@ export const zh = {
   cognitiveSkipReassurance: 'Skipping difficult questions is okay. MindFlow looks at patterns across the full session, not perfection.',
   cognitiveUnknownNotice: '选择“我不知道”会被视为未作答的推理信号，而非扣分。',
   forcedChoiceHelper: 'Choose the option closer to your usual first instinct. Both can be useful.',
-  studyThisSequence: 'Study this sequence'
+  studyThisSequence: 'Study this item'
   // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

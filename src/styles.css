@@ -209,9 +209,6 @@ body { margin: 0; line-height: 1.6; }
 
 .question-card .option {
   width: 100%;
-  text-align: left;
-  white-space: normal;
-  overflow-wrap: anywhere;
 }
 
 .question-actions {

@@ -173,7 +173,7 @@ describe('question quality checks', () => {
   });
 
   it('uses 8 seconds for mixed five-item alphanumeric memory prompts', () => {
-    const mixedMemory = questions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory' && q.memoryPrompt && /[A-Z]/.test(q.memoryPrompt) && /\d/.test(q.memoryPrompt));
+    const mixedMemory = questions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory' && q.memoryPrompt && /[A-Za-z]/.test(q.memoryPrompt) && /\d/.test(q.memoryPrompt));
     expect(mixedMemory.length).toBeGreaterThan(0);
     for (const q of mixedMemory) {
       expect(q.revealSeconds).toBe(8);
@@ -181,6 +181,13 @@ describe('question quality checks', () => {
       expect(q.groupLabel).toBe('Cognitive Workstyle');
       expect(q.memoryPhase).toBe('immediate');
     }
+  });
+
+  it('documents mixed alphanumeric detection expectations for uppercase and lowercase prompts', () => {
+    const hasLetterAndDigit = (prompt: string) => /[A-Za-z]/.test(prompt) && /\d/.test(prompt);
+
+    expect(hasLetterAndDigit('7 - 1 - M - 9 - T')).toBe(true);
+    expect(hasLetterAndDigit('7 - 1 - m - 9 - t')).toBe(true);
   });
 
   it('keeps memory wording free of diagnostic terms', () => {

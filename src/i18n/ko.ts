@@ -76,6 +76,6 @@ export const ko = {
   cognitiveSkipReassurance: 'Skipping difficult questions is okay. MindFlow looks at patterns across the full session, not perfection.',
   cognitiveUnknownNotice: '“모르겠다” 선택은 감점이 아니라 미응답 추론 신호로 처리됩니다.',
   forcedChoiceHelper: 'Choose the option closer to your usual first instinct. Both can be useful.',
-  studyThisSequence: 'Study this sequence'
+  studyThisSequence: 'Study this item'
   // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

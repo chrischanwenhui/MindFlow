@@ -126,6 +126,6 @@ export const en = {
   cognitiveSkipReassurance: 'Skipping difficult questions is okay. MindFlow looks at patterns across the full session, not perfection.',
   cognitiveUnknownNotice: "Using 'I don’t know' is treated as an unanswered reasoning signal, not a penalty.",
   forcedChoiceHelper: 'Choose the option closer to your usual first instinct. Both can be useful.',
-  studyThisSequence: 'Study this sequence'
+  studyThisSequence: 'Study this item'
   // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;
