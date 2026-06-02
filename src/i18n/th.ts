@@ -74,6 +74,8 @@ export const th = {
   mbtiPoleJ: 'การจัดระบบ',
   mbtiPoleP: 'การเปิดรับความเป็นไปได้',
   cognitiveSkipReassurance: 'Skipping difficult questions is okay. MindFlow looks at patterns across the full session, not perfection.',
-  cognitiveUnknownNotice: 'การเลือก “ไม่ทราบ” จะถือเป็นสัญญาณการให้เหตุผลที่ยังไม่ตอบ ไม่ใช่การหักคะแนน'
+  cognitiveUnknownNotice: 'การเลือก “ไม่ทราบ” จะถือเป็นสัญญาณการให้เหตุผลที่ยังไม่ตอบ ไม่ใช่การหักคะแนน',
+  forcedChoiceHelper: 'Choose the option closer to your usual first instinct. Both can be useful.',
+  studyThisSequence: 'Study this sequence'
   // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;

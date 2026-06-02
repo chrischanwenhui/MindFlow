@@ -25,6 +25,10 @@ function isMemoryQuestionItem(question: (typeof questions)[number] | undefined):
   return Boolean(question?.section === 'cognitive' && question.cognitiveDomain === 'memory');
 }
 
+export function shouldShowForcedChoiceHelper(question: (typeof questions)[number] | undefined): boolean {
+  return Boolean(question && question.section === 'mbti' && question.options.length === 2);
+}
+
 
 function getMbtiSignalKey(signal: SignalStrength): TranslationKey {
   if (signal === 'strong') return 'mbtiStrongSignal';
@@ -118,6 +122,7 @@ export function App() {
   const isLate = hasTimedCountdown && questionTimerRemaining === 0;
   const previousQuestion = sessionQuestions[index - 1];
   const previousIsMemoryQuestion = isMemoryQuestionItem(previousQuestion);
+  const showForcedChoiceHelper = shouldShowForcedChoiceHelper(current);
 
   useEffect(() => {
     if (!current) return;
@@ -372,7 +377,7 @@ export function App() {
       )}
 
       {screen === 'assessment' && assessmentView === 'question' && current && (
-        <section className="card question-card" aria-live="polite">
+        <section className="card question-card assessment-question-card" aria-live="polite">
           <div
             className="progress"
             role="progressbar"
@@ -394,13 +399,15 @@ export function App() {
               <button onClick={startMemoryReveal}>{tx('readyReveal')}</button>
             </>
           ) : isMemoryQuestion && memoryPhase === 'reveal' ? (
-            <>
-              <h3>{current.memoryPrompt}</h3>
-              <p><strong>{tx('memorizeThis')}: {revealRemaining}</strong></p>
-            </>
+            <div className="memory-encoding" aria-live="polite">
+              <p className="memory-encoding__label">{tx('studyThisSequence')}</p>
+              <p className="memory-encoding__content"><strong>{current.memoryPrompt}</strong></p>
+              <p className="memory-encoding__timer">{tx('timeRemaining')}: <strong>{revealRemaining}s</strong></p>
+            </div>
           ) : (
             <>
               <h3>{isMemoryQuestion ? current.memoryQuestion : current.prompt}</h3>
+              {showForcedChoiceHelper && <p className="forced-choice-helper disclaimer">{tx('forcedChoiceHelper')}</p>}
               {isMemoryQuestion && <p className="disclaimer">{tx('memoryHiddenNotice')}</p>}
               <div className="stack">
                 {canAnswerCurrent && current.options.map((o) => (
@@ -421,8 +428,10 @@ export function App() {
               <p>{current.hint}</p>
             </details>
           )}
-          {index > 0 && <button className="secondary-action" onClick={goToPreviousQuestion} disabled={isMemoryQuestion && memoryPhase === 'reveal'}>{tx('backPrev')}</button>}
-          <button className="secondary-action" onClick={saveAndContinueLater}>{tx('navSaveExit')}</button>
+          <div className="question-actions no-print">
+            {index > 0 && <button className="secondary-action" onClick={goToPreviousQuestion} disabled={isMemoryQuestion && memoryPhase === 'reveal'}>{tx('backPrev')}</button>}
+            <button className="secondary-action" onClick={saveAndContinueLater}>{tx('navSaveExit')}</button>
+          </div>
           <p className="disclaimer">{tx('localSaveNotice')}</p>
           {current.section === 'cognitive' && <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>}
         </section>

@@ -123,6 +123,8 @@ export const ja = {
   mbtiPoleJ: '判断',
   mbtiPoleP: '知覚',
   cognitiveSkipReassurance: 'Skipping difficult questions is okay. MindFlow looks at patterns across the full session, not perfection.',
-  cognitiveUnknownNotice: '「わからない」の選択は未回答の推論シグナルとして扱われ、減点ではありません。'
+  cognitiveUnknownNotice: '「わからない」の選択は未回答の推論シグナルとして扱われ、減点ではありません。',
+  forcedChoiceHelper: 'Choose the option closer to your usual first instinct. Both can be useful.',
+  studyThisSequence: 'Study this sequence'
   // TODO: Executive summary translations can be refined in a dedicated localization PR.
 } as const;
