@@ -7,9 +7,17 @@ Mindflow is a mobile-first self-discovery assessment web app focused on calm UX 
 
 ## Local setup
 
+The tracked `package-lock.json` supports deterministic installation with `npm ci`.
+CI specifies Node.js 20. The locked Vite/Vitest versions declare Node.js
+`^18.0.0 || >=20.0.0` in their `engines` metadata; this is not a claim that
+every matching version has been tested. The project does not pin a Node or npm
+version in `package.json` or a version file. Use an npm version that supports
+lockfile version 2. This validation task passed with Node.js 24.19.0 and
+npm 11.9.0; it did not test Node.js 20 or other versions.
+
 1. Install dependencies:
    ```bash
-   npm install
+   npm ci
    ```
 2. Start the local dev server:
    ```bash
@@ -20,7 +28,9 @@ Mindflow is a mobile-first self-discovery assessment web app focused on calm UX 
 ## NPM commands
 
 - `npm run dev` – start Vite in development mode.
-- `npm run lint` – TypeScript type-check (`tsc --noEmit`).
+- `npm run lint` – run the configured TypeScript check (`tsc --noEmit`).
+  The root config only references the app project; `npm run build` runs
+  `tsc -b` to check that project before bundling.
 - `npm run test` – run Vitest test suite.
 - `npm run build` – generate production build in `dist/`.
 - `npm run preview` – preview production build locally.
@@ -36,7 +46,16 @@ The CI pipeline uses Node 20 and currently runs:
 3. `npm run test`
 4. `npm run build`
 
-> Temporary note: CI uses `npm install` right now because `package-lock.json` has not been generated in this environment due to npm registry access restrictions (`403 Forbidden`). Once `package-lock.json` is committed, switch CI back to `npm ci` for strict reproducible installs.
+The lockfile is tracked. CI still uses `npm install`; `npm ci` is the
+recommended command for reproducible local or clean-environment setup.
+
+## Environment variables
+
+No environment variables or cloud-service secrets are required to develop, test,
+or build the app. It uses local state and localStorage, without a backend.
+`.env.example` contains `VITE_APP_NAME=Mindflow` as an optional example; the
+application currently does not read it, so copying it to `.env` is unnecessary.
+Do not put secrets in `VITE_*` variables: Vite exposes them to browser code.
 
 ## Deploying to Vercel
 
