@@ -158,7 +158,7 @@ export function App() {
     return () => window.clearInterval(interval);
   }, [hasTimedCountdown, current?.id]);
 
-  const access = useMemo(() => inspectAssessmentAccess(sessionQuestions, answers), [sessionQuestions, answers]);
+  const access = useMemo(() => inspectAssessmentAccess(sessionQuestions, answers, sessionSeed), [sessionQuestions, answers, sessionSeed]);
   const personalReport = useMemo(() => scoreAssessment(
     access.status === 'invalid-session' ? [] : sessionQuestions,
     access.canonicalAnswers
@@ -179,14 +179,14 @@ export function App() {
     setAnswers(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     if (index === sessionQuestions.length - 1) {
-      const nextAccess = inspectAssessmentAccess(sessionQuestions, next);
+      const nextAccess = inspectAssessmentAccess(sessionQuestions, next, sessionSeed);
       if (nextAccess.status === 'complete') setAssessmentView('results');
       else if (nextAccess.status === 'incomplete' && nextAccess.nextIndex !== null) setIndex(nextAccess.nextIndex);
       else {
         setRecoveryOriginal(readAssessmentSnapshot(localStorage));
         setRecovery({
           reasons: nextAccess.reasons,
-          candidate: isValidSession(sessionQuestions)
+          candidate: isValidSession(sessionQuestions, sessionSeed)
             ? { seed: sessionSeed, questions: sessionQuestions, answers: nextAccess.canonicalAnswers }
             : null,
           preservedAnswerCount: next.length
@@ -222,7 +222,7 @@ export function App() {
         setRecoveryOriginal(readAssessmentSnapshot(localStorage));
         setRecovery({
           reasons: access.reasons,
-          candidate: isValidSession(sessionQuestions)
+          candidate: isValidSession(sessionQuestions, sessionSeed)
             ? { seed: sessionSeed, questions: sessionQuestions, answers: access.canonicalAnswers }
             : null,
           preservedAnswerCount: access.canonicalAnswers.length
@@ -254,8 +254,8 @@ export function App() {
   };
   const acceptRecovery = () => {
     const candidate = recovery?.candidate;
-    if (!candidate || !isValidSession(candidate.questions)) return;
-    const candidateAccess = inspectAssessmentAccess(candidate.questions, candidate.answers);
+    if (!candidate || !isValidSession(candidate.questions, candidate.seed)) return;
+    const candidateAccess = inspectAssessmentAccess(candidate.questions, candidate.answers, candidate.seed);
     if (candidateAccess.status === 'invalid-session' || candidateAccess.status === 'invalid-answers') return;
     const persisted = commitVerifiedRecovery(localStorage, candidate);
     if (!persisted.ok) {
