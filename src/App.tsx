@@ -4,6 +4,8 @@ import { MbtiFluiditySpectrum } from './components/MbtiFluiditySpectrum';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
+import { fictionalSampleQuestions, fictionalSampleReport } from './data/sampleAssessment';
+import { canViewPersonalReport, getNextUnansweredQuestionIndex } from './engine/reportAccess';
 import { buildAssessmentSession, createSessionSeed, getReplacementMemoryQuestion, readStoredSessionIds, readStoredSessionSeed, saveSessionIds, saveSessionSeed, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY } from './engine/session';
 import { scoreAssessment, type Answer, type DichotomyResult, type SignalStrength } from './engine/scoring';
 import { getInitialLanguage, t, type Language, type TranslationKey, LANGUAGE_STORAGE_KEY } from './i18n';
@@ -17,7 +19,7 @@ import { generateExecutiveSummary } from './utils/reportSynthesis';
 
 
 type Screen = 'assessment' | 'about' | 'provide';
-type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report';
+type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report' | 'sample-report';
 type MemoryPhase = 'ready' | 'reveal' | 'answer';
 const STORAGE_KEY = 'mindflow_answers_v1';
 
@@ -157,18 +159,29 @@ export function App() {
     return () => window.clearInterval(interval);
   }, [hasTimedCountdown, current?.id]);
 
-  const report = useMemo(() => scoreAssessment(sessionQuestions, answers), [answers, sessionQuestions]);
+  const personalReport = useMemo(() => scoreAssessment(sessionQuestions, answers), [answers, sessionQuestions]);
+  const isSampleReport = assessmentView === 'sample-report';
+  const isPersonalComplete = canViewPersonalReport(sessionQuestions, answers);
+  const report = isSampleReport ? fictionalSampleReport : personalReport;
   const bigFiveScores = useMemo(() => toSortedScores(report.bigFiveScores), [report]);
   const riasecScores = useMemo(() => toSortedScores(report.riasecScores), [report]);
-  const riasecMaxScores = useMemo(() => deriveRiasecMaxScores(sessionQuestions), [sessionQuestions]);
+  const riasecMaxScores = useMemo(
+    () => deriveRiasecMaxScores(isSampleReport ? fictionalSampleQuestions : sessionQuestions),
+    [isSampleReport, sessionQuestions]
+  );
 
   const choose = (value: string, score: number) => {
     if (!current) return;
     const next = [...answers.filter((a) => a.questionId !== current.id), { questionId: current.id, value, score }];
     setAnswers(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    if (index === sessionQuestions.length - 1) setAssessmentView('results');
-    else setIndex((v) => v + 1);
+    if (index === sessionQuestions.length - 1) {
+      const nextIndex = getNextUnansweredQuestionIndex(sessionQuestions, next);
+      if (nextIndex === null) setAssessmentView('results');
+      else setIndex(nextIndex);
+    } else {
+      setIndex((v) => v + 1);
+    }
   };
 
   const startFreshAssessment = () => {
@@ -186,8 +199,11 @@ export function App() {
   };
 
   const resumeAssessment = () => {
-    if (answers.length >= sessionQuestions.length) return setAssessmentView('results');
-    setIndex(answers.length);
+    if (canViewPersonalReport(sessionQuestions, answers)) {
+      setAssessmentView('results');
+      return;
+    }
+    setIndex(getNextUnansweredQuestionIndex(sessionQuestions, answers) ?? 0);
     setAssessmentView('question');
   };
 
@@ -196,6 +212,20 @@ export function App() {
     setAnswers([]);
     setIndex(0);
     setAssessmentView('landing');
+  };
+  const confirmRestartToLanding = () => {
+    if (window.confirm(tx('restartConfirm'))) restartToLanding();
+  };
+  const beginFreshAssessment = () => {
+    if (hasSavedProgress && !window.confirm(tx('startFreshConfirm'))) return;
+    startFreshAssessment();
+  };
+  const openPersonalReport = () => {
+    if (canViewPersonalReport(sessionQuestions, answers)) {
+      setAssessmentView('report');
+    } else {
+      resumeAssessment();
+    }
   };
 
   const saveAndContinueLater = () => {
@@ -352,8 +382,8 @@ export function App() {
           </section>
           <div className="hero-actions">
             <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
-            <button className="hero-secondary-cta" onClick={() => setAssessmentView('report')}>
-              {tx('viewReport')}
+            <button className="hero-secondary-cta" onClick={() => setAssessmentView('sample-report')}>
+              {tx('viewExampleReport')}
             </button>
           </div>
         </section>
@@ -367,7 +397,7 @@ export function App() {
           <p>{tx('sessionSaveNotice')}</p>
           <p className="disclaimer">{tx('localSaveNotice')}</p>
           <div className="stack">
-            <button onClick={startFreshAssessment}>{tx('startQuestions')}</button>
+            <button onClick={beginFreshAssessment}>{tx('startQuestions')}</button>
             <button className="option" onClick={resumeAssessment} disabled={!hasSavedProgress}>
               {tx('resumeSaved')}
             </button>
@@ -447,19 +477,25 @@ export function App() {
         </section>
       )}
 
-      {screen === 'assessment' && assessmentView === 'results' && (
+      {screen === 'assessment' && assessmentView === 'results' && isPersonalComplete && (
         <section className="card">
           <h2>{tx('resultsTitle')}</h2>
           <p><b>{tx('personalityEstimate')}</b> {mbtiSummaryText}</p>
           <p><b>{tx('motivationPattern')}</b> {report.motivationPattern}</p>
           <p>{cognitiveSummaryText}</p>
-          <button onClick={() => setAssessmentView('report')}>{tx('viewReport')}</button>
+          <button onClick={openPersonalReport}>{tx('viewMyReport')}</button>
         </section>
       )}
 
-      {screen === 'assessment' && assessmentView === 'report' && (
-        <section className="card report-card print-report">
-          <h2>{tx('reportPreview')}</h2>
+      {screen === 'assessment' && (isSampleReport || (assessmentView === 'report' && isPersonalComplete)) && (
+        <section className="card report-card print-report" aria-label={isSampleReport ? tx('sampleReportTitle') : tx('personalReportTitle')}>
+          <h2>{isSampleReport ? tx('sampleReportTitle') : tx('personalReportTitle')}</h2>
+          {isSampleReport && (
+            <div className="sample-report-notice" role="note">
+              <strong>{tx('sampleReportNoticeTitle')}</strong>
+              <p>{tx('sampleReportNoticeBody')}</p>
+            </div>
+          )}
           <p className="disclaimer">{buildReportReflection(report)}</p>
           <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           <div className="report-actions no-print">
@@ -550,8 +586,21 @@ export function App() {
             <p>{confidenceNote}</p>
           </ReportSection>
           <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
+          {isSampleReport && (
+            <p className="sample-report-print-footer">{tx('sampleReportNoticeTitle')}</p>
+          )}
           <div className="report-actions no-print">
-            <button onClick={restartToLanding}>{tx('restart')}</button>
+            {isSampleReport ? (
+              <>
+                <button onClick={() => setAssessmentView('start')}>{tx('startFromSample')}</button>
+                <button className="option" onClick={() => setAssessmentView('landing')}>{tx('backToHome')}</button>
+              </>
+            ) : (
+              <>
+                <button className="option" onClick={() => setAssessmentView('landing')}>{tx('backToHome')}</button>
+                <button onClick={confirmRestartToLanding}>{tx('restart')}</button>
+              </>
+            )}
           </div>
         </section>
       )}
