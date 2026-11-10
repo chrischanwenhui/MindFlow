@@ -102,7 +102,12 @@ export function App() {
   const hasStoredAssessmentData = () => [
     STORAGE_KEY, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY, SESSION_VERSION_STORAGE_KEY
   ].some((key) => localStorage.getItem(key) !== null);
-  const recoveryBackupText = JSON.stringify(initialSession.snapshot, null, 2);
+  const recoveryBackupText = JSON.stringify({
+    answersRaw: localStorage.getItem(STORAGE_KEY),
+    idsRaw: localStorage.getItem(SESSION_IDS_STORAGE_KEY),
+    seedRaw: localStorage.getItem(SESSION_SEED_STORAGE_KEY),
+    versionRaw: localStorage.getItem(SESSION_VERSION_STORAGE_KEY)
+  }, null, 2);
   const tx = (key: TranslationKey) => t(language, key);
   const current = useMemo(() => localizeQuestion(sessionQuestions[index], language), [index, language, sessionQuestions]);
   const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
@@ -413,6 +418,13 @@ export function App() {
 
       {screen === 'assessment' && assessmentView === 'landing' && (
         <section className="card hero-card">
+          {recovery && (
+            <div className="sample-report-notice" role="alert">
+              <strong>{tx('recoveryTitle')}</strong>
+              <p>{tx('recoveryNotice')}</p>
+              <button onClick={() => setAssessmentView('recovery')}>{tx('recoveryBackupLabel')}</button>
+            </div>
+          )}
           <p className="hero-kicker">{tx('heroKicker')}</p>
           <h1 className="hero-title">{tx('landingTitle')}</h1>
           <p className="hero-subtitle">
@@ -442,6 +454,13 @@ export function App() {
 
       {screen === 'assessment' && assessmentView === 'start' && (
         <section className="card">
+          {recovery && (
+            <div className="sample-report-notice" role="alert">
+              <strong>{tx('recoveryTitle')}</strong>
+              <p>{tx('recoveryNotice')}</p>
+              <button onClick={() => setAssessmentView('recovery')}>{tx('recoveryBackupLabel')}</button>
+            </div>
+          )}
           <h2>{tx('startTitle')}</h2>
           <p>{formatTemplate(tx('sessionCountNotice'), { count: String(sessionQuestions.length) })}</p>
           <p>{tx('sessionOrderNotice')}</p>
