@@ -104,6 +104,25 @@ describe('assessment session structural integrity and conservative recovery', ()
     expect(noSeed.recovery?.candidate).toBeNull();
   });
 
+  it('never treats an explicitly empty saved ID list as a valid fresh session', () => {
+    const allAnswers: Answer[] = baseline.map((q) => ({
+      questionId: q.id, value: q.options[0].value, score: q.options[0].score
+    }));
+    const result = inspectStoredAssessment(snapshot([], allAnswers));
+    expect(result.recovery?.reasons).toContain('invalid-stored-session');
+    expect(result.recovery?.candidate).toBeNull();
+    expect(result.snapshot.idsRaw).toBe('[]');
+  });
+
+  it('requires a nonblank saved seed when restoring existing IDs', () => {
+    const raw = snapshot(baseline.map((q) => q.id));
+    for (const missing of [null, '', '   ']) {
+      const state = inspectStoredAssessment({ ...raw, seedRaw: missing });
+      expect(state.recovery?.reasons).toContain('missing-session-seed');
+      expect(state.recovery?.candidate).toBeNull();
+    }
+  });
+
   it('recognizes corrupted answers and preserves the original raw snapshot', () => {
     const raw = snapshot(baseline.map((q) => q.id), [...answers, answers[0]]);
     const result = inspectStoredAssessment(raw);
