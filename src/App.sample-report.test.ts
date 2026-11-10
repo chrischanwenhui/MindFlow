@@ -39,7 +39,7 @@ describe('fictional sample report UI safeguards', () => {
     expect(appSource).toContain("onClick={() => setAssessmentView('landing')}>{tx('backToHome')}");
     expect(appSource).toContain("if (window.confirm(tx('restartConfirm'))) restartToLanding()");
     expect(appSource).toContain("if (hasStoredAssessmentData() && !window.confirm(tx('startFreshConfirm'))) return");
-    expect(appSource).toContain("localStorage.setItem(backupKey, JSON.stringify(before))");
+    expect(appSource).toContain("commitVerifiedRecovery(localStorage, candidate)");
     expect(appSource).toContain("setAssessmentView('recovery')");
   });
 
