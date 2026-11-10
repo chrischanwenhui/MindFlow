@@ -29,15 +29,18 @@ describe('fictional sample report UI safeguards', () => {
     expect(appSource).toContain("setAssessmentView('sample-report')");
     expect(appSource).toContain("const report = isSampleReport ? fictionalSampleReport : personalReport;");
     expect(appSource).toContain("(isSampleReport || (assessmentView === 'report' && isPersonalComplete))");
-    expect(appSource).toContain("if (canViewPersonalReport(sessionQuestions, answers))");
-    expect(appSource).toContain("getNextUnansweredQuestionIndex(sessionQuestions, answers)");
+    expect(appSource).toContain("inspectAssessmentAccess(sessionQuestions, answers)");
+    expect(appSource).toContain("access.canonicalAnswers");
+    expect(appSource).toContain("!recovery && access.status === 'complete'");
   });
 
   it('does not reuse destructive navigation for the fictional example', () => {
     expect(appSource).toContain("onClick={() => setAssessmentView('start')}>{tx('startFromSample')}");
     expect(appSource).toContain("onClick={() => setAssessmentView('landing')}>{tx('backToHome')}");
     expect(appSource).toContain("if (window.confirm(tx('restartConfirm'))) restartToLanding()");
-    expect(appSource).toContain("if (hasSavedProgress && !window.confirm(tx('startFreshConfirm'))) return");
+    expect(appSource).toContain("if (hasStoredAssessmentData() && !window.confirm(tx('startFreshConfirm'))) return");
+    expect(appSource).toContain("localStorage.setItem(backupKey, JSON.stringify(before))");
+    expect(appSource).toContain("setAssessmentView('recovery')");
   });
 
   it('identifies example content on screen and on printed pages', () => {
