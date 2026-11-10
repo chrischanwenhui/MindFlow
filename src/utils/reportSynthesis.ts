@@ -310,8 +310,8 @@ function buildStrengthZone(report: ProfileReport): SynthesisSection {
 }
 
 function buildWatchArea(report: ProfileReport, mode: 'sample' | 'personal'): SynthesisSection {
-  const mode = getPrimaryMode(report);
-  const fragment = FRICTION_FRAGMENTS[mode];
+  const primaryMode = getPrimaryMode(report);
+  const fragment = FRICTION_FRAGMENTS[primaryMode];
 
   return {
     heading: 'Watch Area / Potential Friction',
@@ -320,8 +320,8 @@ function buildWatchArea(report: ProfileReport, mode: 'sample' | 'personal'): Syn
 }
 
 function buildOptimizationStrategy(report: ProfileReport, mode: 'sample' | 'personal'): SynthesisSection {
-  const mode = getPrimaryMode(report);
-  const fragment = OPTIMIZATION_FRAGMENTS[mode];
+  const primaryMode = getPrimaryMode(report);
+  const fragment = OPTIMIZATION_FRAGMENTS[primaryMode];
 
   return {
     heading: 'Optimization Strategy',
