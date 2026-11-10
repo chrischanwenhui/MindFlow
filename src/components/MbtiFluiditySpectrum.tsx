@@ -3,6 +3,7 @@ import type { DichotomyResult } from '../engine/scoring';
 
 interface MbtiFluiditySpectrumProps {
   dimensions?: DichotomyResult[];
+  mode?: 'sample' | 'personal';
 }
 
 type SpectrumSide = 'left' | 'right' | 'center';
@@ -112,7 +113,7 @@ function getAriaLabel(config: SpectrumConfig, signalLabel: string, side: Spectru
   return `${config.title} spectrum. ${signalLabel.toLowerCase()} signal with ${leanDescription}. Confidence level ${confidencePercent} percent.`;
 }
 
-export function MbtiFluiditySpectrum({ dimensions }: MbtiFluiditySpectrumProps) {
+export function MbtiFluiditySpectrum({ dimensions, mode = 'personal' }: MbtiFluiditySpectrumProps) {
   if (!dimensions?.length) return null;
 
   const dimensionsByName = new Map(dimensions.map((dimension) => [dimension.dimension, dimension]));
@@ -126,7 +127,12 @@ export function MbtiFluiditySpectrum({ dimensions }: MbtiFluiditySpectrumProps) 
     const centerPosition = dominantSide === 'left' ? 50 - shiftMagnitude : dominantSide === 'right' ? 50 + shiftMagnitude : 50;
     const pillWidth = 45 - ratio * 33;
     const signalLabel = getSignalLabel(dimension, dominantSide);
-    const insight = getInsightSentence(config, dominantSide, dimension.signalStrength);
+    const rawInsight = getInsightSentence(config, dominantSide, dimension.signalStrength);
+    const insight = mode === 'sample'
+      ? rawInsight.replace(/^You draw/, 'The fictional participant draws')
+        .replace(/^Your response pattern/, "The fictional participant's response pattern")
+        .replace(/^Your /, "The fictional participant's ")
+      : rawInsight;
     const ariaLabel = getAriaLabel(config, signalLabel, dominantSide, ratio);
     const pillStyle: CSSProperties = {
       left: `${centerPosition}%`,

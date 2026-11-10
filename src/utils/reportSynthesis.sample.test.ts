@@ -14,6 +14,7 @@ describe('fictional report language integrity', () => {
     expect(text).toMatch(/fictional/i);
     expect(text).not.toMatch(/\b(?:your|you)\b/i);
     expect(text).not.toMatch(/current responses/i);
+    expect(text).not.toMatch(/\\b(?:systems|alignconstraints|scope|why)\\b/i);
   });
 
   it('does not change the personal executive narrative', () => {

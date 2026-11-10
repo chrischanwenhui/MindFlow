@@ -1,5 +1,6 @@
 import type { DichotomyResult, ProfileReport, SignalStrength } from '../engine/scoring';
 import { joinWithOxfordComma } from './textFormatters';
+import { readableOperatingSignal } from './reportLabels';
 
 export interface SynthesisSection {
   heading: string;
@@ -282,7 +283,9 @@ function buildOperationalDrive(report: ProfileReport, mode: 'sample' | 'personal
   const operationalFragments = [getTopBigFiveFragment(report)];
   const topRiasec = getTopRiasec(report);
   if (topRiasec) operationalFragments.push(RIASEC_OPERATIONAL_FRAGMENTS[topRiasec] ?? `${topRiasec.toLowerCase()} interest signals`);
-  const workstyle = report.workstylePattern && report.workstylePattern !== 'Balanced' ? `${report.workstylePattern.toLowerCase()} workstyle cues` : 'balanced workstyle cues';
+  const workstyle = report.workstylePattern && report.workstylePattern !== 'Balanced'
+    ? `workstyle cue: ${readableOperatingSignal('workstyle', report.workstylePattern, 'en').toLowerCase()}`
+    : 'no single dominant workstyle response';
   operationalFragments.push(workstyle);
 
   const contrast = hasIntroversionCollaborationContrast(report)

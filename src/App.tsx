@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LanguageSelector } from './components/LanguageSelector';
 import { MbtiFluiditySpectrum } from './components/MbtiFluiditySpectrum';
+import { readableOperatingSignal, readableTopOperating, readableGeneralPrompt } from './utils/reportLabels';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
@@ -323,7 +324,7 @@ export function App() {
     personalityTypeEstimate: report.executiveSummaryParts.personalityTypeEstimate,
     topBigFive: report.executiveSummaryParts.topBigFive,
     topRiasec: report.executiveSummaryParts.topRiasec,
-    topOperating: report.executiveSummaryParts.topOperating,
+    topOperating: readableTopOperating(report.executiveSummaryParts.topOperating, language),
     topCognitiveLabel: report.executiveSummaryParts.topCognitiveLabel
   });
   const executiveSummary = useMemo(() => generateExecutiveSummary(report, isSampleReport ? 'sample' : 'personal'), [report, isSampleReport]);
@@ -560,7 +561,7 @@ export function App() {
         <section className="card">
           <h2>{tx('resultsTitle')}</h2>
           <p><b>{tx('personalityEstimate')}</b> {mbtiSummaryText}</p>
-          <p><b>{tx('motivationPattern')}</b> {report.motivationPattern}</p>
+          <p><b>{tx('selectedMotivationLabel')}</b> {readableOperatingSignal('motivation', report.motivationPattern, language)}</p>
           <p>{cognitiveSummaryText}</p>
           <button onClick={openPersonalReport}>{tx('viewMyReport')}</button>
         </section>
@@ -599,7 +600,8 @@ export function App() {
           <ReportSection title={tx('personalitySection')}>
             <p>{mbtiSummaryText}</p>
             <p className="disclaimer">{tx(isSampleReport ? 'samplePersonalitySignalDisclaimer' : 'personalitySignalDisclaimer')}</p>
-            {shouldRenderMbtiFluiditySpectrum(language) && <MbtiFluiditySpectrum dimensions={report.mbtiScoreState.dimensions} />}
+            {shouldRenderMbtiFluiditySpectrum(language) && <MbtiFluiditySpectrum dimensions={report.mbtiScoreState.dimensions} mode={isSampleReport ? 'sample' : 'personal'} />}
+            <p className="disclaimer">{tx('preferenceSignalExplanation')}</p>
             <ul>
               {report.mbtiScoreState.dimensions.map((dimension) => (
                 <li key={dimension.dimension}>
@@ -637,12 +639,14 @@ export function App() {
             </div>
           </ReportSection>
           <ReportSection title={tx('motivationSection')}>
-            <p>{report.motivationPattern} {tx(isSampleReport ? 'sampleMotivationSuffix' : 'motivationSuffix')}</p>
-            <p>{tx('workstyleLabel')} <strong>{report.workstylePattern}</strong>.</p>
+            <p>{tx('selectedMotivationLabel')} <strong>{readableOperatingSignal('motivation', report.motivationPattern, language)}</strong>.</p>
+            <p>{tx('workstyleLabel')} <strong>{readableOperatingSignal('workstyle', report.workstylePattern, language)}</strong>.</p>
+            <p className="disclaimer">{tx('operatingSelectionNote')}</p>
           </ReportSection>
           <ReportSection title={tx('workOperatingSection')}>
-            <p>{tx('stressLabel')} <strong>{report.stressPattern}</strong>.</p>
-            <p>{tx('leadershipLabel')} <strong>{report.leadershipPattern}</strong>.</p>
+            <p>{tx('stressLabel')} <strong>{readableOperatingSignal('stress', report.stressPattern, language)}</strong>.</p>
+            <p>{tx('leadershipLabel')} <strong>{readableOperatingSignal('leadership', report.leadershipPattern, language)}</strong>.</p>
+            <p className="disclaimer">{tx('operatingSelectionNote')}</p>
           </ReportSection>
           <ReportSection title={tx('cognitiveSection')}>
             <p>{cognitiveSummaryText}</p>
@@ -650,16 +654,19 @@ export function App() {
             <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           </ReportSection>
           <ReportSection title={tx('strengthsSection')}>
-            <ul>{report.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
+            <p className="disclaimer">{tx('generalPromptDisclosure')}</p>
+            <ul>{report.strengths.map((item) => <li key={item}>{readableGeneralPrompt(item, language)}</li>)}</ul>
           </ReportSection>
           <ReportSection title={tx('blindSpotsSection')}>
-            <ul>{report.blindSpots.map((item) => <li key={item}>{item}</li>)}</ul>
+            <p className="disclaimer">{tx('generalPromptDisclosure')}</p>
+            <ul>{report.blindSpots.map((item) => <li key={item}>{readableGeneralPrompt(item, language)}</li>)}</ul>
           </ReportSection>
           <ReportSection title={tx('combinedInsightsSection')}>
             <ul>{report.combinedInsightKeys.map((item) => <li key={item}>{tx(isSampleReport ? SAMPLE_INSIGHT_KEYS[item] ?? 'sampleCombinedInsightCrossDomainReview' : item as TranslationKey)}</li>)}</ul>
           </ReportSection>
           <ReportSection title={tx('growthAreasSection')}>
-            <ul>{report.suggestedGrowthAreas.map((item) => <li key={item}>{item}</li>)}</ul>
+            <p className="disclaimer">{tx('generalPromptDisclosure')}</p>
+            <ul>{report.suggestedGrowthAreas.map((item) => <li key={item}>{readableGeneralPrompt(item, language)}</li>)}</ul>
           </ReportSection>
           <ReportSection title={tx('confidenceSection')}>
             <p>{confidenceNote}</p>
