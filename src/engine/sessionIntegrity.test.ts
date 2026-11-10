@@ -94,15 +94,18 @@ describe('assessment session structural integrity and conservative recovery', ()
     expect(buildConservativeRecovery(ids, seed, answers)).toBeNull();
   });
 
-  it('refuses speculative memory replay when truncated cognitive tail may be exposed', () => {
-    const cutoff = SESSION_TARGET_COUNT - 4;
-    const exposed: Answer[] = [...answers, {
-      questionId: baseline[82].id, value: baseline[82].options[0].value, score: baseline[82].options[0].score
-    }];
-    const missingTail = baseline.slice(cutoff);
-    if (missingTail.some((q) => q.cognitiveDomain === 'memory')) {
-      expect(buildConservativeRecovery(baseline.slice(0, cutoff).map((q) => q.id), seed, exposed)).toBeNull();
-    }
+  it('refuses speculative memory replay for truncated tails even with no cognitive answers', () => {
+    const cutoff = baseline.findIndex((q, i) => i > 80 && q.cognitiveDomain === 'memory');
+    expect(cutoff).toBeGreaterThan(80);
+    expect(buildConservativeRecovery(baseline.slice(0, cutoff).map((q) => q.id), seed, answers)).toBeNull();
+  });
+
+  it('refuses automatic repair of damaged memory slots', () => {
+    const memoryIndex = baseline.findIndex((q) => q.cognitiveDomain === 'memory');
+    expect(memoryIndex).toBeGreaterThan(81);
+    const ids = baseline.map((q) => q.id);
+    ids[memoryIndex] = ids[memoryIndex - 1];
+    expect(buildConservativeRecovery(ids, seed, answers)).toBeNull();
   });
 
   it('does not overwrite unknown-version, malformed JSON, or missing-seed data', () => {
