@@ -3,8 +3,10 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { App } from './App';
 import appSource from './App.tsx?raw';
-import stylesheet from './styles.css?raw';
+import { readFileSync } from 'node:fs';
 import { dictionaries } from './i18n';
+
+const stylesheet = readFileSync(new URL('./styles.css', import.meta.url), 'utf8');
 
 describe('fictional sample report UI safeguards', () => {
   beforeEach(() => {
