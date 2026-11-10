@@ -69,11 +69,23 @@ describe('assessment session structural integrity and conservative recovery', ()
     if (!replacement) throw Error('A replacement memory question is required for this test');
     const altered = [...baseline];
     altered[index] = replacement;
-    expect(isValidSession(altered)).toBe(true);
+    expect(isValidSession(altered, seed)).toBe(true);
     const ids = altered.map((q) => q.id);
     ids[5] = ids[4];
     const recovered = buildConservativeRecovery(ids, seed, answers);
     expect(recovered?.questions[index].id).toBe(replacement.id);
+    expect(recovered?.questions[index].options).toEqual(replacement.options);
+  });
+
+  it('rejects a 101-item same-section reshuffle that does not match the saved seed', () => {
+    const swapped = [...baseline];
+    [swapped[6], swapped[7]] = [swapped[7], swapped[6]];
+    expect(isValidSession(swapped)).toBe(true); // Structural length/sections alone are insufficient.
+    expect(isValidSession(swapped, seed)).toBe(false);
+    expect(getSessionIntegrityIssues(swapped, seed)).toContain('unverifiable-session-order');
+    const persisted = inspectStoredAssessment(snapshot(swapped.map((q) => q.id)));
+    expect(persisted.recovery?.reasons).toContain('invalid-stored-session');
+    expect(persisted.recovery?.candidate).toBeNull();
   });
 
   it('does not guess where an unexpected known ID belongs', () => {
