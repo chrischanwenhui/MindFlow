@@ -3,6 +3,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { App } from './App';
 import appSource from './App.tsx?raw';
+import stylesheet from './styles.css?raw';
 import { dictionaries } from './i18n';
 
 describe('fictional sample report UI safeguards', () => {
@@ -23,6 +24,22 @@ describe('fictional sample report UI safeguards', () => {
     expect(html).toContain(dictionaries.en.viewExampleReport);
     expect(html).toContain(dictionaries.en.begin);
     expect(html).not.toContain(dictionaries.en.sampleReportNoticeTitle);
+  });
+
+  it('puts the assessment and example actions before the category details', () => {
+    const html = renderToStaticMarkup(createElement(App));
+    expect(html.indexOf(dictionaries.en.viewExampleReport)).toBeGreaterThan(-1);
+    expect(html.indexOf(dictionaries.en.viewExampleReport)).toBeLessThan(html.indexOf(dictionaries.en.assessmentCategoriesDisclaimer));
+    expect(html).toContain('<h1 class="hero-title">MindFlow</h1>');
+    expect((html.match(/class="assessment-category-icon"/g) ?? [])).toHaveLength(6);
+    expect((html.match(/Work &amp; Learning/g) ?? [])).toHaveLength(1);
+    expect(html).not.toContain('🧭');
+  });
+
+  it('keeps mobile spacing and secondary button contrast explicit', () => {
+    expect(stylesheet).toMatch(/\.app\s*\{[^}]*align-content:\s*start/);
+    expect(stylesheet).toMatch(/\.hero-secondary-cta\s*\{[^}]*color:\s*#193c68/);
+    expect(stylesheet).toContain('.top-nav:not(.top-nav--compact) .nav-link');
   });
 
   it('uses separate sources and routes for fictional and personal reports', () => {

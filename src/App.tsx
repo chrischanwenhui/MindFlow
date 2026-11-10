@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LanguageSelector } from './components/LanguageSelector';
+import { AssessmentCategoryIcon } from './components/AssessmentCategoryIcon';
 import { MbtiFluiditySpectrum } from './components/MbtiFluiditySpectrum';
 import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
@@ -347,12 +348,12 @@ export function App() {
   });
   const confidenceNote = formatTemplate(tx(isSampleReport ? 'sampleConfidenceNoteTemplate' : 'confidenceNoteTemplate'), { confidenceLevel: report.confidenceLevel });
   const assessmentCategories = [
-    { icon: '🧭', titleKey: 'categoryPersonalityTitle', descriptionKey: 'categoryPersonalityDesc' },
-    { icon: '💼', titleKey: 'categoryCareerTitle', descriptionKey: 'categoryCareerDesc' },
-    { icon: '🧠', titleKey: 'categoryCognitiveTitle', descriptionKey: 'categoryCognitiveDesc' },
-    { icon: '🌱', titleKey: 'categoryStrengthsTitle', descriptionKey: 'categoryStrengthsDesc' },
-    { icon: '🔍', titleKey: 'categoryPatternsTitle', descriptionKey: 'categoryPatternsDesc' },
-    { icon: '📚', titleKey: 'categoryWorkLearningTitle', descriptionKey: 'categoryWorkLearningDesc' }
+    { icon: 'personality', titleKey: 'categoryPersonalityTitle', descriptionKey: 'categoryPersonalityDesc' },
+    { icon: 'career', titleKey: 'categoryCareerTitle', descriptionKey: 'categoryCareerDesc' },
+    { icon: 'cognitive', titleKey: 'categoryCognitiveTitle', descriptionKey: 'categoryCognitiveDesc' },
+    { icon: 'growth', titleKey: 'categoryStrengthsTitle', descriptionKey: 'categoryStrengthsDesc' },
+    { icon: 'motivation', titleKey: 'categoryPatternsTitle', descriptionKey: 'categoryPatternsDesc' },
+    { icon: 'learning', titleKey: 'categoryWorkLearningTitle', descriptionKey: 'categoryWorkLearningDesc' }
   ] as const;
 
   return (
@@ -379,13 +380,14 @@ export function App() {
           </>
         ) : (
           <>
-            <button className="option" onClick={() => setScreen('assessment')}>
+            <strong className="brand brand--nav">{tx('navBrand')}</strong>
+            <button className={`nav-link${screen === 'assessment' ? ' nav-link--active' : ''}`} aria-current={screen === 'assessment' ? 'page' : undefined} onClick={() => setScreen('assessment')}>
               {tx('navAssessment')}
             </button>
-            <button className="option" onClick={() => setScreen('about')}>
+            <button className={`nav-link${screen === 'about' ? ' nav-link--active' : ''}`} aria-current={screen === 'about' ? 'page' : undefined} onClick={() => setScreen('about')}>
               {tx('navAboutMindflow')}
             </button>
-            <button className="option" onClick={() => setScreen('provide')}>
+            <button className={`nav-link${screen === 'provide' ? ' nav-link--active' : ''}`} aria-current={screen === 'provide' ? 'page' : undefined} onClick={() => setScreen('provide')}>
               {tx('navProvide')}
             </button>
             <LanguageSelector
@@ -413,10 +415,16 @@ export function App() {
             </div>
           )}
           <p className="hero-kicker">{tx('heroKicker')}</p>
-          <h1 className="hero-title">{tx('landingTitle')}</h1>
+          <h1 className="hero-title">{tx('navBrand')}</h1>
           <p className="hero-subtitle">
             {tx('landingDesc')}
           </p>
+          <div className="hero-actions">
+            <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
+            <button className="hero-secondary-cta" onClick={() => setAssessmentView('sample-report')}>
+              {tx('viewExampleReport')}
+            </button>
+          </div>
           <p className="disclaimer hero-disclaimer">
             {tx('nonDiagnosticNotice')}
           </p>
@@ -424,18 +432,14 @@ export function App() {
             <p className="disclaimer">{tx('assessmentCategoriesDisclaimer')}</p>
             {assessmentCategories.map((category) => (
               <article key={category.titleKey} className="assessment-category-card">
-                <div className="assessment-category-card__icon" aria-hidden="true">{category.icon}</div>
-                <h2>{tx(category.titleKey)}</h2>
-                <p>{tx(category.descriptionKey)}</p>
+                <div className="assessment-category-card__icon"><AssessmentCategoryIcon kind={category.icon} /></div>
+                <div className="assessment-category-card__copy">
+                  <h2>{tx(category.titleKey)}</h2>
+                  <p>{tx(category.descriptionKey)}</p>
+                </div>
               </article>
             ))}
           </section>
-          <div className="hero-actions">
-            <button onClick={() => setAssessmentView('start')}>{tx('begin')}</button>
-            <button className="hero-secondary-cta" onClick={() => setAssessmentView('sample-report')}>
-              {tx('viewExampleReport')}
-            </button>
-          </div>
         </section>
       )}
 
