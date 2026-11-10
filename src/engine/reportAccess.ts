@@ -13,8 +13,8 @@ export type AssessmentAccess = {
  * Structural integrity and answer validity are one gate. The canonical
  * answers returned here MUST also be the only answers sent into scoring.
  */
-export function inspectAssessmentAccess(questions: Question[], answers: Answer[]): AssessmentAccess {
-  const sessionIssues = getSessionIntegrityIssues(questions);
+export function inspectAssessmentAccess(questions: Question[], answers: Answer[], sessionSeed?: string): AssessmentAccess {
+  const sessionIssues = getSessionIntegrityIssues(questions, sessionSeed);
   const inspected = inspectAnswers(questions, answers);
   if (sessionIssues.length) {
     return { status: 'invalid-session', nextIndex: null, canonicalAnswers: [], reasons: sessionIssues };
@@ -35,13 +35,13 @@ export function inspectAssessmentAccess(questions: Question[], answers: Answer[]
   };
 }
 
-export function getNextUnansweredQuestionIndex(questions: Question[], answers: Answer[]): number | null {
-  const inspected = inspectAssessmentAccess(questions, answers);
+export function getNextUnansweredQuestionIndex(questions: Question[], answers: Answer[], sessionSeed?: string): number | null {
+  const inspected = inspectAssessmentAccess(questions, answers, sessionSeed);
   // Do not signal "complete" for malformed sessions. Only the explicit
   // status === 'complete' value grants report access.
   return inspected.status === 'complete' ? null : inspected.nextIndex ?? 0;
 }
 
-export function canViewPersonalReport(questions: Question[], answers: Answer[]): boolean {
-  return inspectAssessmentAccess(questions, answers).status === 'complete';
+export function canViewPersonalReport(questions: Question[], answers: Answer[], sessionSeed?: string): boolean {
+  return inspectAssessmentAccess(questions, answers, sessionSeed).status === 'complete';
 }
