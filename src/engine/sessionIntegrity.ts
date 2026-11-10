@@ -169,6 +169,9 @@ export function buildConservativeRecovery(
     }
     // Only a duplicate of a prior ID or an unknown ID is a provably corrupt slot.
     if ((seen.has(id) || !current) && !seen.has(original.id)) {
+      // The damaged slot might have contained an already exposed memory item.
+      // Without persisted exposure history, do not speculate about its contents.
+      if (original.cognitiveDomain === 'memory') return null;
       seen.add(original.id);
       continue;
     }
@@ -178,8 +181,7 @@ export function buildConservativeRecovery(
   // A truncated cognitive tail could contain a previously exposed memory question.
   // Without persisted exposure history, do not replay it speculatively.
   const missingTail = baseline.slice(storedIds.length);
-  const answeredCognitive = answers.some((a) => questionMap.get(a.questionId)?.section === 'cognitive');
-  if (answeredCognitive && missingTail.some((q) => q.cognitiveDomain === 'memory')) return null;
+  if (missingTail.some((q) => q.cognitiveDomain === 'memory')) return null;
   if (!isValidSession(candidate, seed)) return null;
 
   const answerGroups = new Map<string, Answer[]>();
