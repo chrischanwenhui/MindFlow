@@ -24,6 +24,15 @@ type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report' | 
 type MemoryPhase = 'ready' | 'reveal' | 'answer';
 const STORAGE_KEY = 'mindflow_answers_v1';
 
+const SAMPLE_INSIGHT_KEYS: Record<string, TranslationKey> = {
+  combinedInsightMilestones: 'sampleCombinedInsightMilestones',
+  combinedInsightInvestigativeOpen: 'sampleCombinedInsightInvestigativeOpen',
+  combinedInsightStressControl: 'sampleCombinedInsightStressControl',
+  combinedInsightSocialFacilitative: 'sampleCombinedInsightSocialFacilitative',
+  combinedInsightWorkflowAdjustments: 'sampleCombinedInsightWorkflowAdjustments',
+  combinedInsightCrossDomainReview: 'sampleCombinedInsightCrossDomainReview'
+};
+
 function isMemoryQuestionItem(question: (typeof questions)[number] | undefined): boolean {
   return Boolean(question?.section === 'cognitive' && question.cognitiveDomain === 'memory');
 }
@@ -358,7 +367,7 @@ export function App() {
     personalityTypeEstimate: report.mbtiScoreState.estimatedType,
     confidenceLevel: mbtiConfidenceLabel
   });
-  const confidenceNote = formatTemplate(tx('confidenceNoteTemplate'), { confidenceLevel: report.confidenceLevel });
+  const confidenceNote = formatTemplate(tx(isSampleReport ? 'sampleConfidenceNoteTemplate' : 'confidenceNoteTemplate'), { confidenceLevel: report.confidenceLevel });
   const assessmentCategories = [
     { icon: '🧭', titleKey: 'categoryPersonalityTitle', descriptionKey: 'categoryPersonalityDesc' },
     { icon: '💼', titleKey: 'categoryCareerTitle', descriptionKey: 'categoryCareerDesc' },
@@ -611,7 +620,7 @@ export function App() {
           </ReportSection>
           <ReportSection title={tx('personalitySection')}>
             <p>{mbtiSummaryText}</p>
-            <p className="disclaimer">{tx('personalitySignalDisclaimer')}</p>
+            <p className="disclaimer">{tx(isSampleReport ? 'samplePersonalitySignalDisclaimer' : 'personalitySignalDisclaimer')}</p>
             {shouldRenderMbtiFluiditySpectrum(language) && <MbtiFluiditySpectrum dimensions={report.mbtiScoreState.dimensions} />}
             <ul>
               {report.mbtiScoreState.dimensions.map((dimension) => (
@@ -650,7 +659,7 @@ export function App() {
             </div>
           </ReportSection>
           <ReportSection title={tx('motivationSection')}>
-            <p>{report.motivationPattern} {tx('motivationSuffix')}</p>
+            <p>{report.motivationPattern} {tx(isSampleReport ? 'sampleMotivationSuffix' : 'motivationSuffix')}</p>
             <p>{tx('workstyleLabel')} <strong>{report.workstylePattern}</strong>.</p>
           </ReportSection>
           <ReportSection title={tx('workOperatingSection')}>
@@ -669,7 +678,7 @@ export function App() {
             <ul>{report.blindSpots.map((item) => <li key={item}>{item}</li>)}</ul>
           </ReportSection>
           <ReportSection title={tx('combinedInsightsSection')}>
-            <ul>{report.combinedInsightKeys.map((item) => <li key={item}>{tx(item as TranslationKey)}</li>)}</ul>
+            <ul>{report.combinedInsightKeys.map((item) => <li key={item}>{tx(isSampleReport ? SAMPLE_INSIGHT_KEYS[item] ?? 'sampleCombinedInsightCrossDomainReview' : item as TranslationKey)}</li>)}</ul>
           </ReportSection>
           <ReportSection title={tx('growthAreasSection')}>
             <ul>{report.suggestedGrowthAreas.map((item) => <li key={item}>{item}</li>)}</ul>
