@@ -4,7 +4,7 @@ import { t, type Language, type TranslationKey } from '../i18n';
 /** Presentation-only labels. These mappings never change stored answers or score keys. */
 export type OperatingSection = Extract<Section, 'motivation' | 'stress' | 'leadership' | 'workstyle'>;
 export const OPERATING_SECTIONS: OperatingSection[] = ['motivation', 'stress', 'leadership', 'workstyle'];
-const canonical = new Map(
+const canonical = new Map<string, string>(
   questions.filter(q => OPERATING_SECTIONS.some(section => section === q.section))
     .flatMap(q => q.options.map(option => [`${q.section}.${option.value}`, option.label] as const))
 );
