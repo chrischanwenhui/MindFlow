@@ -20,6 +20,12 @@ describe('personal report completion and canonical scoring gate', () => {
     expect(getNextUnansweredQuestionIndex(session, complete)).toBeNull();
   });
 
+  it('rejects a complete but seed-inconsistent session before scoring', () => {
+    expect(canViewPersonalReport(session, complete, 'report-gate-audit')).toBe(true);
+    expect(canViewPersonalReport(session, complete, 'different-seed')).toBe(false);
+    expect(inspectAssessmentAccess(session, complete, 'different-seed').status).toBe('invalid-session');
+  });
+
   it('rejects a truncated session even when every retained question is answered (F01)', () => {
     expect(canViewPersonalReport([session[0]], [complete[0]])).toBe(false);
     expect(canViewPersonalReport(session.slice(0, -1), complete.slice(0, -1))).toBe(false);
