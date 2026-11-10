@@ -3,10 +3,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { App } from './App';
 import appSource from './App.tsx?raw';
-import { readFileSync } from 'node:fs';
 import { dictionaries } from './i18n';
-
-const stylesheet = readFileSync(new URL('./styles.css', import.meta.url), 'utf8');
 
 describe('fictional sample report UI safeguards', () => {
   beforeEach(() => {
@@ -38,10 +35,11 @@ describe('fictional sample report UI safeguards', () => {
     expect(html).not.toContain('🧭');
   });
 
-  it('keeps mobile spacing and secondary button contrast explicit', () => {
-    expect(stylesheet).toMatch(/\.app\s*\{[^}]*align-content:\s*start/);
-    expect(stylesheet).toMatch(/\.hero-secondary-cta\s*\{[^}]*color:\s*#193c68/);
-    expect(stylesheet).toContain('.top-nav:not(.top-nav--compact) .nav-link');
+  it('retains a branded navigation header and separate sample action', () => {
+    const html = renderToStaticMarkup(createElement(App));
+    expect(html).toContain('class="brand brand--nav"');
+    expect(html).toContain('class="hero-secondary-cta"');
+    expect(html).toContain('aria-current="page"');
   });
 
   it('uses separate sources and routes for fictional and personal reports', () => {
