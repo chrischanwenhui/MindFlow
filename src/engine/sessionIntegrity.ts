@@ -39,11 +39,13 @@ function groupOf(question: Question): string {
 }
 
 /** Structural validation, independent of the number of saved answers. */
-export function getSessionIntegrityIssues(session: Question[]): string[] {
+export function getSessionIntegrityIssues(session: Question[], sessionSeed?: string): string[] {
   const issues: string[] = [];
   if (session.length !== SESSION_TARGET_COUNT) issues.push('incorrect-session-length');
   if (new Set(session.map((item) => item.id)).size !== session.length) issues.push('duplicate-question-ids');
 
+  const expected = sessionSeed ? buildAssessmentSession(allQuestions, { sessionSeed }) : null;
+  const originalIds = new Set(expected?.map((q) => q.id) ?? []);
   session.forEach((item, index) => {
     const canonical = questionMap.get(item.id);
     if (!canonical || canonical.section !== item.section) {
@@ -53,12 +55,21 @@ export function getSessionIntegrityIssues(session: Question[]): string[] {
     if (!group || groupOf(item) !== group) {
       if (!issues.includes('invalid-question-order')) issues.push('invalid-question-order');
     }
+    if (expected && expected[index]) {
+      const original = expected[index];
+      const permittedMemoryReplacement = original.cognitiveDomain === 'memory'
+        && item.cognitiveDomain === 'memory'
+        && !originalIds.has(item.id);
+      if (item.id !== original.id && !permittedMemoryReplacement) {
+        if (!issues.includes('unverifiable-session-order')) issues.push('unverifiable-session-order');
+      }
+    }
   });
   return issues;
 }
 
-export function isValidSession(session: Question[]): boolean {
-  return getSessionIntegrityIssues(session).length === 0;
+export function isValidSession(session: Question[], seed?: string): boolean {
+  return getSessionIntegrityIssues(session, seed).length === 0;
 }
 
 /** Do not pass raw, duplicated, foreign or mismatched answers into scoring. */
@@ -152,7 +163,7 @@ export function buildConservativeRecovery(
       && current?.section === 'cognitive' && current.cognitiveDomain === 'memory'
       && !baselineIds.has(id) && !seen.has(id);
     if (validMemoryReplacement) {
-      candidate[index] = current;
+      candidate[index] = buildAssessmentSession(allQuestions, { sessionSeed: seed, sessionIds: [id] })[0];
       seen.add(id);
       continue;
     }
@@ -169,7 +180,7 @@ export function buildConservativeRecovery(
   const missingTail = baseline.slice(storedIds.length);
   const answeredCognitive = answers.some((a) => questionMap.get(a.questionId)?.section === 'cognitive');
   if (answeredCognitive && missingTail.some((q) => q.cognitiveDomain === 'memory')) return null;
-  if (!isValidSession(candidate)) return null;
+  if (!isValidSession(candidate, seed)) return null;
 
   const answerGroups = new Map<string, Answer[]>();
   for (const answer of answers) {
@@ -212,7 +223,7 @@ export function inspectStoredAssessment(snapshot: AssessmentSnapshot): InitialAs
       ? ['invalid-or-duplicate-answers'] : [];
   const reasons = [
     ...(unsupportedVersion ? ['unsupported-session-version'] : []),
-    ...((snapshot.idsRaw !== null && (!storedIds || storedIds.length !== SESSION_TARGET_COUNT || !isValidSession(restored))) ? ['invalid-stored-session'] : []),
+    ...((snapshot.idsRaw !== null && (!storedIds || storedIds.length !== SESSION_TARGET_COUNT || !isValidSession(restored, savedSeed ?? undefined))) ? ['invalid-stored-session'] : []),
     ...((snapshot.idsRaw === null && snapshot.answersRaw !== null) ? ['missing-session-ids'] : []),
     ...((snapshot.idsRaw !== null && !savedSeed) ? ['missing-session-seed'] : []),
     ...answerIssues
@@ -221,7 +232,7 @@ export function inspectStoredAssessment(snapshot: AssessmentSnapshot): InitialAs
   const recovery = !noSession && reasons.length
     ? {
         reasons,
-        candidate: unsupportedVersion ? null : storedIds && storedIds.length === SESSION_TARGET_COUNT && isValidSession(restored) && savedSeed && storedAnswers
+        candidate: unsupportedVersion ? null : storedIds && storedIds.length === SESSION_TARGET_COUNT && isValidSession(restored, savedSeed ?? undefined) && savedSeed && storedAnswers
           ? { seed, questions: restored, answers: inspectAnswers(restored, storedAnswers).canonicalAnswers }
           : buildConservativeRecovery(storedIds ?? (snapshot.idsRaw === null ? [] : null), savedSeed, storedAnswers),
         preservedAnswerCount: storedAnswers?.length ?? 0
