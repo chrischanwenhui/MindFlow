@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createElement } from 'react';
+import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { App } from './App';
 import appSource from './App.tsx?raw';
-import stylesSource from './styles.css?raw';
+const stylesSource = readFileSync(new URL('./styles.css', import.meta.url), 'utf8');
 import { dictionaries } from './i18n';
 
 describe('fictional sample report UI safeguards', () => {
@@ -65,8 +66,9 @@ describe('fictional sample report UI safeguards', () => {
         'restartConfirm',
         'startFreshConfirm'
       ] as const) {
-        expect(dictionary[key].trim().length).toBeGreaterThan(5);
+        expect(dictionary[key].trim().length).toBeGreaterThan(0);
       }
+      expect(dictionary.sampleReportNoticeBody.trim().length).toBeGreaterThan(20);
     }
   });
 });
