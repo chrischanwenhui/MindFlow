@@ -1,43 +1,67 @@
 import { describe, expect, it } from 'vitest';
-import type { Question } from '../data/questions';
-import { canViewPersonalReport, getNextUnansweredQuestionIndex } from './reportAccess';
-import type { Answer } from './scoring';
+import { questions } from '../data/questions';
+import { buildAssessmentSession, SESSION_TARGET_COUNT } from './session';
+import { canViewPersonalReport, getNextUnansweredQuestionIndex, inspectAssessmentAccess } from './reportAccess';
+import { scoreAssessment, type Answer } from './scoring';
 
-const questions: Question[] = [
-  { id: 'q-1', section: 'mbti', prompt: 'A?', options: [
-    { label: 'A', value: 'I', score: 2 }, { label: 'B', value: 'E', score: 2 }
-  ] },
-  { id: 'q-2', section: 'ocean', prompt: 'B?', options: [
-    { label: '1', value: 'open', score: 1 }, { label: '2', value: 'open', score: 2 }
-  ] }
-];
-const complete: Answer[] = [
-  { questionId: 'q-1', value: 'I', score: 2 },
-  { questionId: 'q-2', value: 'open', score: 2 }
-];
+const session = buildAssessmentSession(questions, { sessionSeed: 'report-gate-audit' });
+const complete: Answer[] = session.map((q) => ({
+  questionId: q.id,
+  value: q.options[0].value,
+  score: q.options[0].score
+}));
 
-describe('personal report access', () => {
-  it('requires at least one question and all current valid answers', () => {
-    expect(canViewPersonalReport([], [])).toBe(false);
-    expect(canViewPersonalReport(questions, [])).toBe(false);
-    expect(canViewPersonalReport(questions, complete)).toBe(true);
-    expect(getNextUnansweredQuestionIndex(questions, complete)).toBeNull();
+describe('personal report completion and canonical scoring gate', () => {
+  it('accepts the complete current 101-question session', () => {
+    expect(session.length).toBe(SESSION_TARGET_COUNT);
+    expect(canViewPersonalReport(session, complete)).toBe(true);
+    expect(inspectAssessmentAccess(session, complete).status).toBe('complete');
+    expect(inspectAssessmentAccess(session, complete).canonicalAnswers).toEqual(complete);
+    expect(getNextUnansweredQuestionIndex(session, complete)).toBeNull();
   });
 
-  it('resumes at the first missing answer rather than trusting raw array length', () => {
-    expect(getNextUnansweredQuestionIndex(questions, [complete[1]])).toBe(0);
-    expect(getNextUnansweredQuestionIndex(questions, [complete[0]])).toBe(1);
+  it('rejects a truncated session even when every retained question is answered (F01)', () => {
+    expect(canViewPersonalReport([session[0]], [complete[0]])).toBe(false);
+    expect(canViewPersonalReport(session.slice(0, -1), complete.slice(0, -1))).toBe(false);
+    expect(inspectAssessmentAccess([session[0]], [complete[0]]).status).toBe('invalid-session');
   });
 
-  it('rejects duplicate, mismatched and non-finite responses', () => {
-    expect(canViewPersonalReport(questions, [...complete, complete[0]])).toBe(false);
-    expect(canViewPersonalReport(questions, [{ ...complete[0], value: 'invalid' }, complete[1]])).toBe(false);
-    expect(canViewPersonalReport(questions, [{ ...complete[0], score: 99 }, complete[1]])).toBe(false);
-    expect(canViewPersonalReport(questions, [{ ...complete[0], score: Number.NaN }, complete[1]])).toBe(false);
+  it('rejects duplicated session IDs without claiming completion (F03)', () => {
+    const corrupted = [...session];
+    corrupted[7] = corrupted[6];
+    const access = inspectAssessmentAccess(corrupted, complete);
+    expect(access.status).toBe('invalid-session');
+    expect(access.nextIndex).toBeNull();
+    expect(canViewPersonalReport(corrupted, complete)).toBe(false);
   });
 
-  it('ignores unrelated legacy answers but never accepts duplicated session IDs', () => {
-    expect(canViewPersonalReport(questions, [...complete, { questionId: 'old-id', value: 'x', score: 1 }])).toBe(true);
-    expect(canViewPersonalReport([questions[0], questions[0]], complete)).toBe(false);
+  it('resumes at first missing answer rather than trusting answer count', () => {
+    expect(getNextUnansweredQuestionIndex(session, complete.slice(1))).toBe(0);
+    expect(getNextUnansweredQuestionIndex(session, complete.slice(0, -1))).toBe(session.length - 1);
+    expect(inspectAssessmentAccess(session, []).status).toBe('incomplete');
+  });
+
+  it('rejects duplicate, foreign, mismatched and non-finite responses', () => {
+    const invalid: Answer[][] = [
+      [...complete, complete[0]],
+      [...complete, { questionId: 'foreign-id', value: 'x', score: 2 }],
+      [{ ...complete[0], value: 'malformed' }, ...complete.slice(1)],
+      [{ ...complete[0], score: 999 }, ...complete.slice(1)],
+      [{ ...complete[0], score: Number.NaN }, ...complete.slice(1)]
+    ];
+    for (const sample of invalid) {
+      expect(inspectAssessmentAccess(session, sample).status).toBe('invalid-answers');
+      expect(canViewPersonalReport(session, sample)).toBe(false);
+    }
+  });
+
+  it('returns only valid canonical answers for scoring, never extra duplicates', () => {
+    const tampered = [...complete, complete[0]];
+    const access = inspectAssessmentAccess(session, tampered);
+    expect(access.canonicalAnswers.length).toBe(SESSION_TARGET_COUNT - 1);
+    expect(access.canonicalAnswers.some((answer) => answer.questionId === complete[0].questionId)).toBe(false);
+    const observed = scoreAssessment(session, access.canonicalAnswers);
+    const expected = scoreAssessment(session, complete.slice(1));
+    expect(observed).toEqual(expected);
   });
 });
