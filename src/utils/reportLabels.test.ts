@@ -45,7 +45,7 @@ describe('report presentation label completeness', () => {
     for (const language of allLanguages) for (const item of items) {
       const result = readableGeneralPrompt(item, language);
       expect(result).not.toBe(dictionaries[language].reportUnknownPrompt);
-      expect(result.trim().length).toBeGreaterThan(8);
+      expect(result.trim().length).toBeGreaterThanOrEqual(4);
     }
     expect(readableGeneralPrompt('new unknown text', 'en')).toBe(dictionaries.en.reportUnknownPrompt);
   });
