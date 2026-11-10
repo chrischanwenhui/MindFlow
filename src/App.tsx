@@ -5,8 +5,9 @@ import { ReportSection } from './components/ReportSection';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { fictionalSampleQuestions, fictionalSampleReport } from './data/sampleAssessment';
-import { canViewPersonalReport, getNextUnansweredQuestionIndex } from './engine/reportAccess';
-import { buildAssessmentSession, createSessionSeed, getReplacementMemoryQuestion, readStoredSessionIds, readStoredSessionSeed, saveSessionIds, saveSessionSeed, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY } from './engine/session';
+import { inspectAssessmentAccess } from './engine/reportAccess';
+import { CURRENT_SESSION_VERSION, inspectStoredAssessment, isValidSession, RECOVERY_BACKUP_PREFIX, SESSION_VERSION_STORAGE_KEY, type AssessmentSnapshot, type RecoveryOffer } from './engine/sessionIntegrity';
+import { buildAssessmentSession, createSessionSeed, getReplacementMemoryQuestion, saveSessionIds, saveSessionSeed, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY } from './engine/session';
 import { scoreAssessment, type Answer, type DichotomyResult, type SignalStrength } from './engine/scoring';
 import { getInitialLanguage, t, type Language, type TranslationKey, LANGUAGE_STORAGE_KEY } from './i18n';
 import { localizeQuestion } from './i18n/questions';
@@ -19,7 +20,7 @@ import { generateExecutiveSummary } from './utils/reportSynthesis';
 
 
 type Screen = 'assessment' | 'about' | 'provide';
-type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report' | 'sample-report';
+type AssessmentView = 'landing' | 'start' | 'question' | 'results' | 'report' | 'sample-report' | 'recovery';
 type MemoryPhase = 'ready' | 'reveal' | 'answer';
 const STORAGE_KEY = 'mindflow_answers_v1';
 
@@ -70,51 +71,38 @@ export function shouldRenderMbtiFluiditySpectrum(language: Language): boolean {
   return language === 'en';
 }
 
-function parseStoredAnswers(raw: string | null): Answer[] {
-  if (!raw) return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is Answer => {
-      if (typeof item !== 'object' || item === null) return false;
-      const record = item as Record<string, unknown>;
-      return typeof record.questionId === 'string' && typeof record.value === 'string' && typeof record.score === 'number';
-    });
-  } catch {
-    return [];
-  }
-}
-
-
 export function getInitialSessionState() {
-  const storedSeed = readStoredSessionSeed();
-  const seed = storedSeed || createSessionSeed();
-  const storedIds = readStoredSessionIds();
-  return {
-    seed,
-    questions: buildAssessmentSession(questions, {
-      sessionIds: storedIds,
-      sessionSeed: seed
-    })
+  const snapshot: AssessmentSnapshot = {
+    answersRaw: localStorage.getItem(STORAGE_KEY),
+    idsRaw: localStorage.getItem(SESSION_IDS_STORAGE_KEY),
+    seedRaw: localStorage.getItem(SESSION_SEED_STORAGE_KEY),
+    versionRaw: localStorage.getItem(SESSION_VERSION_STORAGE_KEY)
   };
+  return inspectStoredAssessment(snapshot);
 }
 
 export function App() {
   const [screen, setScreen] = useState<Screen>('assessment');
   const [assessmentView, setAssessmentView] = useState<AssessmentView>('landing');
   const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<Answer[]>(() => parseStoredAnswers(localStorage.getItem(STORAGE_KEY)));
+  const [initialSession] = useState(getInitialSessionState);
+  const [answers, setAnswers] = useState<Answer[]>(initialSession.answers);
+  const [recovery, setRecovery] = useState<RecoveryOffer | null>(initialSession.recovery);
+  const [recoveryError, setRecoveryError] = useState('');
   const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
   const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('ready');
   const [revealRemaining, setRevealRemaining] = useState(5);
   const [questionTimerRemaining, setQuestionTimerRemaining] = useState<number | null>(null);
-  const [initialSession] = useState(getInitialSessionState);
   const [sessionSeed, setSessionSeed] = useState(initialSession.seed);
   const [sessionQuestions, setSessionQuestions] = useState(initialSession.questions);
   const [usedMemoryQuestionIds, setUsedMemoryQuestionIds] = useState<Set<string>>(new Set());
   const [showMemoryProtectionModal, setShowMemoryProtectionModal] = useState(false);
   const [memoryPoolExhaustedNotice, setMemoryPoolExhaustedNotice] = useState('');
   const hasSavedProgress = answers.length > 0 && sessionQuestions.length > 0;
+  const hasStoredAssessmentData = () => [
+    STORAGE_KEY, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY, SESSION_VERSION_STORAGE_KEY
+  ].some((key) => localStorage.getItem(key) !== null);
+  const recoveryBackupText = JSON.stringify(initialSession.snapshot, null, 2);
   const tx = (key: TranslationKey) => t(language, key);
   const current = useMemo(() => localizeQuestion(sessionQuestions[index], language), [index, language, sessionQuestions]);
   const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
@@ -159,9 +147,13 @@ export function App() {
     return () => window.clearInterval(interval);
   }, [hasTimedCountdown, current?.id]);
 
-  const personalReport = useMemo(() => scoreAssessment(sessionQuestions, answers), [answers, sessionQuestions]);
+  const access = useMemo(() => inspectAssessmentAccess(sessionQuestions, answers), [sessionQuestions, answers]);
+  const personalReport = useMemo(() => scoreAssessment(
+    access.status === 'invalid-session' ? [] : sessionQuestions,
+    access.canonicalAnswers
+  ), [access, sessionQuestions]);
   const isSampleReport = assessmentView === 'sample-report';
-  const isPersonalComplete = canViewPersonalReport(sessionQuestions, answers);
+  const isPersonalComplete = !recovery && access.status === 'complete';
   const report = isSampleReport ? fictionalSampleReport : personalReport;
   const bigFiveScores = useMemo(() => toSortedScores(report.bigFiveScores), [report]);
   const riasecScores = useMemo(() => toSortedScores(report.riasecScores), [report]);
@@ -176,9 +168,19 @@ export function App() {
     setAnswers(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     if (index === sessionQuestions.length - 1) {
-      const nextIndex = getNextUnansweredQuestionIndex(sessionQuestions, next);
-      if (nextIndex === null) setAssessmentView('results');
-      else setIndex(nextIndex);
+      const nextAccess = inspectAssessmentAccess(sessionQuestions, next);
+      if (nextAccess.status === 'complete') setAssessmentView('results');
+      else if (nextAccess.status === 'incomplete' && nextAccess.nextIndex !== null) setIndex(nextAccess.nextIndex);
+      else {
+        setRecovery({
+          reasons: nextAccess.reasons,
+          candidate: isValidSession(sessionQuestions)
+            ? { seed: sessionSeed, questions: sessionQuestions, answers: nextAccess.canonicalAnswers }
+            : null,
+          preservedAnswerCount: next.length
+        });
+        setAssessmentView('recovery');
+      }
     } else {
       setIndex((v) => v + 1);
     }
@@ -194,16 +196,24 @@ export function App() {
     const fresh = buildAssessmentSession(questions, { sessionSeed: nextSeed });
     setSessionQuestions(fresh);
     saveSessionIds(fresh);
+    saveSessionSeed(nextSeed);
+    localStorage.setItem(SESSION_VERSION_STORAGE_KEY, CURRENT_SESSION_VERSION);
+    setRecovery(null);
+    setRecoveryError('');
     setIndex(0);
     setAssessmentView('question');
   };
 
   const resumeAssessment = () => {
-    if (canViewPersonalReport(sessionQuestions, answers)) {
+    if (recovery || access.status === 'invalid-session' || access.status === 'invalid-answers') {
+      setAssessmentView('recovery');
+      return;
+    }
+    if (access.status === 'complete') {
       setAssessmentView('results');
       return;
     }
-    setIndex(getNextUnansweredQuestionIndex(sessionQuestions, answers) ?? 0);
+    setIndex(access.nextIndex ?? 0);
     setAssessmentView('question');
   };
 
@@ -217,15 +227,60 @@ export function App() {
     if (window.confirm(tx('restartConfirm'))) restartToLanding();
   };
   const beginFreshAssessment = () => {
-    if (hasSavedProgress && !window.confirm(tx('startFreshConfirm'))) return;
+    if (hasStoredAssessmentData() && !window.confirm(tx('startFreshConfirm'))) return;
     startFreshAssessment();
   };
-  const openPersonalReport = () => {
-    if (canViewPersonalReport(sessionQuestions, answers)) {
-      setAssessmentView('report');
-    } else {
-      resumeAssessment();
+  const acceptRecovery = () => {
+    const candidate = recovery?.candidate;
+    if (!candidate || !isValidSession(candidate.questions)) return;
+    const candidateAccess = inspectAssessmentAccess(candidate.questions, candidate.answers);
+    if (candidateAccess.status === 'invalid-session' || candidateAccess.status === 'invalid-answers') return;
+    const before = {
+      answersRaw: localStorage.getItem(STORAGE_KEY),
+      idsRaw: localStorage.getItem(SESSION_IDS_STORAGE_KEY),
+      seedRaw: localStorage.getItem(SESSION_SEED_STORAGE_KEY),
+      versionRaw: localStorage.getItem(SESSION_VERSION_STORAGE_KEY)
+    };
+    const changes: Array<[string, string]> = [
+      [STORAGE_KEY, JSON.stringify(candidateAccess.canonicalAnswers)],
+      [SESSION_IDS_STORAGE_KEY, JSON.stringify(candidate.questions.map((q) => q.id))],
+      [SESSION_SEED_STORAGE_KEY, candidate.seed],
+      [SESSION_VERSION_STORAGE_KEY, CURRENT_SESSION_VERSION]
+    ];
+    const backupKey = RECOVERY_BACKUP_PREFIX + createSessionSeed();
+    try {
+      // The immutable backup must be persisted before changing assessment keys.
+      localStorage.setItem(backupKey, JSON.stringify(before));
+      for (const [key, value] of changes) localStorage.setItem(key, value);
+    } catch {
+      try {
+        const originals: Array<[string, string | null]> = [
+          [STORAGE_KEY, before.answersRaw],
+          [SESSION_IDS_STORAGE_KEY, before.idsRaw],
+          [SESSION_SEED_STORAGE_KEY, before.seedRaw],
+          [SESSION_VERSION_STORAGE_KEY, before.versionRaw]
+        ];
+        for (const [key, value] of originals) {
+          if (value === null) localStorage.removeItem(key);
+          else localStorage.setItem(key, value);
+        }
+      } catch {
+        // Retain the immutable backup and surface an error; never claim success.
+      }
+      setRecoveryError(tx('recoveryWriteFailed'));
+      return;
     }
+    setAnswers(candidateAccess.canonicalAnswers);
+    setSessionQuestions(candidate.questions);
+    setSessionSeed(candidate.seed);
+    setRecovery(null);
+    setRecoveryError('');
+    setIndex(candidateAccess.nextIndex ?? 0);
+    setAssessmentView(candidateAccess.status === 'complete' ? 'results' : 'question');
+  };
+  const openPersonalReport = () => {
+    if (isPersonalComplete) setAssessmentView('report');
+    else resumeAssessment();
   };
 
   const saveAndContinueLater = () => {
@@ -251,6 +306,7 @@ export function App() {
     const nextQuestions = [...sessionQuestions];
     nextQuestions[index - 1] = replacement;
     setSessionQuestions(nextQuestions);
+    saveSessionIds(nextQuestions);
     const nextAnswers = answers.filter((a) => a.questionId !== previousQuestion.id);
     setAnswers(nextAnswers);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(nextAnswers));
@@ -265,26 +321,20 @@ export function App() {
 
 
   useEffect(() => {
-    if (sessionQuestions.length > 0) saveSessionIds(sessionQuestions);
-  }, [sessionQuestions]);
-  useEffect(() => {
-    if (sessionSeed) saveSessionSeed(sessionSeed);
-  }, [sessionSeed]);
-  useEffect(() => {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   }, [language]);
 
-  const isQuestionFlow = screen === 'assessment' && assessmentView === 'question';
+  const isQuestionFlow = screen === 'assessment' && assessmentView === 'question' && !recovery;
   const formatTemplate = (template: string, values: Record<string, string>) =>
     Object.entries(values).reduce((acc, [key, value]) => acc.split(`{${key}}`).join(value), template);
-  const executiveSummaryText = formatTemplate(tx('executiveSummaryTemplate'), {
+  const executiveSummaryText = formatTemplate(tx(isSampleReport ? 'sampleExecutiveSummaryTemplate' : 'executiveSummaryTemplate'), {
     personalityTypeEstimate: report.executiveSummaryParts.personalityTypeEstimate,
     topBigFive: report.executiveSummaryParts.topBigFive,
     topRiasec: report.executiveSummaryParts.topRiasec,
     topOperating: report.executiveSummaryParts.topOperating,
     topCognitiveLabel: report.executiveSummaryParts.topCognitiveLabel
   });
-  const executiveSummary = useMemo(() => generateExecutiveSummary(report), [report]);
+  const executiveSummary = useMemo(() => generateExecutiveSummary(report, isSampleReport ? 'sample' : 'personal'), [report, isSampleReport]);
   const executiveSummarySections = [
     executiveSummary.primaryWorkstyle,
     executiveSummary.cognitiveStyle,
@@ -294,11 +344,12 @@ export function App() {
     executiveSummary.optimizationStrategy
   ];
   const cognitiveSummaryText = formatTemplate(
-    report.cognitiveSignalLevel === 'light' ? tx('cognitiveLightSummaryTemplate') : tx('cognitiveStandardSummaryTemplate'),
+    isSampleReport ? tx('sampleCognitiveSummaryTemplate')
+      : report.cognitiveSignalLevel === 'light' ? tx('cognitiveLightSummaryTemplate') : tx('cognitiveStandardSummaryTemplate'),
     { topCognitiveLabel: report.topCognitiveLabel }
   );
   const mbtiConfidenceLabel = tx(getMbtiSignalKey(report.mbtiScoreState.overallConfidence));
-  const mbtiSummaryText = formatTemplate(tx('mbtiBestFitTemplate'), {
+  const mbtiSummaryText = formatTemplate(tx(isSampleReport ? 'sampleMbtiBestFitTemplate' : 'mbtiBestFitTemplate'), {
     personalityTypeEstimate: report.mbtiScoreState.estimatedType,
     confidenceLevel: mbtiConfidenceLabel
   });
@@ -398,7 +449,7 @@ export function App() {
           <p className="disclaimer">{tx('localSaveNotice')}</p>
           <div className="stack">
             <button onClick={beginFreshAssessment}>{tx('startQuestions')}</button>
-            <button className="option" onClick={resumeAssessment} disabled={!hasSavedProgress}>
+            <button className="option" onClick={resumeAssessment} disabled={!hasSavedProgress && !recovery}>
               {tx('resumeSaved')}
             </button>
           </div>
@@ -406,7 +457,29 @@ export function App() {
         </section>
       )}
 
-      {screen === 'assessment' && assessmentView === 'question' && current && (
+      {screen === 'assessment' && assessmentView === 'recovery' && (
+        <section className="card" aria-label={tx('recoveryTitle')}>
+          <h2>{tx('recoveryTitle')}</h2>
+          <p>{tx('recoveryNotice')}</p>
+          <p className="disclaimer">{tx('recoveryPreservedCount')} {recovery?.candidate?.answers.length ?? 0}</p>
+          {recovery?.candidate ? (
+            <button onClick={acceptRecovery}>{tx('recoveryAccept')}</button>
+          ) : (
+            <p className="disclaimer">{tx('recoveryNoCandidate')}</p>
+          )}
+          {recoveryError && <p role="alert">{recoveryError}</p>}
+          <details>
+            <summary>{tx('recoveryBackupLabel')}</summary>
+            <p className="disclaimer">{tx('recoveryBackupHint')}</p>
+            <textarea readOnly rows={9} value={recoveryBackupText} aria-label={tx('recoveryBackupLabel')} style={{ width: '100%' }} />
+          </details>
+          <div className="stack">
+            <button className="option" onClick={() => setAssessmentView('landing')}>{tx('backToHome')}</button>
+            <button className="option" onClick={beginFreshAssessment}>{tx('recoveryStartOver')}</button>
+          </div>
+        </section>
+      )}
+      {screen === 'assessment' && assessmentView === 'question' && !recovery && current && (
         <section className="card question-card assessment-question-card" aria-live="polite">
           <div
             className="progress"
@@ -496,7 +569,7 @@ export function App() {
               <p>{tx('sampleReportNoticeBody')}</p>
             </div>
           )}
-          <p className="disclaimer">{buildReportReflection(report)}</p>
+          <p className="disclaimer">{isSampleReport ? tx('sampleReportReflection') : buildReportReflection(report)}</p>
           <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           <div className="report-actions no-print">
             <button onClick={() => window.print()}>{tx('printPdf')}</button>
