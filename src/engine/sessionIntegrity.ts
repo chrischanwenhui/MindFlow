@@ -195,7 +195,8 @@ export function buildConservativeRecovery(
  * until the user explicitly accepts a recovery or starts a fresh assessment.
  */
 export function inspectStoredAssessment(snapshot: AssessmentSnapshot): InitialAssessment {
-  const seed = snapshot.seedRaw || createSessionSeed();
+  const savedSeed = snapshot.seedRaw?.trim() ? snapshot.seedRaw : null;
+  const seed = savedSeed || createSessionSeed();
   const rawIds = parseStoredArray(snapshot.idsRaw);
   const storedIds = rawIds && rawIds.every((item): item is string => typeof item === 'string') ? rawIds : null;
   const rawAnswers = parseStoredArray(snapshot.answersRaw);
@@ -211,18 +212,18 @@ export function inspectStoredAssessment(snapshot: AssessmentSnapshot): InitialAs
       ? ['invalid-or-duplicate-answers'] : [];
   const reasons = [
     ...(unsupportedVersion ? ['unsupported-session-version'] : []),
-    ...((snapshot.idsRaw !== null && (!storedIds || !isValidSession(restored))) ? ['invalid-stored-session'] : []),
+    ...((snapshot.idsRaw !== null && (!storedIds || storedIds.length !== SESSION_TARGET_COUNT || !isValidSession(restored))) ? ['invalid-stored-session'] : []),
     ...((snapshot.idsRaw === null && snapshot.answersRaw !== null) ? ['missing-session-ids'] : []),
-    ...((snapshot.idsRaw !== null && snapshot.seedRaw === null) ? ['missing-session-seed'] : []),
+    ...((snapshot.idsRaw !== null && !savedSeed) ? ['missing-session-seed'] : []),
     ...answerIssues
   ];
 
   const recovery = !noSession && reasons.length
     ? {
         reasons,
-        candidate: unsupportedVersion ? null : storedIds && isValidSession(restored) && snapshot.seedRaw && storedAnswers
+        candidate: unsupportedVersion ? null : storedIds && storedIds.length === SESSION_TARGET_COUNT && isValidSession(restored) && savedSeed && storedAnswers
           ? { seed, questions: restored, answers: inspectAnswers(restored, storedAnswers).canonicalAnswers }
-          : buildConservativeRecovery(storedIds ?? (snapshot.idsRaw === null ? [] : null), snapshot.seedRaw, storedAnswers),
+          : buildConservativeRecovery(storedIds ?? (snapshot.idsRaw === null ? [] : null), savedSeed, storedAnswers),
         preservedAnswerCount: storedAnswers?.length ?? 0
       }
     : null;
