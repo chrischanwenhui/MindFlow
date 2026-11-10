@@ -135,6 +135,33 @@ function parseAnswers(items: unknown[] | null): Answer[] | null {
 }
 
 /**
+ * An answered memory item may already have exposed its recall prompt. Never
+ * turn a duplicate, invalid, or displaced memory answer into an unanswered
+ * question during automatic recovery: the old stimulus could be replayed.
+ */
+function hasUnsafeMemoryAnswerRecovery(session: Question[], answers: Answer[]): boolean {
+  const activeQuestions = new Map(session.map((question) => [question.id, question]));
+  const groups = new Map<string, Answer[]>();
+  for (const answer of answers) {
+    const original = questionMap.get(answer.questionId);
+    if (original?.section !== 'cognitive' || original.cognitiveDomain !== 'memory') continue;
+    const group = groups.get(answer.questionId) ?? [];
+    group.push(answer);
+    groups.set(answer.questionId, group);
+  }
+  for (const [questionId, group] of groups) {
+    const active = activeQuestions.get(questionId);
+    if (!active || group.length !== 1) return true;
+    const answer = group[0];
+    if (!Number.isFinite(answer.score)
+      || !active.options.some((option) => option.value === answer.value && option.score === answer.score)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Construct a recovery candidate only for positions that are provable from the
  * saved seed and the canonical session. Do not guess at reordered questions.
  */
@@ -200,6 +227,7 @@ export function buildConservativeRecovery(
       candidateAnswers.push(answer);
     }
   }
+  if (hasUnsafeMemoryAnswerRecovery(candidate, answers)) return null;
   return { seed, questions: candidate, answers: candidateAnswers };
 }
 
@@ -235,7 +263,9 @@ export function inspectStoredAssessment(snapshot: AssessmentSnapshot): InitialAs
     ? {
         reasons,
         candidate: unsupportedVersion ? null : storedIds && storedIds.length === SESSION_TARGET_COUNT && isValidSession(restored, savedSeed ?? undefined) && savedSeed && storedAnswers
-          ? { seed, questions: restored, answers: inspectAnswers(restored, storedAnswers).canonicalAnswers }
+          ? (hasUnsafeMemoryAnswerRecovery(restored, storedAnswers)
+            ? null
+            : { seed, questions: restored, answers: inspectAnswers(restored, storedAnswers).canonicalAnswers })
           : buildConservativeRecovery(storedIds ?? (snapshot.idsRaw === null ? [] : null), savedSeed, storedAnswers),
         preservedAnswerCount: storedAnswers?.length ?? 0
       }

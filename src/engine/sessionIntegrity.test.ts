@@ -162,6 +162,59 @@ describe('assessment session structural integrity and conservative recovery', ()
     expect(invalidRaw.snapshot.answersRaw).toBe('"bad JSON shape"');
   });
 
+  it('refuses automatic recovery that would replay an exposed memory prompt', () => {
+    const memoryIndex = baseline.findIndex((q) => q.id === 'cog-memory-1');
+    expect(memoryIndex).toBe(81); // Codex reproduction: recoverable-seed-v1
+    const completeAnswers: Answer[] = baseline.map((q) => ({
+      questionId: q.id, value: q.options[0].value, score: q.options[0].score
+    }));
+    const memoryAnswer = completeAnswers[memoryIndex];
+    const invalidScenarios: Answer[][] = [
+      [...completeAnswers, { ...memoryAnswer }],
+      completeAnswers.map((answer, i) => i === memoryIndex ? { ...answer, score: 999 } : answer)
+    ];
+
+    for (const corruptedAnswers of invalidScenarios) {
+      const hydrated = inspectStoredAssessment(snapshot(baseline.map((q) => q.id), corruptedAnswers));
+      expect(hydrated.recovery?.reasons).toContain('invalid-or-duplicate-answers');
+      expect(hydrated.recovery?.candidate).toBeNull();
+
+      // The conservative reconstruction path must also refuse memory replay
+      // when an unrelated non-memory slot is damaged.
+      const damagedIds = baseline.map((q) => q.id);
+      damagedIds[5] = damagedIds[4];
+      expect(buildConservativeRecovery(damagedIds, seed, corruptedAnswers)).toBeNull();
+    }
+  });
+
+  it('keeps further memory replacements valid after refreshing a replaced session', () => {
+    const refreshSeed = 'repro-0';
+    const original = buildAssessmentSession(questions, { sessionSeed: refreshSeed });
+    expect(original[82].id).toBe('cog-memory-4');
+    expect(original[86].id).toBe('cog-memory-11');
+    const makeReplacement = (id: string) =>
+      buildAssessmentSession(questions, { sessionSeed: refreshSeed, sessionIds: [id] })[0];
+    const restoredIds = [...original];
+    restoredIds[82] = makeReplacement('cog-memory-8');
+    restoredIds[86] = makeReplacement('cog-memory-2');
+    expect(isValidSession(restoredIds, refreshSeed)).toBe(true);
+
+    // A browser refresh loses the transient usedMemoryQuestionIds set.
+    const refreshed = buildAssessmentSession(questions, {
+      sessionSeed: refreshSeed, sessionIds: restoredIds.map((q) => q.id)
+    });
+    expect(isValidSession(refreshed, refreshSeed)).toBe(true);
+    const replacement = getReplacementMemoryQuestion(
+      questions, refreshed, new Set<string>(), refreshed[86].id, refreshSeed
+    );
+    expect(replacement).not.toBeNull();
+    const originalIds = new Set(original.map((q) => q.id));
+    expect(originalIds.has(replacement!.id)).toBe(false);
+    const afterBack = [...refreshed];
+    afterBack[86] = replacement!;
+    expect(isValidSession(afterBack, refreshSeed)).toBe(true);
+  });
+
   it('canonicalizes only unique valid options, excluding foreign and conflicting answers', () => {
     const selected = inspectAnswers(baseline, [...answers, answers[0], {
       questionId: 'unrecognized', value: 'x', score: 12

@@ -158,9 +158,13 @@ export function getReplacementMemoryQuestion(
 ): Question | null {
   const memoryPool = allQuestions.filter((q) => q.section === 'cognitive' && q.cognitiveDomain === 'memory');
   const inSession = new Set(sessionQuestions.map((q) => q.id));
+  // The validator permits replacement memory questions only from outside the
+  // original seeded session, including after refresh when used IDs are reset.
+  const baselineIds = new Set(buildAssessmentSession(allQuestions, { sessionSeed }).map((q) => q.id));
   const candidates = memoryPool
     .filter((q) => q.id !== currentMemoryQuestionId)
     .filter((q) => !inSession.has(q.id))
+    .filter((q) => !baselineIds.has(q.id))
     .filter((q) => !usedMemoryQuestionIds.has(q.id));
   const selected = seededShuffle(candidates, `${sessionSeed}:memory-replacement:${currentMemoryQuestionId}`)[0] ?? null;
   return selected ? reorderCognitiveOptions(selected, sessionSeed) : null;
