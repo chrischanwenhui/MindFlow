@@ -29,7 +29,7 @@ describe('fictional sample report UI safeguards', () => {
     expect(appSource).toContain("setAssessmentView('sample-report')");
     expect(appSource).toContain("const report = isSampleReport ? fictionalSampleReport : personalReport;");
     expect(appSource).toContain("(isSampleReport || (assessmentView === 'report' && isPersonalComplete))");
-    expect(appSource).toContain("inspectAssessmentAccess(sessionQuestions, answers)");
+    expect(appSource).toContain("inspectAssessmentAccess(sessionQuestions, answers, sessionSeed)");
     expect(appSource).toContain("access.canonicalAnswers");
     expect(appSource).toContain("!recovery && access.status === 'complete'");
   });
