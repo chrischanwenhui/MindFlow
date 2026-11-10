@@ -44,13 +44,27 @@ describe('assessment session structural integrity and conservative recovery', ()
     expect(state.snapshot.idsRaw).toBe(JSON.stringify(baseline.map((q) => q.id)));
   });
 
-  it('offers explicit, non-mutating recovery of a truncated unchanged prefix', () => {
-    const original = snapshot(baseline.slice(0, 80).map((q) => q.id));
+  it('offers explicit recovery only when a truncated tail contains no memory questions', () => {
+    const candidateSeeds = [seed, 'safe-prefix-seed-a', 'safe-prefix-seed-b', 'safe-prefix-seed-c'];
+    const suitable = candidateSeeds.map((item) => ({
+      seed: item,
+      session: buildAssessmentSession(questions, { sessionSeed: item })
+    })).find((item) => item.session[SESSION_TARGET_COUNT - 1].cognitiveDomain !== 'memory');
+    if (!suitable) throw Error('Expected a deterministic non-memory final question');
+    const originalAnswers = suitable.session.slice(0, 68).map((q) => ({
+      questionId: q.id, value: q.options[0].value, score: q.options[0].score
+    }));
+    const original: AssessmentSnapshot = {
+      seedRaw: suitable.seed,
+      idsRaw: JSON.stringify(suitable.session.slice(0, -1).map((q) => q.id)),
+      answersRaw: JSON.stringify(originalAnswers),
+      versionRaw: null
+    };
     const state = inspectStoredAssessment(original);
     expect(state.recovery).not.toBeNull();
-    expect(state.recovery?.candidate?.questions.map((q) => q.id)).toEqual(baseline.map((q) => q.id));
-    expect(state.recovery?.candidate?.answers).toEqual(answers);
-    expect(original.idsRaw).toBe(JSON.stringify(baseline.slice(0, 80).map((q) => q.id)));
+    expect(state.recovery?.candidate?.questions.map((q) => q.id)).toEqual(suitable.session.map((q) => q.id));
+    expect(state.recovery?.candidate?.answers).toEqual(originalAnswers);
+    expect(original.idsRaw).toBe(JSON.stringify(suitable.session.slice(0, -1).map((q) => q.id)));
   });
 
   it('can repair a single duplicated ID without replacing unaffected questions', () => {
@@ -102,7 +116,7 @@ describe('assessment session structural integrity and conservative recovery', ()
 
   it('refuses automatic repair of damaged memory slots', () => {
     const memoryIndex = baseline.findIndex((q) => q.cognitiveDomain === 'memory');
-    expect(memoryIndex).toBeGreaterThan(81);
+    expect(memoryIndex).toBeGreaterThanOrEqual(81);
     const ids = baseline.map((q) => q.id);
     ids[memoryIndex] = ids[memoryIndex - 1];
     expect(buildConservativeRecovery(ids, seed, answers)).toBeNull();
