@@ -98,6 +98,7 @@ export function App() {
   const [initialSession] = useState(getInitialSessionState);
   const [answers, setAnswers] = useState<Answer[]>(initialSession.answers);
   const [recovery, setRecovery] = useState<RecoveryOffer | null>(initialSession.recovery);
+  const [recoveryOriginal, setRecoveryOriginal] = useState<AssessmentSnapshot>(initialSession.snapshot);
   const [recoveryError, setRecoveryError] = useState('');
   const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
   const [memoryPhase, setMemoryPhase] = useState<MemoryPhase>('ready');
@@ -112,7 +113,7 @@ export function App() {
   const hasStoredAssessmentData = () => [
     STORAGE_KEY, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY, SESSION_VERSION_STORAGE_KEY
   ].some((key) => localStorage.getItem(key) !== null);
-  const recoveryBackupText = JSON.stringify(readAssessmentSnapshot(localStorage), null, 2);
+  const recoveryBackupText = JSON.stringify(recoveryOriginal, null, 2);
   const tx = (key: TranslationKey) => t(language, key);
   const current = useMemo(() => localizeQuestion(sessionQuestions[index], language), [index, language, sessionQuestions]);
   const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
@@ -182,6 +183,7 @@ export function App() {
       if (nextAccess.status === 'complete') setAssessmentView('results');
       else if (nextAccess.status === 'incomplete' && nextAccess.nextIndex !== null) setIndex(nextAccess.nextIndex);
       else {
+        setRecoveryOriginal(readAssessmentSnapshot(localStorage));
         setRecovery({
           reasons: nextAccess.reasons,
           candidate: isValidSession(sessionQuestions)
@@ -216,6 +218,16 @@ export function App() {
 
   const resumeAssessment = () => {
     if (recovery || access.status === 'invalid-session' || access.status === 'invalid-answers') {
+      if (!recovery) {
+        setRecoveryOriginal(readAssessmentSnapshot(localStorage));
+        setRecovery({
+          reasons: access.reasons,
+          candidate: isValidSession(sessionQuestions)
+            ? { seed: sessionSeed, questions: sessionQuestions, answers: access.canonicalAnswers }
+            : null,
+          preservedAnswerCount: access.canonicalAnswers.length
+        });
+      }
       setAssessmentView('recovery');
       return;
     }
