@@ -6,7 +6,8 @@ import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { fictionalSampleQuestions, fictionalSampleReport } from './data/sampleAssessment';
 import { inspectAssessmentAccess } from './engine/reportAccess';
-import { CURRENT_SESSION_VERSION, inspectStoredAssessment, isValidSession, RECOVERY_BACKUP_PREFIX, SESSION_VERSION_STORAGE_KEY, type AssessmentSnapshot, type RecoveryOffer } from './engine/sessionIntegrity';
+import { commitVerifiedRecovery, readAssessmentSnapshot } from './engine/recoveryPersistence';
+import { CURRENT_SESSION_VERSION, inspectStoredAssessment, isValidSession, SESSION_VERSION_STORAGE_KEY, type AssessmentSnapshot, type RecoveryOffer } from './engine/sessionIntegrity';
 import { buildAssessmentSession, createSessionSeed, getReplacementMemoryQuestion, saveSessionIds, saveSessionSeed, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY } from './engine/session';
 import { scoreAssessment, type Answer, type DichotomyResult, type SignalStrength } from './engine/scoring';
 import { getInitialLanguage, t, type Language, type TranslationKey, LANGUAGE_STORAGE_KEY } from './i18n';
@@ -111,12 +112,7 @@ export function App() {
   const hasStoredAssessmentData = () => [
     STORAGE_KEY, SESSION_IDS_STORAGE_KEY, SESSION_SEED_STORAGE_KEY, SESSION_VERSION_STORAGE_KEY
   ].some((key) => localStorage.getItem(key) !== null);
-  const recoveryBackupText = JSON.stringify({
-    answersRaw: localStorage.getItem(STORAGE_KEY),
-    idsRaw: localStorage.getItem(SESSION_IDS_STORAGE_KEY),
-    seedRaw: localStorage.getItem(SESSION_SEED_STORAGE_KEY),
-    versionRaw: localStorage.getItem(SESSION_VERSION_STORAGE_KEY)
-  }, null, 2);
+  const recoveryBackupText = JSON.stringify(readAssessmentSnapshot(localStorage), null, 2);
   const tx = (key: TranslationKey) => t(language, key);
   const current = useMemo(() => localizeQuestion(sessionQuestions[index], language), [index, language, sessionQuestions]);
   const isMemoryQuestion = current?.section === 'cognitive' && current.cognitiveDomain === 'memory';
@@ -249,38 +245,8 @@ export function App() {
     if (!candidate || !isValidSession(candidate.questions)) return;
     const candidateAccess = inspectAssessmentAccess(candidate.questions, candidate.answers);
     if (candidateAccess.status === 'invalid-session' || candidateAccess.status === 'invalid-answers') return;
-    const before = {
-      answersRaw: localStorage.getItem(STORAGE_KEY),
-      idsRaw: localStorage.getItem(SESSION_IDS_STORAGE_KEY),
-      seedRaw: localStorage.getItem(SESSION_SEED_STORAGE_KEY),
-      versionRaw: localStorage.getItem(SESSION_VERSION_STORAGE_KEY)
-    };
-    const changes: Array<[string, string]> = [
-      [STORAGE_KEY, JSON.stringify(candidateAccess.canonicalAnswers)],
-      [SESSION_IDS_STORAGE_KEY, JSON.stringify(candidate.questions.map((q) => q.id))],
-      [SESSION_SEED_STORAGE_KEY, candidate.seed],
-      [SESSION_VERSION_STORAGE_KEY, CURRENT_SESSION_VERSION]
-    ];
-    const backupKey = RECOVERY_BACKUP_PREFIX + createSessionSeed();
-    try {
-      // The immutable backup must be persisted before changing assessment keys.
-      localStorage.setItem(backupKey, JSON.stringify(before));
-      for (const [key, value] of changes) localStorage.setItem(key, value);
-    } catch {
-      try {
-        const originals: Array<[string, string | null]> = [
-          [STORAGE_KEY, before.answersRaw],
-          [SESSION_IDS_STORAGE_KEY, before.idsRaw],
-          [SESSION_SEED_STORAGE_KEY, before.seedRaw],
-          [SESSION_VERSION_STORAGE_KEY, before.versionRaw]
-        ];
-        for (const [key, value] of originals) {
-          if (value === null) localStorage.removeItem(key);
-          else localStorage.setItem(key, value);
-        }
-      } catch {
-        // Retain the immutable backup and surface an error; never claim success.
-      }
+    const persisted = commitVerifiedRecovery(localStorage, candidate);
+    if (!persisted.ok) {
       setRecoveryError(tx('recoveryWriteFailed'));
       return;
     }
