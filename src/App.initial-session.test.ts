@@ -29,6 +29,28 @@ describe('getInitialSessionState', () => {
     expect(stateA.questions.map((q) => q.id)).toEqual(stateB.questions.map((q) => q.id));
   });
 
+  it('does not write or remove assessment storage while inspecting startup state', () => {
+    const saved = buildAssessmentSession(questions, { sessionSeed: 'read-only-init' });
+    const store = new Map<string, string>([
+      [SESSION_SEED_STORAGE_KEY, 'read-only-init'],
+      [SESSION_IDS_STORAGE_KEY, JSON.stringify(saved.map((q) => q.id))]
+    ]);
+    let writes = 0;
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (key: string) => store.get(key) ?? null,
+        setItem: () => { writes += 1; },
+        removeItem: () => { writes += 1; }
+      }
+    });
+    const before = [...store.entries()];
+    const state = getInitialSessionState();
+    expect(state.recovery).toBeNull();
+    expect(writes).toBe(0);
+    expect([...store.entries()]).toEqual(before);
+  });
+
   it('uses stored ids with same seed deterministically', () => {
     const seed = 'resume-seed';
     localStorage.setItem(SESSION_SEED_STORAGE_KEY, seed);

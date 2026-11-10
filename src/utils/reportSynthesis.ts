@@ -245,7 +245,7 @@ function hasIntroversionCollaborationContrast(report: ProfileReport): boolean {
   return type.startsWith('I') && (topRiasec === 'Social' || topRiasec === 'Enterprising');
 }
 
-function buildPrimaryWorkstyle(report: ProfileReport): SynthesisSection {
+function buildPrimaryWorkstyle(report: ProfileReport, mode: 'sample' | 'personal'): SynthesisSection {
   const type = getEstimatedType(report);
   const confidence = getConfidenceLabel(report.mbtiScoreState?.overallConfidence);
   const dimensions = getDimensionSignals(report);
@@ -263,22 +263,22 @@ function buildPrimaryWorkstyle(report: ProfileReport): SynthesisSection {
 
   return {
     heading: 'Primary Workstyle Estimate',
-    body: `Your current response pattern leans ${typePhrase} with ${confidence} confidence, suggesting a ${descriptors} workstyle. ${strengthSentence} ${fluidSentence}`
+    body: `${mode === 'sample' ? 'The fictional participant’s response pattern' : 'Your current response pattern'} leans ${typePhrase} with ${confidence} confidence, suggesting a ${descriptors} workstyle. ${strengthSentence} ${fluidSentence}`
   };
 }
 
-function buildCognitiveStyle(report: ProfileReport): SynthesisSection {
+function buildCognitiveStyle(report: ProfileReport, mode: 'sample' | 'personal'): SynthesisSection {
   const cognitiveKey = getTopCognitiveKey(report.topCognitiveLabel);
   const toolPhrase = cognitiveKey ? COGNITIVE_STYLE_FRAGMENTS[cognitiveKey] : 'careful problem framing and flexible reasoning';
   const signalQualifier = report.cognitiveSignalLevel === 'light' ? 'an early signal' : 'a useful signal';
 
   return {
     heading: 'Cognitive / Information Processing Style',
-    body: `Your cognitive-style responses point toward ${toolPhrase} as ${signalQualifier} in how information may be processed. This is most useful as a reflection on preferred problem-solving tools, not as a ranking of ability.`
+    body: `${mode === 'sample' ? 'The fictional participant’s cognitive-style responses' : 'Your cognitive-style responses'} point toward ${toolPhrase} as ${signalQualifier} in how information may be processed. This is most useful as a reflection on preferred problem-solving tools, not as a ranking of ability.`
   };
 }
 
-function buildOperationalDrive(report: ProfileReport): SynthesisSection {
+function buildOperationalDrive(report: ProfileReport, mode: 'sample' | 'personal'): SynthesisSection {
   const operationalFragments = [getTopBigFiveFragment(report)];
   const topRiasec = getTopRiasec(report);
   if (topRiasec) operationalFragments.push(RIASEC_OPERATIONAL_FRAGMENTS[topRiasec] ?? `${topRiasec.toLowerCase()} interest signals`);
@@ -286,12 +286,14 @@ function buildOperationalDrive(report: ProfileReport): SynthesisSection {
   operationalFragments.push(workstyle);
 
   const contrast = hasIntroversionCollaborationContrast(report)
-    ? ' Interestingly, while your response pattern suggests internal processing and quiet decompression, your interest signals may still point toward collaborative or persuasive environments. This can indicate that leadership or networking functions as a focused skill rather than a constant social baseline.'
+    ? mode === 'sample'
+      ? ' The fictional participant combines an inward processing preference with interest in collaborative or persuasive environments; those signals need not contradict each other.'
+      : ' Interestingly, while your response pattern suggests internal processing and quiet decompression, your interest signals may still point toward collaborative or persuasive environments. This can indicate that leadership or networking functions as a focused skill rather than a constant social baseline.'
     : '';
 
   return {
     heading: 'Operational Drive',
-    body: `Your operational signals point toward ${joinWithOxfordComma(operationalFragments)}. These signals suggest the work may feel most engaging when motivation, task structure, and visible outcomes can reinforce one another.${contrast}`
+    body: `${mode === 'sample' ? 'The fictional participant’s operational signals' : 'Your operational signals'} point toward ${joinWithOxfordComma(operationalFragments)}. These signals suggest the work may feel most engaging when motivation, task structure, and visible outcomes can reinforce one another.${contrast}`
   };
 }
 
@@ -307,34 +309,36 @@ function buildStrengthZone(report: ProfileReport): SynthesisSection {
   };
 }
 
-function buildWatchArea(report: ProfileReport): SynthesisSection {
-  const mode = getPrimaryMode(report);
-  const fragment = FRICTION_FRAGMENTS[mode];
+function buildWatchArea(report: ProfileReport, mode: 'sample' | 'personal'): SynthesisSection {
+  const primaryMode = getPrimaryMode(report);
+  const fragment = FRICTION_FRAGMENTS[primaryMode];
 
   return {
     heading: 'Watch Area / Potential Friction',
-    body: `Because your operational drive is distinct, a possible friction point may show up in ${fragment.trigger}. In these scenarios, the mismatch can ${fragment.impact}. To navigate this, ${fragment.mitigation}.`
+    body: `${mode === 'sample' ? 'For this fictional profile, a possible friction point' : 'Because your operational drive is distinct, a possible friction point'} may show up in ${fragment.trigger}. In these scenarios, the mismatch can ${fragment.impact}. ${mode === 'sample' ? 'An illustrative mitigation is to' : 'To navigate this,'} ${fragment.mitigation}.`
   };
 }
 
-function buildOptimizationStrategy(report: ProfileReport): SynthesisSection {
-  const mode = getPrimaryMode(report);
-  const fragment = OPTIMIZATION_FRAGMENTS[mode];
+function buildOptimizationStrategy(report: ProfileReport, mode: 'sample' | 'personal'): SynthesisSection {
+  const primaryMode = getPrimaryMode(report);
+  const fragment = OPTIMIZATION_FRAGMENTS[primaryMode];
 
   return {
     heading: 'Optimization Strategy',
-    body: `You operate at your peak in ${fragment.environment}. Rather than spreading your energy evenly, your highest point of leverage lies in ${fragment.leveragePoint}. When coordinating with others, you can maximize your impact by ${fragment.teamAlignment}.`
+    body: mode === 'sample'
+      ? `This fictional profile illustrates a possible fit with ${fragment.environment}. A potential leverage point is ${fragment.leveragePoint}. A possible collaboration strategy is to ${fragment.teamAlignment}.`
+      : `You operate at your peak in ${fragment.environment}. Rather than spreading your energy evenly, your highest point of leverage lies in ${fragment.leveragePoint}. When coordinating with others, you can maximize your impact by ${fragment.teamAlignment}.`
   };
 }
 
-export function generateExecutiveSummary(report: ProfileReport): ExecutiveSummary {
+export function generateExecutiveSummary(report: ProfileReport, mode: 'sample' | 'personal' = 'personal'): ExecutiveSummary {
   return {
-    primaryWorkstyle: buildPrimaryWorkstyle(report),
-    cognitiveStyle: buildCognitiveStyle(report),
-    operationalDrive: buildOperationalDrive(report),
+    primaryWorkstyle: buildPrimaryWorkstyle(report, mode),
+    cognitiveStyle: buildCognitiveStyle(report, mode),
+    operationalDrive: buildOperationalDrive(report, mode),
     strengthZone: buildStrengthZone(report),
-    watchArea: buildWatchArea(report),
-    optimizationStrategy: buildOptimizationStrategy(report),
+    watchArea: buildWatchArea(report, mode),
+    optimizationStrategy: buildOptimizationStrategy(report, mode),
     disclaimer: DISCLAIMER
   };
 }
