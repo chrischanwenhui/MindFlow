@@ -31,7 +31,7 @@ export function commitVerifiedRecovery(
   candidate: RepairedAssessment,
   backupSuffix = createSessionSeed()
 ): RecoveryCommitResult {
-  if (!candidate.seed || !isValidSession(candidate.questions)) {
+  if (!candidate.seed || !isValidSession(candidate.questions, candidate.seed)) {
     return { ok: false, reason: 'invalid-candidate' };
   }
   const inspected = inspectAnswers(candidate.questions, candidate.answers);
