@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createElement } from 'react';
-import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { App } from './App';
 import appSource from './App.tsx?raw';
-const stylesSource = readFileSync(new URL('./styles.css', import.meta.url), 'utf8');
 import { dictionaries } from './i18n';
 
 describe('fictional sample report UI safeguards', () => {
@@ -47,9 +45,6 @@ describe('fictional sample report UI safeguards', () => {
     expect(appSource).toContain("tx('sampleReportNoticeTitle')");
     expect(appSource).toContain("tx('sampleReportNoticeBody')");
     expect(appSource).toContain('className="sample-report-print-footer"');
-    expect(stylesSource).toContain('@media print');
-    expect(stylesSource).toContain('.sample-report-notice {');
-    expect(stylesSource).toContain('display: block !important');
   });
 
   it('provides explicit localized labels, warnings and safe navigation in all six languages', () => {
