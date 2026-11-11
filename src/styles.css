@@ -18,7 +18,8 @@ body { margin: 0; line-height: 1.6; }
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
   justify-items: center;
   padding: clamp(0.85rem, 2.8vw, 1.5rem);
   padding-top: clamp(1rem, 4vh, 2.25rem);
@@ -37,6 +38,46 @@ body { margin: 0; line-height: 1.6; }
 }
 
 .top-nav .option { text-align: center; }
+
+.top-nav:not(.top-nav--compact) {
+  justify-content: flex-start;
+  padding: 0.25rem 0.4rem;
+}
+
+.brand--nav {
+  margin-right: 0.75rem;
+  font-size: 1.08rem;
+  letter-spacing: -0.02em;
+}
+
+.top-nav:not(.top-nav--compact) .language-select {
+  margin-left: auto;
+}
+
+.nav-link {
+  width: auto;
+  min-height: 44px;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #294863;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.nav-link:hover {
+  background: #eaf2fa;
+  box-shadow: none;
+  transform: none;
+}
+
+.nav-link--active {
+  background: #e9f1fb;
+  border-color: #d5e5f5;
+  color: #193c68;
+}
 
 .top-nav--compact {
   position: sticky;
@@ -167,16 +208,35 @@ body { margin: 0; line-height: 1.6; }
 
 .assessment-category-card {
   display: grid;
-  gap: 0.4rem;
-  padding: 0.75rem;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.7rem;
+  padding: 0.8rem;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, var(--surface), var(--surface-muted));
 }
 
+.assessment-category-card__copy {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
 .assessment-category-card__icon {
-  font-size: 1.25rem;
-  line-height: 1;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #edf5fb;
+  color: #275879;
+}
+
+.assessment-category-icon {
+  display: block;
+  width: 1.4rem;
+  height: 1.4rem;
 }
 
 .assessment-category-card h2 {
@@ -193,10 +253,18 @@ body { margin: 0; line-height: 1.6; }
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.6rem;
+  max-width: 680px;
 }
 
 .hero-secondary-cta {
-  background: #eef4fd;
+  background: #e8f2fb;
+  color: #193c68;
+  border: 1px solid #bdd4e8;
+}
+
+.hero-secondary-cta:hover {
+  background: #dbeaf8;
+  box-shadow: 0 6px 16px rgba(25, 60, 104, 0.09);
 }
 
 .question-card {
@@ -381,6 +449,35 @@ button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform
   body { font-size: 15px; }
   .app { gap: 0.5rem; padding-inline: 0.62rem; padding-top: 0.65rem; }
   .top-nav { gap: 0.3rem; margin-bottom: 0; }
+  .top-nav:not(.top-nav--compact) {
+    gap: 0.32rem;
+    padding: 0.25rem 0.15rem;
+  }
+  .top-nav:not(.top-nav--compact) .brand--nav {
+    order: 0;
+    flex: 1 1 auto;
+    font-size: 1rem;
+    margin-right: 0;
+  }
+  .top-nav:not(.top-nav--compact) .language-select {
+    order: 1;
+    flex: 0 0 auto;
+    margin-left: 0;
+    font-size: 0.76rem;
+  }
+  .top-nav:not(.top-nav--compact) .language-select select {
+    min-width: 0;
+    width: 7.2rem;
+    padding: 0.35rem 0.45rem;
+  }
+  .top-nav:not(.top-nav--compact) .nav-link {
+    order: 2;
+    flex: 1 1 calc(33.333% - 0.35rem);
+    min-width: 0;
+    font-size: 0.76rem;
+    line-height: 1.2;
+    padding: 0.42rem 0.3rem;
+  }
   .top-nav--compact {
     padding: 0.32rem 0.42rem;
     gap: 0.22rem 0.35rem;
@@ -408,6 +505,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform
   }
 
   .card { padding: 0.82rem; border-radius: 13px; box-shadow: 0 8px 18px rgba(0, 27, 68, 0.06); }
+  .hero-card { gap: 0.75rem; }
+  .assessment-category-card { padding: 0.7rem; gap: 0.6rem; }
+  .assessment-category-card__icon { width: 2.25rem; height: 2.25rem; }
+  .assessment-category-card__copy h2 { font-size: 0.95rem; }
   .report-card { width: 100%; max-width: none; padding: clamp(1rem, 4vw, 1.25rem); gap: 1rem; border-radius: 15px; }
   .report-section { padding: clamp(1rem, 4vw, 1.25rem); border-radius: 15px; }
   .report-actions,
@@ -447,7 +548,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform
   .report-card { gap: 1rem; }
   .score-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-actions {
-    grid-template-columns: repeat(2, minmax(0, max-content));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-content: start;
   }
 }

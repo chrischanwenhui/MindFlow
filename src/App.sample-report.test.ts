@@ -25,6 +25,23 @@ describe('fictional sample report UI safeguards', () => {
     expect(html).not.toContain(dictionaries.en.sampleReportNoticeTitle);
   });
 
+  it('puts the assessment and example actions before the category details', () => {
+    const html = renderToStaticMarkup(createElement(App));
+    expect(html.indexOf(dictionaries.en.viewExampleReport)).toBeGreaterThan(-1);
+    expect(html.indexOf(dictionaries.en.viewExampleReport)).toBeLessThan(html.indexOf(dictionaries.en.assessmentCategoriesDisclaimer));
+    expect(html).toContain('<h1 class="hero-title">MindFlow</h1>');
+    expect((html.match(/class="assessment-category-icon"/g) ?? [])).toHaveLength(6);
+    expect((html.match(/Work &amp; Learning/g) ?? [])).toHaveLength(1);
+    expect(html).not.toContain('🧭');
+  });
+
+  it('retains a branded navigation header and separate sample action', () => {
+    const html = renderToStaticMarkup(createElement(App));
+    expect(html).toContain('class="brand brand--nav"');
+    expect(html).toContain('class="hero-secondary-cta"');
+    expect(html).toContain('aria-current="page"');
+  });
+
   it('uses separate sources and routes for fictional and personal reports', () => {
     expect(appSource).toContain("setAssessmentView('sample-report')");
     expect(appSource).toContain("const report = isSampleReport ? fictionalSampleReport : personalReport;");
