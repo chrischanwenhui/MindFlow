@@ -52,6 +52,14 @@ const dimensions: DichotomyResult[] = [
 ];
 
 describe('MbtiFluiditySpectrum', () => {
+  it('never describes fictional sample spectrum responses as the reader\'s own', () => {
+    const html = renderToStaticMarkup(<MbtiFluiditySpectrum dimensions={dimensions} mode="sample" />);
+    expect(html).toContain('fictional participant');
+    expect(html).not.toMatch(/\\b(?:you|your)\\b/i);
+    const personal = renderToStaticMarkup(<MbtiFluiditySpectrum dimensions={dimensions} mode="personal" />);
+    expect(personal).toContain('Your response pattern');
+  });
+
   it('renders 4 rows with normal MBTI dimension data', () => {
     const html = renderToStaticMarkup(<MbtiFluiditySpectrum dimensions={dimensions} />);
 
