@@ -4,6 +4,7 @@ import { AssessmentCategoryIcon } from './components/AssessmentCategoryIcon';
 import { MbtiFluiditySpectrum } from './components/MbtiFluiditySpectrum';
 import { readableOperatingSignal, readableTopOperating, readableGeneralPrompt } from './utils/reportLabels';
 import { ReportSection } from './components/ReportSection';
+import { ReportOverview, coLeadingInterestLabels } from './components/ReportOverview';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { fictionalSampleQuestions, fictionalSampleReport } from './data/sampleAssessment';
@@ -573,7 +574,7 @@ export function App() {
 
       {screen === 'assessment' && (isSampleReport || (assessmentView === 'report' && isPersonalComplete)) && (
         <section className="card report-card print-report" aria-label={isSampleReport ? tx('sampleReportTitle') : tx('personalReportTitle')}>
-          <h2>{isSampleReport ? tx('sampleReportTitle') : tx('personalReportTitle')}</h2>
+          <h1 className="report-main-title">{isSampleReport ? tx('sampleReportTitle') : tx('personalReportTitle')}</h1>
           {isSampleReport && (
             <div className="sample-report-notice" role="note">
               <strong>{tx('sampleReportNoticeTitle')}</strong>
@@ -585,12 +586,23 @@ export function App() {
           <div className="report-actions no-print">
             <button onClick={() => window.print()}>{tx('printPdf')}</button>
           </div>
+          <ReportOverview
+            title={tx('reportOverviewTitle')}
+            note={tx(isSampleReport ? 'reportOverviewSampleNote' : 'reportOverviewPersonalNote')}
+            items={[
+              { label: tx('reportOverviewTypeLabel'), value: report.mbtiScoreState.estimatedType },
+              { label: tx('reportOverviewInterestsLabel'), value: coLeadingInterestLabels(riasecScores).join(' / ') || tx('reportOverviewUnavailable') },
+              { label: tx('reportOverviewMotivationLabel'), value: readableOperatingSignal('motivation', report.motivationPattern, language) },
+              { label: tx('reportOverviewCognitiveLabel'), value: report.topCognitiveLabel }
+            ]}
+          />
+          <h2 className="report-group-heading">{tx('reportGroupProfile')}</h2>
           <ReportSection title={tx('executiveSummarySection')}>
             {language === 'en' ? (
               <>
                 {executiveSummarySections.map((section) => (
                   <div key={section.heading}>
-                    <h3>{section.heading}</h3>
+                    <h4>{section.heading}</h4>
                     <p>{section.body}</p>
                   </div>
                 ))}
@@ -642,6 +654,7 @@ export function App() {
               ))}
             </div>
           </ReportSection>
+          <h2 className="report-group-heading">{tx('reportGroupWork')}</h2>
           <ReportSection title={tx('motivationSection')}>
             <p>{tx('selectedMotivationLabel')} <strong>{readableOperatingSignal('motivation', report.motivationPattern, language)}</strong>.</p>
             <p>{tx('workstyleLabel')} <strong>{readableOperatingSignal('workstyle', report.workstylePattern, language)}</strong>.</p>
@@ -657,6 +670,7 @@ export function App() {
             <p className="disclaimer">{tx('cognitiveUnknownNotice')}</p>
             <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           </ReportSection>
+          <h2 className="report-group-heading">{tx('reportGroupGrowth')}</h2>
           <ReportSection title={tx('strengthsSection')}>
             <p className="disclaimer">{tx('generalPromptDisclosure')}</p>
             <ul>{report.strengths.map((item) => <li key={item}>{readableGeneralPrompt(item, language)}</li>)}</ul>

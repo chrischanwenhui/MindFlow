@@ -42,6 +42,18 @@ describe('fictional sample report UI safeguards', () => {
     expect(html).toContain('aria-current="page"');
   });
 
+  it('places a report overview before the existing detail sections without altering report gating', () => {
+    expect(appSource).toContain("<ReportOverview");
+    expect(appSource).toContain('<h1 className="report-main-title">');
+    expect(appSource).toContain('<h2 className="report-group-heading">');
+    expect(appSource).toContain('<h4>{section.heading}</h4>');
+    expect(appSource.indexOf("<ReportOverview")).toBeLessThan(appSource.indexOf("<ReportSection title={tx('executiveSummarySection')}>"));
+    expect(appSource).toContain("tx('reportGroupProfile')");
+    expect(appSource).toContain("tx('reportGroupWork')");
+    expect(appSource).toContain("tx('reportGroupGrowth')");
+    expect(appSource).toContain("coLeadingInterestLabels(riasecScores)");
+  });
+
   it('uses separate sources and routes for fictional and personal reports', () => {
     expect(appSource).toContain("setAssessmentView('sample-report')");
     expect(appSource).toContain("const report = isSampleReport ? fictionalSampleReport : personalReport;");
