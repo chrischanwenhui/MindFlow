@@ -5,6 +5,7 @@ import { MbtiFluiditySpectrum } from './components/MbtiFluiditySpectrum';
 import { readableOperatingSignal, readableTopOperating, readableGeneralPrompt } from './utils/reportLabels';
 import { ReportSection } from './components/ReportSection';
 import { ReportOverview, coLeadingInterestLabels } from './components/ReportOverview';
+import { EcosystemProducts, EcosystemProductLink } from './components/EcosystemProducts';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { fictionalSampleQuestions, fictionalSampleReport } from './data/sampleAssessment';
@@ -444,6 +445,7 @@ export function App() {
           </section>
         </section>
       )}
+      {screen === 'assessment' && assessmentView === 'landing' && <EcosystemProducts language={language} />}
 
       {screen === 'assessment' && assessmentView === 'start' && (
         <section className="card">
@@ -706,6 +708,7 @@ export function App() {
               </>
             )}
           </div>
+          <EcosystemProductLink language={language} />
         </section>
       )}
 
@@ -716,6 +719,7 @@ export function App() {
           <p className="disclaimer">{tx('nonDiagnosticNotice')}</p>
           <p className="disclaimer">Local-first privacy note: this MVP stores responses locally in your browser only.</p>
           <p className="disclaimer">{tx('translationNotice')}</p>
+          <EcosystemProductLink language={language} />
         </section>
       )}
 
