@@ -54,6 +54,18 @@ describe('fictional sample report UI safeguards', () => {
     expect(appSource).toContain("coLeadingInterestLabels(riasecScores)");
   });
 
+  it('places product discovery on the landing and safe report/about screens, not inside questions', () => {
+    expect(appSource).toContain('<EcosystemProducts language={language} />');
+    expect(appSource).toContain("<EcosystemProductLink language={language} />");
+    expect(appSource).toContain("screen === 'assessment' && assessmentView === 'landing' && <EcosystemProducts");
+    expect(appSource.match(/<EcosystemProductLink language={language} \/>/g)).toHaveLength(2);
+    const html = renderToStaticMarkup(createElement(App));
+    expect(html).toContain('Try our other products');
+    expect(html).toContain('https://cashflow.eireneos.com/');
+    expect(html).not.toContain('Start Questions');
+    expect(appSource).toContain("commitVerifiedRecovery(localStorage, candidate)");
+  });
+
   it('uses separate sources and routes for fictional and personal reports', () => {
     expect(appSource).toContain("setAssessmentView('sample-report')");
     expect(appSource).toContain("const report = isSampleReport ? fictionalSampleReport : personalReport;");

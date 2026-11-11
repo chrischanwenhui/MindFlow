@@ -847,3 +847,81 @@ button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform
 @media (max-width: 359px) {
   .report-overview__grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+/* Ecosystem discovery stays outside the assessment question flow and printed reports. */
+.ecosystem-products { display: grid; gap: 0.8rem; min-width: 0; }
+.ecosystem-products__eyebrow {
+  margin: 0;
+  font-size: 0.76rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #355f85;
+}
+.ecosystem-products h2 { margin: 0; color: #173657; font-size: clamp(1.2rem, 3vw, 1.55rem); }
+.ecosystem-products__introduction { margin: 0; color: #485e76; line-height: 1.55; }
+.ecosystem-products__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr));
+  gap: 0.7rem;
+}
+.ecosystem-product {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid #dce8f2;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #fff, #f9fcff);
+}
+.ecosystem-product__status {
+  margin: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  border: 1px solid #dce7f0;
+  background: #edf4fa;
+  color: #315471;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.ecosystem-product h3 { margin: 0; font-size: 1.06rem; color: #163969; }
+.ecosystem-product__description { flex: 1; margin: 0; color: #405973; line-height: 1.58; overflow-wrap: anywhere; }
+.ecosystem-product__link,
+.ecosystem-products__browse,
+.ecosystem-products-teaser__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #155c85;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.ecosystem-product__link:focus-visible,
+.ecosystem-products__browse:focus-visible,
+.ecosystem-products-teaser__links a:focus-visible {
+  outline: 3px solid #147f9e;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.ecosystem-products__browse { justify-self: start; }
+.ecosystem-products__notice { margin: -0.35rem 0 0; color: #5c6e83; font-size: 0.84rem; }
+.ecosystem-products-teaser {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem;
+  border: 1px solid #dce8f2;
+  border-radius: 12px;
+  background: #f7fbff;
+  overflow-wrap: anywhere;
+}
+.ecosystem-products-teaser strong { color: #163969; }
+.ecosystem-products-teaser p { margin: 0; color: #50647c; }
+.ecosystem-products-teaser__links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; }
+@media (max-width: 450px) {
+  .ecosystem-products__grid { grid-template-columns: minmax(0, 1fr); }
+}
