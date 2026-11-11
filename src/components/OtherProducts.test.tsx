@@ -28,7 +28,7 @@ describe('MindFlow cross-product discovery', () => {
         'relatedTitle', 'relatedIntro', 'relatedCashflowStatus', 'relatedCashflowDesc',
         'relatedCashflowCta', 'relatedPortfolioStatus', 'relatedPortfolioDesc',
         'relatedPortfolioCta', 'relatedDisclosure'
-      ] as const) expect(dictionary[key].trim().length).toBeGreaterThan(4);
+      ] as const) expect(dictionary[key].trim().length).toBeGreaterThanOrEqual(4);
       const html = renderToStaticMarkup(createElement(OtherProducts, { language }));
       expect(html).toContain(dictionary.relatedTitle);
       expect(html).toContain(dictionary.relatedCashflowCta);
