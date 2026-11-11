@@ -31,6 +31,7 @@ export function OtherProducts({ language, headingLevel = 'h2' }: {
   headingLevel?: 'h2' | 'h3';
 }) {
   const Heading = headingLevel;
+  const ProductHeading = headingLevel === 'h2' ? 'h3' : 'h4';
 
   return (
     <section className="other-products no-print" aria-label={t(language, 'relatedTitle')}>
@@ -40,7 +41,7 @@ export function OtherProducts({ language, headingLevel = 'h2' }: {
         {OTHER_PRODUCT_LINKS.map(product => (
           <article className="other-products__item" key={product.name}>
             <span className="other-products__status">{t(language, product.statusKey)}</span>
-            <h4 className="other-products__name">{product.name}</h4>
+            <ProductHeading className="other-products__name">{product.name}</ProductHeading>
             <p className="other-products__description">{t(language, product.descriptionKey)}</p>
             <a className="other-products__link" href={product.url} target="_blank" rel="noopener noreferrer">
               {t(language, product.actionKey)}

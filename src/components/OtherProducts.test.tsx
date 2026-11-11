@@ -34,12 +34,14 @@ describe('MindFlow cross-product discovery', () => {
       expect(html).toContain(dictionary.relatedCashflowCta);
       expect(html).toContain(dictionary.relatedDisclosure);
       expect(html).toContain('<h2 class="other-products__title">');
+      expect(html).toContain('<h3 class="other-products__name">');
     }
   });
 
   it('uses a nested heading when shown inside What We Provide', () => {
     const html = renderToStaticMarkup(createElement(OtherProducts, { language: 'en', headingLevel: 'h3' }));
     expect(html).toContain('<h3 class="other-products__title">');
+    expect(html).toContain('<h4 class="other-products__name">');
     expect(html).toContain('class="other-products no-print"');
   });
 });
