@@ -1,4 +1,13 @@
 export const ko = {
+  relatedTitle: "다른 제품도 사용해 보세요",
+  relatedIntro: "Eirene Stack에서 만드는 다른 도구를 살펴보세요.",
+  relatedCashflowStatus: "공개 앱",
+  relatedCashflowDesc: "돈, 청구서, 예비 자금과 앞으로의 지출을 검토하는 로컬 우선 작업 공간입니다.",
+  relatedCashflowCta: "Cash Flow 열기",
+  relatedPortfolioStatus: "제품 소개",
+  relatedPortfolioDesc: "Advisor Flow, Retail Flow, VIMS를 알아보세요. 일부 제품은 비공개이거나 개발 중입니다.",
+  relatedPortfolioCta: "EireneOS 제품 둘러보기",
+  relatedDisclosure: "링크는 새 탭에서 열리므로 MindFlow 평가 화면이 유지됩니다. 제품별 이용 가능 여부는 다릅니다.",
   reportOverviewTitle: "프로필 한눈에 보기",
   reportOverviewSampleNote: "가상의 답변으로 만든 예시 프로필이며 개인 결과가 아닙니다.",
   reportOverviewPersonalNote: "완료한 응답을 간략히 요약한 것으로 진단 목적이 아닙니다.",

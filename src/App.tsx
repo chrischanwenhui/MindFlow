@@ -5,6 +5,7 @@ import { MbtiFluiditySpectrum } from './components/MbtiFluiditySpectrum';
 import { readableOperatingSignal, readableTopOperating, readableGeneralPrompt } from './utils/reportLabels';
 import { ReportSection } from './components/ReportSection';
 import { ReportOverview, coLeadingInterestLabels } from './components/ReportOverview';
+import { OtherProducts } from './components/OtherProducts';
 import { ScoreBar } from './components/ScoreBar';
 import { questions } from './data/questions';
 import { fictionalSampleQuestions, fictionalSampleReport } from './data/sampleAssessment';
@@ -442,6 +443,7 @@ export function App() {
               </article>
             ))}
           </section>
+          <OtherProducts language={language} />
         </section>
       )}
 
@@ -725,6 +727,7 @@ export function App() {
           <ul>
             <li>Self-discovery assessment</li><li>Personality and trait reflection</li><li>Career-interest signals</li><li>Motivation patterns</li><li>Cognitive-style prompts</li><li>Printable report</li><li>Future: saved profiles, shareable reports, deeper analytics</li>
           </ul>
+          <OtherProducts language={language} headingLevel="h3" />
         </section>
       )}
     </main>

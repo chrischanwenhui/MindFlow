@@ -847,3 +847,62 @@ button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform
 @media (max-width: 359px) {
   .report-overview__grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+/* Related products: a separate, non-interruptive path to the Eirene Stack ecosystem. */
+.other-products {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: clamp(0.85rem, 2vw, 1.2rem);
+  border: 1px solid #d6e5f2;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #f3f9fd 0%, #ffffff 100%);
+}
+.other-products__title { margin: 0; font-size: clamp(1.1rem, 2.5vw, 1.4rem); color: #15365b; }
+.other-products__intro { margin: 0; color: #526781; }
+.other-products__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.other-products__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid #dbe8f3;
+  border-radius: 13px;
+  background: #fff;
+}
+.other-products__status {
+  font-size: 0.74rem;
+  color: #285a70;
+  font-weight: 650;
+  border-radius: 999px;
+  background: #e9f4f7;
+  padding: 0.15rem 0.55rem;
+}
+.other-products__name { margin: 0; font-size: 1.06rem; color: #173657; }
+.other-products__description { margin: 0; color: #465b72; flex: 1; overflow-wrap: anywhere; }
+.other-products__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid #bdd3e6;
+  border-radius: 10px;
+  color: #163d68;
+  background: #edf5fb;
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+}
+.other-products__link:hover { border-color: #7faaca; background: #deedf8; }
+.other-products__link:focus-visible { outline: 3px solid #2582ac; outline-offset: 3px; }
+.other-products__footnote { margin: 0; color: #576c7d; font-size: 0.83rem; line-height: 1.5; }
+@media (max-width: 640px) {
+  .other-products__grid { grid-template-columns: minmax(0, 1fr); }
+  .other-products__item { padding: 0.85rem; }
+  .other-products__link { width: 100%; }
+}

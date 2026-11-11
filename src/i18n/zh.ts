@@ -1,4 +1,13 @@
 export const zh = {
+  relatedTitle: "体验我们的其他产品",
+  relatedIntro: "探索 Eirene Stack 开发的其他工具。",
+  relatedCashflowStatus: "公开应用",
+  relatedCashflowDesc: "本地优先的财务规划工具，帮助查看资金、账单、储备金和即将到期的支出。",
+  relatedCashflowCta: "打开 Cash Flow",
+  relatedPortfolioStatus: "产品目录",
+  relatedPortfolioDesc: "了解 Advisor Flow、Retail Flow 和 VIMS。部分产品仍处于私有或开发阶段。",
+  relatedPortfolioCta: "探索 EireneOS 产品",
+  relatedDisclosure: "链接将在新标签页打开，MindFlow 测评页面会保持不变。各产品的开放情况有所不同。",
   reportOverviewTitle: "个人画像概览",
   reportOverviewSampleNote: "根据虚构答案编写的示例画像，并非你的个人结果。",
   reportOverviewPersonalNote: "基于本次已完成回答的简明概览，仅供非诊断性反思。",

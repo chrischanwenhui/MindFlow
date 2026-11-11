@@ -1,4 +1,13 @@
 export const ja = {
+  relatedTitle: "ほかの製品を試す",
+  relatedIntro: "Eirene Stack が開発するほかのツールをご覧ください。",
+  relatedCashflowStatus: "公開アプリ",
+  relatedCashflowDesc: "お金、請求、積立金、今後の支払いを確認する、ローカル優先のワークスペースです。",
+  relatedCashflowCta: "Cash Flow を開く",
+  relatedPortfolioStatus: "製品一覧",
+  relatedPortfolioDesc: "Advisor Flow、Retail Flow、VIMS を紹介しています。一部は非公開または開発中です。",
+  relatedPortfolioCta: "EireneOS 製品を見る",
+  relatedDisclosure: "リンクは新しいタブで開き、MindFlow の回答画面はそのまま残ります。製品によって利用条件が異なります。",
   reportOverviewTitle: "プロフィール概要",
   reportOverviewSampleNote: "架空の回答から作成した例示プロフィールです。本人の結果ではありません。",
   reportOverviewPersonalNote: "今回の回答結果の簡潔な概要です。診断を目的としません。",

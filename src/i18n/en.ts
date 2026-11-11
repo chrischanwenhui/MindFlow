@@ -1,4 +1,13 @@
 export const en = {
+  relatedTitle: "Try Our Other Products",
+  relatedIntro: "Explore other tools built by Eirene Stack.",
+  relatedCashflowStatus: "Public application",
+  relatedCashflowDesc: "A local-first workspace to review money, bills, reserves, and upcoming commitments.",
+  relatedCashflowCta: "Open Cash Flow",
+  relatedPortfolioStatus: "Portfolio overview",
+  relatedPortfolioDesc: "Discover Advisor Flow, Retail Flow and VIMS. Some products are private or still in development.",
+  relatedPortfolioCta: "Explore EireneOS Products",
+  relatedDisclosure: "Links open in a new tab so your MindFlow assessment stays here. Product access and availability vary.",
   reportOverviewTitle: "Profile at a Glance",
   reportOverviewSampleNote: "Illustrative fictional profile based on invented answers. These are not your personal results.",
   reportOverviewPersonalNote: "A compact overview of this completed response set; these estimates are non-diagnostic.",

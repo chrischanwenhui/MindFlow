@@ -1,4 +1,13 @@
 export const th = {
+  relatedTitle: "ลองใช้ผลิตภัณฑ์อื่นของเรา",
+  relatedIntro: "สำรวจเครื่องมืออื่นที่พัฒนาโดย Eirene Stack",
+  relatedCashflowStatus: "แอปสาธารณะ",
+  relatedCashflowDesc: "พื้นที่ทำงานที่ให้ความสำคัญกับข้อมูลในเครื่อง สำหรับตรวจสอบเงิน บิล เงินสำรอง และภาระที่กำลังจะถึง",
+  relatedCashflowCta: "เปิด Cash Flow",
+  relatedPortfolioStatus: "ภาพรวมผลิตภัณฑ์",
+  relatedPortfolioDesc: "รู้จัก Advisor Flow, Retail Flow และ VIMS บางผลิตภัณฑ์ยังเป็นโครงการส่วนตัวหรืออยู่ระหว่างพัฒนา",
+  relatedPortfolioCta: "สำรวจผลิตภัณฑ์ EireneOS",
+  relatedDisclosure: "ลิงก์จะเปิดในแท็บใหม่ เพื่อให้หน้าแบบประเมิน MindFlow ของคุณยังอยู่ที่เดิม การเข้าถึงแต่ละผลิตภัณฑ์แตกต่างกัน",
   reportOverviewTitle: "ภาพรวมโปรไฟล์",
   reportOverviewSampleNote: "โปรไฟล์สมมติจากคำตอบที่แต่งขึ้น ไม่ใช่ผลการประเมินส่วนตัวของคุณ",
   reportOverviewPersonalNote: "สรุปคำตอบที่ทำครบชุดเพื่อการสะท้อนตนเอง ไม่ใช่การวินิจฉัย",

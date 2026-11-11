@@ -1,4 +1,13 @@
 export const ms = {
+  relatedTitle: "Cuba Produk Kami yang Lain",
+  relatedIntro: "Terokai alat lain yang dibangunkan oleh Eirene Stack.",
+  relatedCashflowStatus: "Aplikasi awam",
+  relatedCashflowDesc: "Ruang kerja yang mengutamakan storan setempat untuk menyemak wang, bil, simpanan dan komitmen akan datang.",
+  relatedCashflowCta: "Buka Cash Flow",
+  relatedPortfolioStatus: "Gambaran produk",
+  relatedPortfolioDesc: "Kenali Advisor Flow, Retail Flow dan VIMS. Sesetengah produk masih dalam pembangunan atau akses terhad.",
+  relatedPortfolioCta: "Terokai Produk EireneOS",
+  relatedDisclosure: "Pautan dibuka dalam tab baharu supaya penilaian MindFlow anda kekal di sini. Akses setiap produk berbeza.",
   reportOverviewTitle: "Profil Sepintas Lalu",
   reportOverviewSampleNote: "Profil rekaan berdasarkan jawapan yang direka. Ini bukan keputusan peribadi anda.",
   reportOverviewPersonalNote: "Ringkasan set jawapan yang lengkap ini, untuk refleksi bukan diagnosis.",
