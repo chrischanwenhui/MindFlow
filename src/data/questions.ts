@@ -181,18 +181,18 @@ const mslw = [
   mkMS('mslw-workstyle-8','workstyle','What helps you deliver reliably over time?',[['Stable personal systems','systems','2'],['Continuous adaptation','adaptation','2'],['Strong coordination habits','coordination','2']])
 ];
 const pattern = [
-  mkCog('cog-pattern-1','pattern','easy','Pattern: 4, 7, 11, 16, 22, ?', [['27',2],['28',0],['29',0],['30',0]]),
+  mkCog('cog-pattern-1','pattern','easy','Pattern: 4, 7, 11, 16, 22, ?', [['27',0],['28',0],['29',2],['30',0]]),
   mkCog('cog-pattern-2','pattern','easy','Pattern: 3, 6, 12, 24, ?', [['36',0],['48',2],['54',0],['60',0]]),
   mkCog('cog-pattern-3','pattern','easy','Pattern: 2, 6, 18, 54, ?', [['108',0],['126',0],['162',2],['180',0]]),
   mkCog('cog-pattern-4','pattern','easy','Pattern: 10, 13, 16, 19, ?', [['20',0],['21',0],['22',2],['23',0]]),
   mkCog('cog-pattern-5','pattern','medium','Pattern: 1, 4, 9, 16, 25, ?', [['30',0],['34',0],['36',2],['49',0]]),
   mkCog('cog-pattern-6','pattern','medium','Pattern: 2, 5, 10, 17, 26, ?', [['37',2],['38',0],['39',0],['40',0]]),
   mkCog('cog-pattern-7','pattern','medium','Pattern: 81, 27, 9, 3, ?', [['2',0],['1',2],['0',0],['3',0]]),
-  mkCog('cog-pattern-8','pattern','medium','Pattern: 7, 10, 16, 25, 37, ?', [['48',0],['49',0],['50',2],['52',0]]),
+  mkCog('cog-pattern-8','pattern','medium','Pattern: 7, 10, 16, 25, 37, ?', [['48',0],['49',0],['50',0],['52',2]]),
   mkCog('cog-pattern-9','pattern','medium','Pattern: 5, 9, 17, 33, ?', [['49',0],['57',0],['61',0],['65',2]]),
   mkCog('cog-pattern-10','pattern','hard','Pattern: 1, 2, 6, 24, 120, ?', [['240',0],['600',0],['720',2],['840',0]]),
   mkCog('cog-pattern-11','pattern','hard','Pattern: 8, 6, 9, 7, 10, 8, ?', [['11',2],['12',0],['13',0],['14',0]]),
-  mkCog('cog-pattern-12','pattern','hard','Pattern: 2, 3, 5, 8, 12, 17, ?', [['21',0],['23',0],['24',2],['26',0]])
+  mkCog('cog-pattern-12','pattern','hard','Pattern: 2, 3, 5, 8, 12, 17, ?', [['21',0],['23',2],['24',0],['26',0]])
 ];
 const verbal = [
 mkCog('cog-verbal-1','verbal','easy','Map is to route as blueprint is to…',[['Construction plan',2],['Highway',0],['Compass',0],['Blueprint color',0]]),
